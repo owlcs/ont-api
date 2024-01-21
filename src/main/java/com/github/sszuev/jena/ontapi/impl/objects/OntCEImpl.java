@@ -15,15 +15,15 @@
 package com.github.sszuev.jena.ontapi.impl.objects;
 
 import com.github.sszuev.jena.ontapi.OntJenaException;
+import com.github.sszuev.jena.ontapi.common.BaseFactoryImpl;
+import com.github.sszuev.jena.ontapi.common.Factories;
+import com.github.sszuev.jena.ontapi.common.ObjectFactory;
+import com.github.sszuev.jena.ontapi.common.OntFilter;
+import com.github.sszuev.jena.ontapi.common.OntFinder;
+import com.github.sszuev.jena.ontapi.common.OntMaker;
+import com.github.sszuev.jena.ontapi.common.WrappedFactoryImpl;
 import com.github.sszuev.jena.ontapi.impl.OntGraphModelImpl;
 import com.github.sszuev.jena.ontapi.impl.PersonalityModel;
-import com.github.sszuev.jena.ontapi.impl.conf.BaseFactoryImpl;
-import com.github.sszuev.jena.ontapi.impl.conf.Factories;
-import com.github.sszuev.jena.ontapi.impl.conf.ObjectFactory;
-import com.github.sszuev.jena.ontapi.impl.conf.OntFilter;
-import com.github.sszuev.jena.ontapi.impl.conf.OntFinder;
-import com.github.sszuev.jena.ontapi.impl.conf.OntMaker;
-import com.github.sszuev.jena.ontapi.impl.conf.WrappedFactoryImpl;
 import com.github.sszuev.jena.ontapi.model.OntClass;
 import com.github.sszuev.jena.ontapi.model.OntDataProperty;
 import com.github.sszuev.jena.ontapi.model.OntDataRange;
@@ -35,10 +35,10 @@ import com.github.sszuev.jena.ontapi.model.OntModel;
 import com.github.sszuev.jena.ontapi.model.OntObject;
 import com.github.sszuev.jena.ontapi.model.OntObjectProperty;
 import com.github.sszuev.jena.ontapi.model.OntProperty;
-import com.github.sszuev.jena.ontapi.model.OntRealProperty;
+import com.github.sszuev.jena.ontapi.model.OntRelationalProperty;
 import com.github.sszuev.jena.ontapi.model.OntStatement;
 import com.github.sszuev.jena.ontapi.utils.Iterators;
-import com.github.sszuev.jena.ontapi.utils.Models;
+import com.github.sszuev.jena.ontapi.utils.StdModels;
 import com.github.sszuev.jena.ontapi.vocabulary.OWL;
 import com.github.sszuev.jena.ontapi.vocabulary.RDF;
 import com.github.sszuev.jena.ontapi.vocabulary.XSD;
@@ -331,7 +331,7 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntClass {
     }
 
     public static HasSelf createHasSelf(OntGraphModelImpl model, OntObjectProperty onProperty) {
-        Resource res = createOnPropertyRestriction(model, onProperty).addProperty(OWL.hasSelf, Models.TRUE);
+        Resource res = createOnPropertyRestriction(model, onProperty).addProperty(OWL.hasSelf, StdModels.TRUE);
         return model.getNodeAs(res.asNode(), HasSelf.class);
     }
 
@@ -351,13 +351,13 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntClass {
         return res;
     }
 
-    public static OntList<OntRealProperty> createHasKey(OntGraphModelImpl m, OntClass clazz, Stream<? extends OntRealProperty> collection) {
-        return m.createOntList(clazz, OWL.hasKey, OntRealProperty.class,
-                collection.distinct().map(OntRealProperty.class::cast).iterator());
+    public static OntList<OntRelationalProperty> createHasKey(OntGraphModelImpl m, OntClass clazz, Stream<? extends OntRelationalProperty> collection) {
+        return m.createOntList(clazz, OWL.hasKey, OntRelationalProperty.class,
+                collection.distinct().map(OntRelationalProperty.class::cast).iterator());
     }
 
-    public static Stream<OntList<OntRealProperty>> listHasKeys(OntGraphModelImpl m, OntClass clazz) {
-        return OntListImpl.stream(m, clazz, OWL.hasKey, OntRealProperty.class);
+    public static Stream<OntList<OntRelationalProperty>> listHasKeys(OntGraphModelImpl m, OntClass clazz) {
+        return OntListImpl.stream(m, clazz, OWL.hasKey, OntRelationalProperty.class);
     }
 
     public static void removeHasKey(OntGraphModelImpl model,
@@ -366,16 +366,16 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntClass {
         model.deleteOntList(clazz, OWL.hasKey, clazz.findHasKey(rdfList).orElse(null));
     }
 
-    public static Stream<OntRealProperty> declaredProperties(OntClass clazz, boolean direct) {
+    public static Stream<OntRelationalProperty> declaredProperties(OntClass clazz, boolean direct) {
         OntModel m = clazz.getModel();
-        Stream<OntRealProperty> properties = Stream.concat(
+        Stream<OntRelationalProperty> properties = Stream.concat(
                 m.statements(null, RDF.type, OWL.ObjectProperty).map(s -> s.getSubject().getAs(OntObjectProperty.class)),
                 m.statements(null, RDF.type, OWL.DatatypeProperty).map(s -> s.getSubject().getAs(OntDataProperty.class))
         );
-        return properties.filter(p -> p != null && testDomain(clazz, p, direct)).map(p -> p.as(OntRealProperty.class));
+        return properties.filter(p -> p != null && testDomain(clazz, p, direct)).map(p -> p.as(OntRelationalProperty.class));
     }
 
-    public static boolean testDomain(OntClass clazz, OntRealProperty property, boolean direct) {
+    public static boolean testDomain(OntClass clazz, OntRelationalProperty property, boolean direct) {
         if (property.isURIResource() && property.as(OntEntity.class).isBuiltIn()) {
             return false;
         }
@@ -460,17 +460,17 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntClass {
     }
 
     @Override
-    public OntList<OntRealProperty> createHasKey(Collection<OntObjectProperty> ope, Collection<OntDataProperty> dpe) {
+    public OntList<OntRelationalProperty> createHasKey(Collection<OntObjectProperty> ope, Collection<OntDataProperty> dpe) {
         return createHasKey(getModel(), this, Stream.of(ope, dpe).flatMap(Collection::stream));
     }
 
     @Override
-    public OntStatement addHasKeyStatement(OntRealProperty... properties) {
+    public OntStatement addHasKeyStatement(OntRelationalProperty... properties) {
         return createHasKey(getModel(), this, Arrays.stream(properties)).getMainStatement();
     }
 
     @Override
-    public Stream<OntList<OntRealProperty>> hasKeys() {
+    public Stream<OntList<OntRelationalProperty>> hasKeys() {
         return listHasKeys(getModel(), this);
     }
 
@@ -496,12 +496,12 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntClass {
     }
 
     @Override
-    public boolean hasDeclaredProperty(OntRealProperty property, boolean direct) {
+    public boolean hasDeclaredProperty(OntRelationalProperty property, boolean direct) {
         return testDomain(this, property, direct);
     }
 
     @Override
-    public Stream<OntRealProperty> declaredProperties(boolean direct) {
+    public Stream<OntRelationalProperty> declaredProperties(boolean direct) {
         return declaredProperties(this, direct);
     }
 
@@ -927,17 +927,17 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntClass {
     /**
      * Abstract implementation for any restriction with {@code owl:onProperty} predicate.
      *
-     * @param <P> a subtype of {@link OntRealProperty Data or Object Property Expression}
+     * @param <P> a subtype of {@link OntRelationalProperty Data or Object Property Expression}
      * @param <R> return type for {@link OWL#onProperty} setter
      */
-    protected static abstract class OnPropertyRestrictionCEImpl<P extends OntRealProperty, R extends OntCEImpl>
+    protected static abstract class OnPropertyRestrictionCEImpl<P extends OntRelationalProperty, R extends OntCEImpl>
             extends OntCEImpl implements UnaryRestrictionCE<P> {
         protected final Class<P> propertyView;
 
         /**
          * @param n            {@link Node}
          * @param m            {@link EnhGraph}
-         * @param propertyType Class-type for {@link OntRealProperty}
+         * @param propertyType Class-type for {@link OntRelationalProperty}
          */
         protected OnPropertyRestrictionCEImpl(Node n, EnhGraph m, Class<P> propertyType) {
             super(n, m);
@@ -972,11 +972,11 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntClass {
      * It's for CE which has owl:onProperty and some component also (with predicate owl:dataRange,owl:onClass, owl:someValuesFrom, owl:allValuesFrom)
      *
      * @param <O> a class-type of {@link RDFNode rdf-node}
-     * @param <P> a class-type of {@link OntRealProperty data or object property-expression}
+     * @param <P> a class-type of {@link OntRelationalProperty data or object property-expression}
      * @param <R> a subtype of {@link ComponentRestrictionCEImpl}
      */
     protected static abstract class ComponentRestrictionCEImpl<O extends RDFNode,
-            P extends OntRealProperty,
+            P extends OntRelationalProperty,
             R extends ComponentRestrictionCEImpl<?, ?, ?>>
             extends OnPropertyRestrictionCEImpl<P, R> implements ComponentRestrictionCE<O, P> {
         protected final Property predicate;
@@ -1030,7 +1030,7 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntClass {
      * @param <R> subtype of {@link CardinalityRestrictionCEImpl}
      */
     protected static abstract class CardinalityRestrictionCEImpl<O extends OntObject,
-            P extends OntRealProperty,
+            P extends OntRelationalProperty,
             R extends CardinalityRestrictionCEImpl<?, ?, ?>>
             extends ComponentRestrictionCEImpl<O, P, R> implements CardinalityRestrictionCE<O, P> {
         protected final CardinalityType cardinalityType;
@@ -1118,7 +1118,7 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntClass {
     }
 
     protected static abstract class NaryRestrictionCEImpl<O extends OntObject,
-            P extends OntRealProperty, R extends NaryRestrictionCEImpl<?, ?, ?>>
+            P extends OntRelationalProperty, R extends NaryRestrictionCEImpl<?, ?, ?>>
             extends OntCEImpl implements NaryRestrictionCE<O, P> {
         protected final Property predicate;
         protected final Class<O> objectType; // always OntDR
@@ -1186,7 +1186,7 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntClass {
     protected static class HasSelfFilter implements OntFilter {
         @Override
         public boolean test(Node n, EnhGraph g) {
-            return g.asGraph().contains(n, OWL.hasSelf.asNode(), Models.TRUE.asNode());
+            return g.asGraph().contains(n, OWL.hasSelf.asNode(), StdModels.TRUE.asNode());
         }
     }
 
@@ -1198,7 +1198,7 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntClass {
         @Override
         public void make(Node node, EnhGraph eg) {
             super.make(node, eg);
-            eg.asGraph().add(Triple.create(node, OWL.hasSelf.asNode(), Models.TRUE.asNode()));
+            eg.asGraph().add(Triple.create(node, OWL.hasSelf.asNode(), StdModels.TRUE.asNode()));
         }
     }
 

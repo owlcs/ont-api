@@ -20,7 +20,7 @@ import com.github.sszuev.jena.ontapi.model.OntDataProperty;
 import com.github.sszuev.jena.ontapi.model.OntIndividual;
 import com.github.sszuev.jena.ontapi.model.OntList;
 import com.github.sszuev.jena.ontapi.model.OntObjectProperty;
-import com.github.sszuev.jena.ontapi.model.OntRealProperty;
+import com.github.sszuev.jena.ontapi.model.OntRelationalProperty;
 import com.github.sszuev.jena.ontapi.model.OntStatement;
 import com.github.sszuev.jena.ontapi.vocabulary.OWL;
 import org.apache.jena.enhanced.EnhGraph;
@@ -82,12 +82,12 @@ public class OntClassImpl extends OntObjectImpl implements OntClass.Named {
     }
 
     @Override
-    public boolean hasDeclaredProperty(OntRealProperty property, boolean direct) {
+    public boolean hasDeclaredProperty(OntRelationalProperty property, boolean direct) {
         return OntCEImpl.testDomain(this, property, direct);
     }
 
     @Override
-    public Stream<OntRealProperty> declaredProperties(boolean direct) {
+    public Stream<OntRelationalProperty> declaredProperties(boolean direct) {
         return OntCEImpl.declaredProperties(this, direct);
     }
 
@@ -97,17 +97,17 @@ public class OntClassImpl extends OntObjectImpl implements OntClass.Named {
     }
 
     @Override
-    public OntList<OntRealProperty> createHasKey(Collection<OntObjectProperty> ope, Collection<OntDataProperty> dpe) {
+    public OntList<OntRelationalProperty> createHasKey(Collection<OntObjectProperty> ope, Collection<OntDataProperty> dpe) {
         return OntCEImpl.createHasKey(getModel(), this, Stream.of(ope, dpe).flatMap(Collection::stream));
     }
 
     @Override
-    public OntStatement addHasKeyStatement(OntRealProperty... properties) {
+    public OntStatement addHasKeyStatement(OntRelationalProperty... properties) {
         return OntCEImpl.createHasKey(getModel(), this, Arrays.stream(properties)).getMainStatement();
     }
 
     @Override
-    public Stream<OntList<OntRealProperty>> hasKeys() {
+    public Stream<OntList<OntRelationalProperty>> hasKeys() {
         return OntCEImpl.listHasKeys(getModel(), this);
     }
 

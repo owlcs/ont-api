@@ -23,7 +23,7 @@ import com.github.sszuev.jena.ontapi.model.OntObject;
 import com.github.sszuev.jena.ontapi.model.OntStatement;
 import com.github.sszuev.jena.ontapi.utils.Graphs;
 import com.github.sszuev.jena.ontapi.utils.Iterators;
-import com.github.sszuev.jena.ontapi.utils.Models;
+import com.github.sszuev.jena.ontapi.utils.StdModels;
 import com.github.sszuev.jena.ontapi.vocabulary.OWL;
 import com.github.sszuev.jena.ontapi.vocabulary.RDF;
 import org.apache.jena.enhanced.EnhGraph;
@@ -378,7 +378,7 @@ public abstract class OntListImpl<E extends RDFNode> extends ResourceImpl implem
         RDFList list = Objects.requireNonNull(operation).apply(this.objectRDFList);
         Statement s = m.createStatement(subject, predicate, list);
         if (!m.contains(s)) {
-            throw new OntJenaException.IllegalState(Models.toString(s) + " does not exist");
+            throw new OntJenaException.IllegalState(StdModels.toString(s) + " does not exist");
         }
         if (!objectRDFList.equals(list)) {
             listAnnotations(m, subject, predicate, objectRDFList).toSet()

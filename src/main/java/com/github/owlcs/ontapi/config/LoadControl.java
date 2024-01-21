@@ -15,7 +15,7 @@
 package com.github.owlcs.ontapi.config;
 
 import com.github.owlcs.ontapi.transforms.GraphTransformers;
-import com.github.sszuev.jena.ontapi.impl.conf.OntPersonality;
+import com.github.sszuev.jena.ontapi.common.OntPersonality;
 
 import java.util.Collections;
 import java.util.List;

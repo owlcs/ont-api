@@ -180,7 +180,7 @@ public interface OntSWRL extends OntObject {
         /**
          * A binary atom abstraction.
          *
-         * @param <P> the predicate - either {@link Arg} or {@link OntRealProperty}
+         * @param <P> the predicate - either {@link Arg} or {@link OntRelationalProperty}
          * @param <F> {@link Arg} the first argument
          * @param <S> {@link Arg} the second argument
          */

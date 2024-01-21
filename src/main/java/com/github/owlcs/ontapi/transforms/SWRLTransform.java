@@ -16,7 +16,7 @@ package com.github.owlcs.ontapi.transforms;
 
 import com.github.sszuev.jena.ontapi.OntVocabulary;
 import com.github.sszuev.jena.ontapi.utils.Iterators;
-import com.github.sszuev.jena.ontapi.utils.Models;
+import com.github.sszuev.jena.ontapi.utils.StdModels;
 import com.github.sszuev.jena.ontapi.vocabulary.RDF;
 import com.github.sszuev.jena.ontapi.vocabulary.SWRL;
 import org.apache.jena.graph.FrontsTriple;
@@ -87,7 +87,7 @@ public class SWRLTransform extends TransformationModel {
                         return;
                     }
                     if (o.hasProperty(RDF.type, SWRL.AtomList)) return;
-                    Iterators.create(Models.getListStatements(o.as(RDFList.class)))
+                    Iterators.create(StdModels.getListStatements(o.as(RDFList.class)))
                             .mapWith(Statement::getSubject)
                             .toSet()
                             .forEach(x -> declare(x, SWRL.AtomList));

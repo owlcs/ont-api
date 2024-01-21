@@ -18,8 +18,9 @@ import com.github.owlcs.ontapi.OntManagers;
 import com.github.owlcs.ontapi.Ontology;
 import com.github.owlcs.ontapi.OntologyManager;
 import com.github.owlcs.ontapi.owlapi.objects.AnonymousIndividualImpl;
-import com.github.sszuev.jena.ontapi.impl.conf.OntModelConfig;
-import com.github.sszuev.jena.ontapi.impl.conf.OntPersonality;
+import com.github.sszuev.jena.ontapi.common.OntPersonalities;
+import com.github.sszuev.jena.ontapi.common.OntPersonality;
+import com.github.sszuev.jena.ontapi.common.PunningsMode;
 import com.github.sszuev.jena.ontapi.model.OntID;
 import com.github.sszuev.jena.ontapi.model.OntModel;
 import com.github.sszuev.jena.ontapi.utils.Graphs;
@@ -141,14 +142,14 @@ public class MiscTestUtils {
                 ((OWLNaryAxiom<?>) a).splitToAnnotatedPairs().stream() : Stream.of(a)).distinct();
     }
 
-    public static OntModelConfig.StdMode getMode(OntPersonality profile) {
-        OntModelConfig.StdMode mode = null;
-        if (OntModelConfig.ONT_PERSONALITY_STRICT.equals(profile)) {
-            mode = OntModelConfig.StdMode.STRICT;
-        } else if (OntModelConfig.ONT_PERSONALITY_MEDIUM.equals(profile)) {
-            mode = OntModelConfig.StdMode.MEDIUM;
-        } else if (OntModelConfig.ONT_PERSONALITY_LAX.equals(profile)) {
-            mode = OntModelConfig.StdMode.LAX;
+    public static PunningsMode getMode(OntPersonality profile) {
+        PunningsMode mode = null;
+        if (OntPersonalities.ONT_PERSONALITY_STRICT.equals(profile)) {
+            mode = PunningsMode.DL2;
+        } else if (OntPersonalities.ONT_PERSONALITY_MEDIUM.equals(profile)) {
+            mode = PunningsMode.DL_WEAK;
+        } else if (OntPersonalities.ONT_PERSONALITY_LAX.equals(profile)) {
+            mode = PunningsMode.FULL;
         } else {
             Assertions.fail("Unsupported personality profile " + profile);
         }
@@ -159,16 +160,16 @@ public class MiscTestUtils {
      * gets 'punnings' for rdf:Property types (owl:AnnotationProperty, owl:DatatypeProperty, owl:ObjectProperty)
      *
      * @param model {@link Model}
-     * @param mode  {@link OntModelConfig.StdMode}
+     * @param mode  {@link PunningsMode}
      * @return Set of resources
      */
-    public static Set<Resource> getPropertyPunnings(Model model, OntModelConfig.StdMode mode) {
-        if (OntModelConfig.StdMode.LAX.equals(mode)) return Collections.emptySet();
+    public static Set<Resource> getPropertyPunnings(Model model, PunningsMode mode) {
+        if (PunningsMode.FULL.equals(mode)) return Collections.emptySet();
         Set<Resource> objectProperties = model.listStatements(null, RDF.type, OWL.ObjectProperty)
                 .mapWith(Statement::getSubject).toSet();
         Set<Resource> datatypeProperties = model.listStatements(null, RDF.type, OWL.DatatypeProperty)
                 .mapWith(Statement::getSubject).toSet();
-        if (OntModelConfig.StdMode.MEDIUM.equals(mode))
+        if (PunningsMode.DL_WEAK.equals(mode))
             return unionOfIntersections(objectProperties, datatypeProperties);
         Set<Resource> annotationProperties = model.listStatements(null, RDF.type, OWL.AnnotationProperty)
                 .mapWith(Statement::getSubject).toSet();
@@ -179,11 +180,11 @@ public class MiscTestUtils {
      * gets 'punnings' for rdfs:Class types (owl:Class and rdfs:Datatype)
      *
      * @param model {@link Model}
-     * @param mode  {@link OntModelConfig.StdMode}
+     * @param mode  {@link PunningsMode}
      * @return Set of resources
      */
-    public static Set<Resource> getClassPunnings(Model model, OntModelConfig.StdMode mode) {
-        if (OntModelConfig.StdMode.LAX.equals(mode)) return Collections.emptySet();
+    public static Set<Resource> getClassPunnings(Model model, PunningsMode mode) {
+        if (PunningsMode.FULL.equals(mode)) return Collections.emptySet();
         Set<Resource> classes = model.listStatements(null, RDF.type, OWL.Class).mapWith(Statement::getSubject).toSet();
         Set<Resource> datatypes = model.listStatements(null, RDF.type, RDFS.Datatype).mapWith(Statement::getSubject).toSet();
         return unionOfIntersections(classes, datatypes);
@@ -193,10 +194,10 @@ public class MiscTestUtils {
      * gets the set of 'illegal punnings' from their explicit declaration accordingly specified mode.
      *
      * @param model {@link Model}
-     * @param mode  {@link OntModelConfig.StdMode}
+     * @param mode  {@link PunningsMode}
      * @return Set of illegal punnings
      */
-    public static Set<Resource> getIllegalPunnings(Model model, OntModelConfig.StdMode mode) {
+    public static Set<Resource> getIllegalPunnings(Model model, PunningsMode mode) {
         Set<Resource> res = new HashSet<>(getPropertyPunnings(model, mode));
         res.addAll(getClassPunnings(model, mode));
         return res;

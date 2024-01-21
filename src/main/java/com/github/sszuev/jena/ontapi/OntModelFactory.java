@@ -14,9 +14,9 @@
 
 package com.github.sszuev.jena.ontapi;
 
+import com.github.sszuev.jena.ontapi.common.OntPersonalities;
+import com.github.sszuev.jena.ontapi.common.OntPersonality;
 import com.github.sszuev.jena.ontapi.impl.OntGraphModelImpl;
-import com.github.sszuev.jena.ontapi.impl.conf.OntModelConfig;
-import com.github.sszuev.jena.ontapi.impl.conf.OntPersonality;
 import com.github.sszuev.jena.ontapi.model.OntModel;
 import com.github.sszuev.jena.ontapi.vocabulary.OWL;
 import com.github.sszuev.jena.ontapi.vocabulary.RDF;
@@ -83,7 +83,7 @@ public class OntModelFactory {
      * Creates a fresh in-memory Ontology RDF Model with default personalities.
      *
      * @return {@link OntModel}
-     * @see OntModelConfig#getPersonality()
+     * @see OntPersonalities#getPersonality()
      */
     public static OntModel createModel() {
         return createModel(createDefaultGraph());
@@ -96,7 +96,7 @@ public class OntModelFactory {
      * @return {@link OntModel}
      */
     public static OntModel createModel(Graph graph) {
-        return createModel(graph, OntModelConfig.getPersonality());
+        return createModel(graph, OntPersonalities.getPersonality());
     }
 
     /**

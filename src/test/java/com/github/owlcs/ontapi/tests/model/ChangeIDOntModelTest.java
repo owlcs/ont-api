@@ -24,7 +24,7 @@ import com.github.sszuev.jena.ontapi.OntModelFactory;
 import com.github.sszuev.jena.ontapi.model.OntClass;
 import com.github.sszuev.jena.ontapi.model.OntID;
 import com.github.sszuev.jena.ontapi.model.OntModel;
-import com.github.sszuev.jena.ontapi.utils.Models;
+import com.github.sszuev.jena.ontapi.utils.StdModels;
 import com.github.sszuev.jena.ontapi.vocabulary.OWL;
 import com.github.sszuev.jena.ontapi.vocabulary.RDF;
 import org.apache.jena.rdf.model.Literal;
@@ -263,9 +263,9 @@ public class ChangeIDOntModelTest extends OntModelTestBase {
         // check jena annotations:
         for (Property p : annotations.keySet()) {
             List<RDFNode> actualList = jena.listStatements(ontID, p, (RDFNode) null).mapWith(Statement::getObject).
-                    toList().stream().sorted(Models.RDF_NODE_COMPARATOR).collect(Collectors.toList());
+                    toList().stream().sorted(StdModels.RDF_NODE_COMPARATOR).collect(Collectors.toList());
             List<RDFNode> expectedList = annotations.get(p).stream()
-                    .sorted(Models.RDF_NODE_COMPARATOR).collect(Collectors.toList());
+                    .sorted(StdModels.RDF_NODE_COMPARATOR).collect(Collectors.toList());
             Assertions.assertEquals(expectedList, actualList);
         }
     }

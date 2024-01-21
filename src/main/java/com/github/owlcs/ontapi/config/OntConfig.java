@@ -17,7 +17,7 @@ package com.github.owlcs.ontapi.config;
 import com.github.owlcs.ontapi.NoOpReadWriteLock;
 import com.github.owlcs.ontapi.OntApiException;
 import com.github.owlcs.ontapi.transforms.GraphTransformers;
-import com.github.sszuev.jena.ontapi.impl.conf.OntPersonality;
+import com.github.sszuev.jena.ontapi.common.OntPersonality;
 import javax.annotation.Nonnull;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.MissingImportHandlingStrategy;

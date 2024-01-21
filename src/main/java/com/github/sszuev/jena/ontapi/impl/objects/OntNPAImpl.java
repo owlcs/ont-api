@@ -14,17 +14,17 @@
 
 package com.github.sszuev.jena.ontapi.impl.objects;
 
+import com.github.sszuev.jena.ontapi.common.Factories;
+import com.github.sszuev.jena.ontapi.common.ObjectFactory;
+import com.github.sszuev.jena.ontapi.common.OntFilter;
+import com.github.sszuev.jena.ontapi.common.OntFinder;
 import com.github.sszuev.jena.ontapi.impl.OntGraphModelImpl;
-import com.github.sszuev.jena.ontapi.impl.conf.Factories;
-import com.github.sszuev.jena.ontapi.impl.conf.ObjectFactory;
-import com.github.sszuev.jena.ontapi.impl.conf.OntFilter;
-import com.github.sszuev.jena.ontapi.impl.conf.OntFinder;
 import com.github.sszuev.jena.ontapi.model.OntDataProperty;
 import com.github.sszuev.jena.ontapi.model.OntIndividual;
 import com.github.sszuev.jena.ontapi.model.OntModel;
 import com.github.sszuev.jena.ontapi.model.OntNegativeAssertion;
 import com.github.sszuev.jena.ontapi.model.OntObjectProperty;
-import com.github.sszuev.jena.ontapi.model.OntRealProperty;
+import com.github.sszuev.jena.ontapi.model.OntRelationalProperty;
 import com.github.sszuev.jena.ontapi.model.OntStatement;
 import com.github.sszuev.jena.ontapi.utils.Iterators;
 import com.github.sszuev.jena.ontapi.vocabulary.OWL;
@@ -45,7 +45,7 @@ import java.util.Optional;
  * Created by @ssz on 15.11.2016.
  */
 @SuppressWarnings("WeakerAccess")
-public abstract class OntNPAImpl<P extends OntRealProperty, T extends RDFNode>
+public abstract class OntNPAImpl<P extends OntRelationalProperty, T extends RDFNode>
         extends OntObjectImpl implements OntNegativeAssertion<P, T> {
 
     private static final OntFinder NPA_FINDER = new OntFinder.ByType(OWL.NegativePropertyAssertion);

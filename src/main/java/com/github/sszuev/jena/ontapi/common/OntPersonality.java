@@ -12,7 +12,7 @@
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
  */
 
-package com.github.sszuev.jena.ontapi.impl.conf;
+package com.github.sszuev.jena.ontapi.common;
 
 import com.github.sszuev.jena.ontapi.OntJenaException;
 import com.github.sszuev.jena.ontapi.impl.PersonalityModel;
@@ -169,7 +169,7 @@ public interface OntPersonality {
      * cannot contain entities which have intersection in {@link RDF#type rdf:type}
      * that are determined by this vocabulary.
      * <p>
-     * For example, for the {@link OntModelConfig.StdMode#MEDIUM} and for the {@link OntModelConfig.StdMode#STRICT}
+     * For example, for the {@link PunningsMode#DL_WEAK} and for the {@link PunningsMode#DL2}
      * configurations, the expression {@code voc.get(OntClass.class)}, where {@code voc} is an instance of this class,
      * should return a {@code Set}
      * containing {@link org.apache.jena.vocabulary.RDFS#Datatype rdfs:Datatype} in the form of {@link Node},

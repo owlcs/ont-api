@@ -92,7 +92,7 @@ public interface OntProperty extends OntObject {
      *
      * @return {@code Stream} of {@link Resource jena resource}s
      * @see OntAnnotationProperty#superProperties()
-     * @see OntRealProperty#superProperties()
+     * @see OntRelationalProperty#superProperties()
      */
     Stream<? extends OntProperty> superProperties();
 
@@ -111,7 +111,7 @@ public interface OntProperty extends OntObject {
      *
      * @return {@code Stream} of {@link Resource}s
      * @see OntAnnotationProperty#ranges()
-     * @see OntRealProperty#ranges()
+     * @see OntRelationalProperty#ranges()
      */
     Stream<? extends Resource> ranges();
 

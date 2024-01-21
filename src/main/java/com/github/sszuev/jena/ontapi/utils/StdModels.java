@@ -37,7 +37,7 @@ import java.util.function.Function;
  * <p>
  * Created @ssz on 20.10.2016.
  */
-public class Models {
+public class StdModels {
     public static final Comparator<RDFNode> RDF_NODE_COMPARATOR = (r1, r2) -> NodeCmp.compareRDFTerms(r1.asNode(), r2.asNode());
     public static final RDFNode BLANK = new ResourceImpl();
     public static final Comparator<Statement> STATEMENT_COMPARATOR_IGNORE_BLANK = Comparator
@@ -47,16 +47,6 @@ public class Models {
             .thenComparing(s -> s.getObject().isAnon() ? BLANK : s.getObject(), RDF_NODE_COMPARATOR);
 
     public static final Literal TRUE = ResourceFactory.createTypedLiteral(Boolean.TRUE);
-
-    /**
-     * Answers a set of all the RDF statements whose subject is one of the cells of the given list.
-     *
-     * @param list []-list, not {@code null}
-     * @return a {@code Set} of {@link Statement}s
-     */
-    public static Set<Statement> getListStatements(RDFList list) {
-        return ((RDFListImpl) list).collectStatements();
-    }
 
     /**
      * Returns a string representation of the given Jena statement taking into account PrefixMapping.
@@ -107,5 +97,15 @@ public class Models {
         if (uri.equals(statement.getSubject().getURI())) return true;
         if (uri.equals(statement.getPredicate().getURI())) return true;
         return containsURI(statement.getObject(), uri);
+    }
+
+    /**
+     * Answers a set of all the RDF statements whose subject is one of the cells of the given list.
+     *
+     * @param list []-list, not {@code null}
+     * @return a {@code Set} of {@link Statement}s
+     */
+    public static Set<Statement> getListStatements(RDFList list) {
+        return ((RDFListImpl) list).collectStatements();
     }
 }

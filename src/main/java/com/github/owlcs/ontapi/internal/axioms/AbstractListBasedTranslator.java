@@ -31,7 +31,7 @@ import com.github.sszuev.jena.ontapi.model.OntList;
 import com.github.sszuev.jena.ontapi.model.OntModel;
 import com.github.sszuev.jena.ontapi.model.OntObject;
 import com.github.sszuev.jena.ontapi.model.OntStatement;
-import com.github.sszuev.jena.ontapi.utils.Models;
+import com.github.sszuev.jena.ontapi.utils.StdModels;
 import org.apache.jena.graph.FrontsTriple;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.Property;
@@ -103,7 +103,7 @@ public abstract class AbstractListBasedTranslator<Axiom extends OWLLogicalAxiom,
         ONT_SUBJECT ontSubject = statement.getSubject(getView());
         ONTObject<? extends OWL_SUBJECT> subject = subjectExtractor.apply(ontSubject);
         OntList<ONT_MEMBER> list = listExtractor.apply(ontSubject, statement.getObject())
-                .orElseThrow(() -> new OntApiException("Can't get OntList for statement " + Models.toString(statement)));
+                .orElseThrow(() -> new OntApiException("Can't get OntList for statement " + StdModels.toString(statement)));
         Collection<ONTObject<? extends OWL_MEMBER>> members = list.members().map(memberExtractor).collect(collector);
 
         Axiom res = axiomMaker.apply(subject, members);

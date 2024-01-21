@@ -17,7 +17,7 @@ package com.github.owlcs.ontapi.transforms;
 import com.github.owlcs.ontapi.transforms.vocabulary.DEPRECATED;
 import com.github.owlcs.ontapi.transforms.vocabulary.ONTAPI;
 import com.github.sszuev.jena.ontapi.utils.Iterators;
-import com.github.sszuev.jena.ontapi.utils.Models;
+import com.github.sszuev.jena.ontapi.utils.StdModels;
 import com.github.sszuev.jena.ontapi.vocabulary.OWL;
 import com.github.sszuev.jena.ontapi.vocabulary.RDF;
 import com.github.sszuev.jena.ontapi.vocabulary.XSD;
@@ -95,7 +95,7 @@ public class OWLCommonTransform extends TransformationModel {
         if (root.canAs(RDFList.class)) {
             RDFList list = root.as(RDFList.class);
             if (list.isEmpty()) return;
-            Models.getListStatements(list).forEach(statement -> {
+            StdModels.getListStatements(list).forEach(statement -> {
                 res.add(statement);
                 if (!RDF.first.equals(statement.getPredicate())) return;
                 RDFNode obj = statement.getObject();
@@ -414,7 +414,7 @@ public class OWLCommonTransform extends TransformationModel {
                 .toList()
                 .forEach(s -> m.remove(s)
                         .add(s.getSubject(), RDF.type, OWL.Restriction)
-                        .add(s.getSubject(), OWL.hasSelf, Models.TRUE));
+                        .add(s.getSubject(), OWL.hasSelf, StdModels.TRUE));
         Iterators.of(DEPRECATED.OWL.DataRestriction, DEPRECATED.OWL.ObjectRestriction)
                 .forEachRemaining(type -> listStatements(null, RDF.type, type)
                         .toList()

@@ -28,7 +28,7 @@ import com.github.sszuev.jena.ontapi.model.OntIndividual;
 import com.github.sszuev.jena.ontapi.model.OntObject;
 import com.github.sszuev.jena.ontapi.model.OntObjectProperty;
 import com.github.sszuev.jena.ontapi.model.OntProperty;
-import com.github.sszuev.jena.ontapi.model.OntRealProperty;
+import com.github.sszuev.jena.ontapi.model.OntRelationalProperty;
 import com.github.sszuev.jena.ontapi.model.OntSWRL;
 import com.github.sszuev.jena.ontapi.model.OntStatement;
 import com.github.sszuev.jena.ontapi.utils.OntModels;
@@ -235,16 +235,16 @@ public interface ONTObjectFactory {
         if (OntApiException.notNull(property, "Null property expression.").canAs(OntAnnotationProperty.class)) {
             return getProperty(property.as(OntAnnotationProperty.class));
         }
-        return getProperty((OntRealProperty) property);
+        return getProperty((OntRelationalProperty) property);
     }
 
     /**
      * Gets an {@link OWLPropertyExpression} as {@link ONTObject} from the data or object property expression.
      *
-     * @param property {@link OntRealProperty}, not {@code null}
+     * @param property {@link OntRelationalProperty}, not {@code null}
      * @return {@link ONTObject} of {@link OWLPropertyExpression}
      */
-    default ONTObject<? extends OWLPropertyExpression> getProperty(OntRealProperty property) {
+    default ONTObject<? extends OWLPropertyExpression> getProperty(OntRelationalProperty property) {
         // process Object Properties first to match OWL-API-impl behaviour
         if (OntApiException.notNull(property, "Null Data/Object property").canAs(OntObjectProperty.class)) {
             return getProperty(property.as(OntObjectProperty.class));

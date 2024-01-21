@@ -23,7 +23,7 @@ import com.github.owlcs.ontapi.internal.objects.FactoryAccessor;
 import com.github.sszuev.jena.ontapi.model.OntClass;
 import com.github.sszuev.jena.ontapi.model.OntList;
 import com.github.sszuev.jena.ontapi.model.OntModel;
-import com.github.sszuev.jena.ontapi.model.OntRealProperty;
+import com.github.sszuev.jena.ontapi.model.OntRelationalProperty;
 import com.github.sszuev.jena.ontapi.model.OntStatement;
 import com.github.sszuev.jena.ontapi.utils.OntModels;
 import com.github.sszuev.jena.ontapi.vocabulary.OWL;
@@ -55,7 +55,7 @@ import java.util.stream.Stream;
  * @see <a href='https://www.w3.org/TR/owl2-syntax/#Keys'>9.5 Keys</a>
  */
 public class HasKeyTranslator
-        extends AbstractListBasedTranslator<OWLHasKeyAxiom, OntClass, OWLClassExpression, OntRealProperty, OWLPropertyExpression> {
+        extends AbstractListBasedTranslator<OWLHasKeyAxiom, OntClass, OWLClassExpression, OntRelationalProperty, OWLPropertyExpression> {
     @Override
     OWLObject getSubject(OWLHasKeyAxiom axiom) {
         return axiom.getClassExpression();
@@ -97,7 +97,7 @@ public class HasKeyTranslator
      * @see com.github.owlcs.ontapi.owlapi.axioms.HasKeyAxiomImpl
      */
     public static class AxiomImpl
-            extends WithListImpl<OWLHasKeyAxiom, OntRealProperty>
+            extends WithListImpl<OWLHasKeyAxiom, OntRelationalProperty>
             implements WithList.Sorted<OWLHasKeyAxiom, OWLClassExpression, OWLPropertyExpression>, OWLHasKeyAxiom {
 
         private static final BiFunction<Triple, Supplier<OntModel>, AxiomImpl> FACTORY = AxiomImpl::new;
@@ -125,7 +125,7 @@ public class HasKeyTranslator
         }
 
         @Override
-        protected OntList<OntRealProperty> findList(OntStatement statement) {
+        protected OntList<OntRelationalProperty> findList(OntStatement statement) {
             return statement.getSubject(OntClass.class).findHasKey(statement.getObject(RDFList.class))
                     .orElseThrow(() -> new OntApiException.IllegalState("Can't find []-list in " + statement));
         }

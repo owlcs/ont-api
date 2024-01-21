@@ -14,14 +14,14 @@
 
 package com.github.sszuev.jena.ontapi.impl.objects;
 
+import com.github.sszuev.jena.ontapi.common.Factories;
+import com.github.sszuev.jena.ontapi.common.ObjectFactory;
+import com.github.sszuev.jena.ontapi.common.OntFilter;
+import com.github.sszuev.jena.ontapi.common.OntFinder;
+import com.github.sszuev.jena.ontapi.common.OntMaker;
+import com.github.sszuev.jena.ontapi.common.OntPersonality;
+import com.github.sszuev.jena.ontapi.common.Vocabulary;
 import com.github.sszuev.jena.ontapi.impl.PersonalityModel;
-import com.github.sszuev.jena.ontapi.impl.conf.Factories;
-import com.github.sszuev.jena.ontapi.impl.conf.ObjectFactory;
-import com.github.sszuev.jena.ontapi.impl.conf.OntFilter;
-import com.github.sszuev.jena.ontapi.impl.conf.OntFinder;
-import com.github.sszuev.jena.ontapi.impl.conf.OntMaker;
-import com.github.sszuev.jena.ontapi.impl.conf.OntPersonality;
-import com.github.sszuev.jena.ontapi.impl.conf.Vocabulary;
 import com.github.sszuev.jena.ontapi.model.OntAnnotationProperty;
 import com.github.sszuev.jena.ontapi.model.OntClass;
 import com.github.sszuev.jena.ontapi.model.OntDataProperty;

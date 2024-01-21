@@ -596,4 +596,17 @@ public class OntGraphUtils {
         prefixes.forEach((p, u) -> mapping.setNsPrefix(p.replaceAll(":$", ""), u));
         return init;
     }
+
+    /**
+     * Creates a new {@code UnionGraph} with the given base {@code Graph}
+     * and the same structure and settings as in the specified {@code UnionGraph}.
+     *
+     * @param base  {@link Graph} new base, not {@code null}
+     * @param union {@link UnionGraph} to inherit settings and hierarchy, not {@code null}
+     * @return {@link UnionGraph}
+     */
+    public static UnionGraph withBase(Graph base, UnionGraph union) {
+        return new UnionGraph(base, union.getUnderlying(), union.getEventManager(), union.isDistinct());
+    }
+
 }

@@ -107,15 +107,15 @@ public interface OntClass extends OntObject, AsNamed<OntClass.Named>, HasDisjoin
      * The behavior of this method must be identical to the behavior of the Jena method
      * {@link org.apache.jena.ontology.OntClass#hasDeclaredProperty(Property, boolean)}.
      *
-     * @param property {@link OntRealProperty}, not {@code null}
+     * @param property {@link OntRelationalProperty}, not {@code null}
      * @param direct   {@code boolean}: if {@code true} analyses only the directly adjacent domains in the subclass relation,
      *                 otherwise takes into account the class hierarchy
      * @return {@code boolean}, {@code true} if the property is associated with this class by its domain, otherwise {@code false}
      */
-    boolean hasDeclaredProperty(OntRealProperty property, boolean direct);
+    boolean hasDeclaredProperty(OntRelationalProperty property, boolean direct);
 
     /**
-     * Returns a {@code Stream} over the {@link OntRealProperty properties} associated with a frame-like view of this class.
+     * Returns a {@code Stream} over the {@link OntRelationalProperty properties} associated with a frame-like view of this class.
      * This captures an intuitive notion of the <em>properties of a class</em>.
      * This can be useful in presenting an ontology class in a user interface,
      * for example by automatically constructing a form to instantiate instances of the class.
@@ -128,10 +128,10 @@ public interface OntClass extends OntObject, AsNamed<OntClass.Named>, HasDisjoin
      *
      * @param direct {@code boolean}: if {@code true} analyses only the directly adjacent domains in the subclass relation,
      *               otherwise takes into account the class hierarchy
-     * @return a <b>distinct</b> {@code Stream} of {@link OntRealProperty object and date properties}, attached to this class
+     * @return a <b>distinct</b> {@code Stream} of {@link OntRelationalProperty object and date properties}, attached to this class
      * @see #properties()
      */
-    Stream<OntRealProperty> declaredProperties(boolean direct);
+    Stream<OntRelationalProperty> declaredProperties(boolean direct);
 
     /**
      * Answers true if this class is one of the roots of the local class hierarchy.
@@ -153,7 +153,7 @@ public interface OntClass extends OntObject, AsNamed<OntClass.Named>, HasDisjoin
      *
      * @return {@code Stream} of {@link OntList}s with parameter-type {@code OntDOP}
      */
-    Stream<OntList<OntRealProperty>> hasKeys();
+    Stream<OntList<OntRelationalProperty>> hasKeys();
 
     /**
      * Creates an anonymous individual which is of this class-expression type.
@@ -176,7 +176,7 @@ public interface OntClass extends OntObject, AsNamed<OntClass.Named>, HasDisjoin
 
     /**
      * Creates a {@code HasKey} logical construction as {@link OntList ontology []-list}
-     * of {@link OntRealProperty Object or Data Property Expression}s
+     * of {@link OntRelationalProperty Object or Data Property Expression}s
      * that is attached to this Class Expression using the predicate {@link OWL#hasKey owl:hasKey}.
      * The resulting rdf-list will consist of all the elements of the specified collection
      * in the same order but with exclusion of duplicates.
@@ -188,11 +188,11 @@ public interface OntClass extends OntObject, AsNamed<OntClass.Named>, HasDisjoin
      *                         of {@link OntObjectProperty object property expression}s
      * @param dataProperties   {@link Collection} (preferably {@link Set})
      *                         of {@link OntDataProperty data property expression}s
-     * @return {@link OntList} of {@link OntRealProperty}s
+     * @return {@link OntList} of {@link OntRelationalProperty}s
      * @see #addHasKey(Collection, Collection)
      */
-    OntList<OntRealProperty> createHasKey(Collection<OntObjectProperty> objectProperties,
-                                          Collection<OntDataProperty> dataProperties);
+    OntList<OntRelationalProperty> createHasKey(Collection<OntObjectProperty> objectProperties,
+                                                Collection<OntDataProperty> dataProperties);
 
     /**
      * Creates a {@code HasKey} logical construction as {@link OntList ontology list}
@@ -201,14 +201,14 @@ public interface OntClass extends OntObject, AsNamed<OntClass.Named>, HasDisjoin
      * About RDF Graph annotation specification see, for example,
      * <a href="https://www.w3.org/TR/owl2-mapping-to-rdf/#Translation_of_Annotations">2.3.1 Axioms that Generate a Main Triple</a>.
      *
-     * @param properties Array of {@link OntRealProperty}s without {@code null}s
+     * @param properties Array of {@link OntRelationalProperty}s without {@code null}s
      * @return {@link OntStatement} with a possibility to annotate
      * @see #addHasKeyStatement(Collection, Collection)
-     * @see #addHasKey(OntRealProperty...)
+     * @see #addHasKey(OntRelationalProperty...)
      * @see #removeHasKey(Resource)
      * @see #clearHasKeys()
      */
-    OntStatement addHasKeyStatement(OntRealProperty... properties);
+    OntStatement addHasKeyStatement(OntRelationalProperty... properties);
 
     /**
      * Deletes the given {@code HasKey} list including its annotations.
@@ -357,8 +357,8 @@ public interface OntClass extends OntObject, AsNamed<OntClass.Named>, HasDisjoin
      * @param objectProperties the collection of {@link OntObjectProperty}s, not {@code null} and cannot contain {@code null}s
      * @param dataProperties   the collection of {@link OntDataProperty}s, not {@code null} and cannot contain {@code null}s
      * @return {@link OntStatement} to allow the subsequent annotations addition
-     * @see #addHasKeyStatement(OntRealProperty...)
-     * @see #addHasKey(OntRealProperty...)
+     * @see #addHasKeyStatement(OntRelationalProperty...)
+     * @see #addHasKey(OntRelationalProperty...)
      * @see <a href='https://www.w3.org/TR/owl2-mapping-to-rdf/#Translation_of_Annotations'>2.3.1 Axioms that Generate a Main Triple</a>
      */
     default OntStatement addHasKeyStatement(Collection<OntObjectProperty> objectProperties, Collection<OntDataProperty> dataProperties) {
@@ -413,7 +413,7 @@ public interface OntClass extends OntObject, AsNamed<OntClass.Named>, HasDisjoin
      * @param dataProperties   the collection of {@link OntDataProperty}s
      * @return <b>this</b> instance to allow cascading calls
      * @see #addHasKeyStatement(Collection, Collection)
-     * @see #addHasKey(OntRealProperty...)
+     * @see #addHasKey(OntRelationalProperty...)
      */
     default OntClass addHasKey(Collection<OntObjectProperty> objectProperties, Collection<OntDataProperty> dataProperties) {
         addHasKeyStatement(objectProperties, dataProperties);
@@ -423,14 +423,14 @@ public interface OntClass extends OntObject, AsNamed<OntClass.Named>, HasDisjoin
     /**
      * Creates an {@code owl:hasKey} statement returning this class to allow cascading calls.
      *
-     * @param properties Array of {@link OntRealProperty}s without {@code null}s
+     * @param properties Array of {@link OntRelationalProperty}s without {@code null}s
      * @return <b>this</b> instance to allow cascading calls
-     * @see #addHasKeyStatement(OntRealProperty...)
+     * @see #addHasKeyStatement(OntRelationalProperty...)
      * @see #addHasKey(Collection, Collection)
      * @see #removeHasKey(Resource)
      * @see #clearHasKeys()
      */
-    default OntClass addHasKey(OntRealProperty... properties) {
+    default OntClass addHasKey(OntRelationalProperty... properties) {
         addHasKeyStatement(properties);
         return this;
     }
@@ -515,10 +515,10 @@ public interface OntClass extends OntObject, AsNamed<OntClass.Named>, HasDisjoin
      * attached to this class expression by the specified rdf-node in the form of {@link OntList}.
      *
      * @param list {@link RDFNode}
-     * @return {@code Optional} around {@link OntList} of {@link OntRealProperty data and object property expression}s
+     * @return {@code Optional} around {@link OntList} of {@link OntRelationalProperty data and object property expression}s
      */
-    default Optional<OntList<OntRealProperty>> findHasKey(RDFNode list) {
-        try (Stream<OntList<OntRealProperty>> res = hasKeys().filter(r -> Objects.equals(r, list))) {
+    default Optional<OntList<OntRelationalProperty>> findHasKey(RDFNode list) {
+        try (Stream<OntList<OntRelationalProperty>> res = hasKeys().filter(r -> Objects.equals(r, list))) {
             return res.findFirst();
         }
     }
@@ -535,7 +535,7 @@ public interface OntClass extends OntObject, AsNamed<OntClass.Named>, HasDisjoin
      * @return <b>distinct</b> {@code Stream} of {@link OntObjectProperty object} and {@link OntDataProperty data} properties
      * @see #hasKeys()
      */
-    default Stream<OntRealProperty> fromHasKey() {
+    default Stream<OntRelationalProperty> fromHasKey() {
         return hasKeys().flatMap(OntList::members).distinct();
     }
 
@@ -829,7 +829,7 @@ public interface OntClass extends OntObject, AsNamed<OntClass.Named>, HasDisjoin
          * {@inheritDoc}
          */
         @Override
-        default Named addHasKey(OntRealProperty... properties) {
+        default Named addHasKey(OntRelationalProperty... properties) {
             addHasKeyStatement(properties);
             return this;
         }
@@ -980,9 +980,9 @@ public interface OntClass extends OntObject, AsNamed<OntClass.Named>, HasDisjoin
      * An abstraction for Cardinality Restrictions.
      *
      * @param <O> a value type
-     * @param <P> any subtype of {@link OntRealProperty}
+     * @param <P> any subtype of {@link OntRelationalProperty}
      */
-    interface CardinalityRestrictionCE<O extends OntObject, P extends OntRealProperty>
+    interface CardinalityRestrictionCE<O extends OntObject, P extends OntRelationalProperty>
             extends HasCardinality, ComponentRestrictionCE<O, P> {
     }
 
@@ -991,9 +991,9 @@ public interface OntClass extends OntObject, AsNamed<OntClass.Named>, HasDisjoin
      * all Cardinality Restrictions, Existential/Universal Restrictions, Individual/Literal Value Restrictions.
      *
      * @param <O> a value type
-     * @param <P> any subtype of {@link OntRealProperty}
+     * @param <P> any subtype of {@link OntRelationalProperty}
      */
-    interface ComponentRestrictionCE<O extends RDFNode, P extends OntRealProperty>
+    interface ComponentRestrictionCE<O extends RDFNode, P extends OntRelationalProperty>
             extends UnaryRestrictionCE<P>, HasValue<O> {
     }
 
@@ -1002,9 +1002,9 @@ public interface OntClass extends OntObject, AsNamed<OntClass.Named>, HasDisjoin
      * with the predicate {@link OWL#onProperties owl:onProperties}.
      *
      * @param <O> a value type
-     * @param <P> any subtype of {@link OntRealProperty}
+     * @param <P> any subtype of {@link OntRelationalProperty}
      */
-    interface NaryRestrictionCE<O extends OntObject, P extends OntRealProperty>
+    interface NaryRestrictionCE<O extends OntObject, P extends OntRelationalProperty>
             extends RestrictionCE<P>, HasProperties<P>, HasValue<O> {
     }
 
@@ -1012,16 +1012,16 @@ public interface OntClass extends OntObject, AsNamed<OntClass.Named>, HasDisjoin
      * An abstract class expression that unites all {@link RestrictionCE Restriction}s
      * with the predicate {@link OWL#onProperty owl:onProperty}.
      *
-     * @param <P> any subtype of {@link OntRealProperty}
+     * @param <P> any subtype of {@link OntRelationalProperty}
      */
-    interface UnaryRestrictionCE<P extends OntRealProperty> extends RestrictionCE<P> {
+    interface UnaryRestrictionCE<P extends OntRelationalProperty> extends RestrictionCE<P> {
     }
 
     /**
      * An abstract class expression that unites all class expressions with the type {@link OWL#Restriction}.
      *
-     * @param <P> any subtype of {@link OntRealProperty}
+     * @param <P> any subtype of {@link OntRelationalProperty}
      */
-    interface RestrictionCE<P extends OntRealProperty> extends OntClass, HasProperty<P> {
+    interface RestrictionCE<P extends OntRelationalProperty> extends OntClass, HasProperty<P> {
     }
 }

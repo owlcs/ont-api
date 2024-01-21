@@ -16,8 +16,8 @@ package com.github.owlcs.ontapi;
 
 import com.github.owlcs.ontapi.internal.InternalModel;
 import com.github.sszuev.jena.ontapi.UnionGraph;
+import com.github.sszuev.jena.ontapi.common.OntPersonality;
 import com.github.sszuev.jena.ontapi.impl.OntGraphModelImpl;
-import com.github.sszuev.jena.ontapi.impl.conf.OntPersonality;
 import com.github.sszuev.jena.ontapi.model.OntModel;
 import com.github.sszuev.jena.ontapi.utils.Graphs;
 import javax.annotation.Nonnull;

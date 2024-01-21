@@ -18,8 +18,8 @@ import com.github.owlcs.ontapi.internal.InternalCache;
 import com.github.owlcs.ontapi.internal.InternalConfig;
 import com.github.owlcs.ontapi.internal.InternalModel;
 import com.github.owlcs.ontapi.internal.InternalModelImpl;
-import com.github.sszuev.jena.ontapi.impl.conf.OntModelConfig;
-import com.github.sszuev.jena.ontapi.impl.conf.OntPersonality;
+import com.github.sszuev.jena.ontapi.common.OntPersonalities;
+import com.github.sszuev.jena.ontapi.common.OntPersonality;
 import com.github.sszuev.jena.ontapi.model.OntModel;
 import org.apache.jena.graph.Graph;
 import org.semanticweb.owlapi.model.OWLPrimitive;
@@ -79,7 +79,7 @@ public interface BaseModel {
      */
     static InternalModel createInternalModel(Graph graph) {
         return createInternalModel(graph,
-                OntModelConfig.getPersonality(),
+                OntPersonalities.getPersonality(),
                 InternalConfig.DEFAULT,
                 OntManagers.getDataFactory(),
                 null);

@@ -16,7 +16,7 @@ package com.github.owlcs.ontapi.transforms;
 
 import com.github.owlcs.ontapi.transforms.vocabulary.ONTAPI;
 import com.github.sszuev.jena.ontapi.utils.Iterators;
-import com.github.sszuev.jena.ontapi.utils.Models;
+import com.github.sszuev.jena.ontapi.utils.StdModels;
 import com.github.sszuev.jena.ontapi.vocabulary.OWL;
 import com.github.sszuev.jena.ontapi.vocabulary.RDF;
 import com.github.sszuev.jena.ontapi.vocabulary.SWRL;
@@ -234,7 +234,7 @@ public class ManifestDeclarator extends BaseDeclarator {
                 .forEach(this::declareObjectProperty);
         // "_:x a owl:Restriction; owl:onProperty P; owl:hasSelf "true"^^xsd:boolean"
         listStatements(null, OWL.hasSelf, null)
-                .filterKeep(s -> Models.TRUE.equals(s.getObject()))
+                .filterKeep(s -> StdModels.TRUE.equals(s.getObject()))
                 .mapWith(Statement::getSubject)
                 .filterKeep(s -> s.isAnon() && s.hasProperty(OWL.onProperty))
                 .forEachRemaining(s -> {

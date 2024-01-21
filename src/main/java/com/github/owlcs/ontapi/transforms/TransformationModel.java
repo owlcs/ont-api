@@ -14,6 +14,7 @@
 
 package com.github.owlcs.ontapi.transforms;
 
+import com.github.owlcs.ontapi.OntGraphUtils;
 import com.github.owlcs.ontapi.OntologyManager;
 import com.github.sszuev.jena.ontapi.OntVocabulary;
 import com.github.sszuev.jena.ontapi.UnionGraph;
@@ -80,7 +81,7 @@ public abstract class TransformationModel {
         this.graph = Objects.requireNonNull(graph, "Null graph.");
         if (graph instanceof UnionGraph) {
             UnionGraph u = (UnionGraph) graph;
-            UnionGraph g = Graphs.withBase(new TrackedGraph(u.getBaseGraph()), u);
+            UnionGraph g = OntGraphUtils.withBase(new TrackedGraph(u.getBaseGraph()), u);
             queryModel = createModel(u.getBaseGraph());
             workModel = createModel(g);
         } else {

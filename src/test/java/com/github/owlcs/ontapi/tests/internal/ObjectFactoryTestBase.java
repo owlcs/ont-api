@@ -86,7 +86,7 @@ abstract class ObjectFactoryTestBase {
         OWLObject ont = data.create(ONT_DATA_FACTORY);
         OWLObject owl = data.create(OWL_DATA_FACTORY);
         OWLObject test = fromModel(data);
-        Assertions.assertTrue(test instanceof ModelObject);
+        Assertions.assertInstanceOf(ModelObject.class, test);
         Assertions.assertTrue(isONT(ont));
         Assertions.assertTrue(isOWL(owl));
 

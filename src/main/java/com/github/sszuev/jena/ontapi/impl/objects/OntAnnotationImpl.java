@@ -15,15 +15,15 @@
 package com.github.sszuev.jena.ontapi.impl.objects;
 
 import com.github.sszuev.jena.ontapi.OntJenaException;
+import com.github.sszuev.jena.ontapi.common.Factories;
+import com.github.sszuev.jena.ontapi.common.ObjectFactory;
 import com.github.sszuev.jena.ontapi.impl.OntGraphModelImpl;
-import com.github.sszuev.jena.ontapi.impl.conf.Factories;
-import com.github.sszuev.jena.ontapi.impl.conf.ObjectFactory;
 import com.github.sszuev.jena.ontapi.model.OntAnnotation;
 import com.github.sszuev.jena.ontapi.model.OntAnnotationProperty;
 import com.github.sszuev.jena.ontapi.model.OntObject;
 import com.github.sszuev.jena.ontapi.model.OntStatement;
 import com.github.sszuev.jena.ontapi.utils.Iterators;
-import com.github.sszuev.jena.ontapi.utils.Models;
+import com.github.sszuev.jena.ontapi.utils.StdModels;
 import com.github.sszuev.jena.ontapi.vocabulary.OWL;
 import com.github.sszuev.jena.ontapi.vocabulary.RDF;
 import org.apache.jena.enhanced.EnhGraph;
@@ -79,9 +79,9 @@ public class OntAnnotationImpl extends OntObjectImpl implements OntAnnotation {
         Set<OntStatement> rightSet = listRelatedStatements(right).toSet();
         int res = Integer.compare(leftSet.size(), rightSet.size());
         while (res == 0) {
-            OntStatement s1 = removeMin(leftSet, Models.STATEMENT_COMPARATOR_IGNORE_BLANK);
-            OntStatement s2 = removeMin(rightSet, Models.STATEMENT_COMPARATOR_IGNORE_BLANK);
-            res = Models.STATEMENT_COMPARATOR_IGNORE_BLANK.compare(s1, s2);
+            OntStatement s1 = removeMin(leftSet, StdModels.STATEMENT_COMPARATOR_IGNORE_BLANK);
+            OntStatement s2 = removeMin(rightSet, StdModels.STATEMENT_COMPARATOR_IGNORE_BLANK);
+            res = StdModels.STATEMENT_COMPARATOR_IGNORE_BLANK.compare(s1, s2);
             if (leftSet.isEmpty() || rightSet.isEmpty()) break;
         }
         return -res;
@@ -102,7 +102,7 @@ public class OntAnnotationImpl extends OntObjectImpl implements OntAnnotation {
     public static OntAnnotation createAnnotation(Model model, Statement base, Resource type) {
         Resource res = Objects.requireNonNull(model).createResource();
         if (!model.contains(Objects.requireNonNull(base))) {
-            throw new OntJenaException.IllegalArgument("Can't find " + Models.toString(base));
+            throw new OntJenaException.IllegalArgument("Can't find " + StdModels.toString(base));
         }
         res.addProperty(RDF.type, type);
         res.addProperty(OWL.annotatedSource, base.getSubject());

@@ -15,9 +15,9 @@
 package com.github.sszuev.jena.ontapi.impl;
 
 import com.github.sszuev.jena.ontapi.OntJenaException;
-import com.github.sszuev.jena.ontapi.impl.conf.ObjectFactory;
-import com.github.sszuev.jena.ontapi.impl.conf.OntPersonality;
-import com.github.sszuev.jena.ontapi.impl.conf.PersonalityBuilder;
+import com.github.sszuev.jena.ontapi.common.ObjectFactory;
+import com.github.sszuev.jena.ontapi.common.OntPersonality;
+import com.github.sszuev.jena.ontapi.common.PersonalityBuilder;
 import com.github.sszuev.jena.ontapi.model.OntModel;
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.graph.Node;

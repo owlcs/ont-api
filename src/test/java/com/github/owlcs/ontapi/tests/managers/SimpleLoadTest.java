@@ -20,7 +20,8 @@ import com.github.owlcs.ontapi.OntologyManager;
 import com.github.owlcs.ontapi.config.OntLoaderConfiguration;
 import com.github.owlcs.ontapi.testutils.MiscTestUtils;
 import com.github.owlcs.ontapi.testutils.OWLIOUtils;
-import com.github.sszuev.jena.ontapi.impl.conf.OntModelConfig;
+import com.github.sszuev.jena.ontapi.common.OntPersonalities;
+import com.github.sszuev.jena.ontapi.common.PunningsMode;
 import com.github.sszuev.jena.ontapi.model.OntEntity;
 import com.github.sszuev.jena.ontapi.model.OntModel;
 import org.apache.jena.rdf.model.Resource;
@@ -63,7 +64,7 @@ public class SimpleLoadTest {
         String fileName = "/ontapi/foaf.rdf";
         OntologyManager manager = OntManagers.createManager();
         OntLoaderConfiguration conf = manager.getOntologyLoaderConfiguration()
-                .setPersonality(OntModelConfig.ONT_PERSONALITY_STRICT);
+                .setPersonality(OntPersonalities.ONT_PERSONALITY_STRICT);
         manager.setOntologyLoaderConfiguration(conf);
 
         IRI fileIRI = IRI.create(OWLIOUtils.getResourceURI(fileName));
@@ -72,7 +73,7 @@ public class SimpleLoadTest {
         OntModel model = ont.asGraphModel();
         OWLIOUtils.print(model);
 
-        Set<Resource> illegalPunningURIs = MiscTestUtils.getIllegalPunnings(model, OntModelConfig.StdMode.STRICT);
+        Set<Resource> illegalPunningURIs = MiscTestUtils.getIllegalPunnings(model, PunningsMode.DL2);
         LOGGER.debug("There are following illegal punnins inside original graph: {}", illegalPunningURIs);
         List<OntEntity> illegalPunnings = model.ontEntities()
                 .filter(illegalPunningURIs::contains).collect(Collectors.toList());

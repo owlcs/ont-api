@@ -15,7 +15,6 @@
 package com.github.owlcs.ontapi.tests.model;
 
 import com.github.owlcs.ontapi.DataFactory;
-import com.github.owlcs.ontapi.OntApiException;
 import com.github.owlcs.ontapi.OntFormat;
 import com.github.owlcs.ontapi.OntManagers;
 import com.github.owlcs.ontapi.Ontology;
@@ -164,21 +163,16 @@ public class MiscOntModelTest extends OntModelTestBase {
     }
 
     @Test
-    public void testGraphIsUnchangedInCaseOfError() {
+    public void testAddPunnings() {
         OntologyManager m = OntManagers.createManager();
         DataFactory df = m.getOWLDataFactory();
         Ontology o = m.createOntology();
 
         o.add(df.getOWLDeclarationAxiom(df.getOWLObjectProperty("P")));
-        try {
-            o.add(df.getOWLDeclarationAxiom(df.getOWLDataProperty("P")));
-            Assertions.fail("Possible to add punning");
-        } catch (OntApiException e) {
-            LOGGER.debug("Expected: '{}'", e.getMessage());
-        }
+        o.add(df.getOWLDeclarationAxiom(df.getOWLDataProperty("P")));
         OWLIOUtils.print(o);
-        Assertions.assertEquals(2, o.asGraphModel().size());
-        Assertions.assertEquals(1, o.axioms().count());
+        Assertions.assertEquals(3, o.asGraphModel().size());
+        Assertions.assertEquals(2, o.axioms().count());
     }
 
     @Test

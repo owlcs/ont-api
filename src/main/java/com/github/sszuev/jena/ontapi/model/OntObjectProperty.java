@@ -41,7 +41,7 @@ import java.util.stream.Stream;
  * <p>
  * Created by @ssz on 08.11.2016.
  */
-public interface OntObjectProperty extends OntRealProperty, AsNamed<OntObjectProperty.Named>, HasDisjoint<OntObjectProperty> {
+public interface OntObjectProperty extends OntRelationalProperty, AsNamed<OntObjectProperty.Named>, HasDisjoint<OntObjectProperty> {
 
     /**
      * {@inheritDoc}
@@ -498,7 +498,7 @@ public interface OntObjectProperty extends OntRealProperty, AsNamed<OntObjectPro
      * @param other {@link OntObjectProperty}, not {@code null}
      * @return <b>this</b> instance to allow cascading calls
      * @see #addEquivalentPropertyStatement(OntObjectProperty)
-     * @see OntRealProperty#removeEquivalentProperty(Resource)
+     * @see OntRelationalProperty#removeEquivalentProperty(Resource)
      * @see OntDataProperty#addEquivalentProperty(OntDataProperty)
      */
     default OntObjectProperty addEquivalentProperty(OntObjectProperty other) {
@@ -514,7 +514,7 @@ public interface OntObjectProperty extends OntRealProperty, AsNamed<OntObjectPro
      * @return {@link OntDataProperty} <b>this</b> instance to allow cascading calls
      * @see #addPropertyDisjointWithStatement(OntObjectProperty)
      * @see OntDataProperty#addDisjointProperty(OntDataProperty)
-     * @see OntRealProperty#removeDisjointProperty(Resource)
+     * @see OntRelationalProperty#removeDisjointProperty(Resource)
      * @see OntDisjoint.ObjectProperties
      */
     default OntObjectProperty addDisjointProperty(OntObjectProperty other) {
@@ -822,7 +822,7 @@ public interface OntObjectProperty extends OntRealProperty, AsNamed<OntObjectPro
     /**
      * Interface encapsulating an Ontology Named Object Property.
      * It is a URI-{@link Resource Resource} and an extension to the standard jena {@link Property}.
-     * Also? it is an {@link OntEntity OWL Entity} and {@link OntRealProperty real ontology property}.
+     * Also? it is an {@link OntEntity OWL Entity} and {@link OntRelationalProperty real ontology property}.
      * <p>
      * Created @ssz on 01.11.2016.
      *

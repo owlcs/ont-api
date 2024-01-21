@@ -15,7 +15,7 @@
 package com.github.owlcs.ontapi.config;
 
 import com.github.owlcs.ontapi.Ontology;
-import com.github.sszuev.jena.ontapi.impl.conf.ObjectFactory;
+import com.github.sszuev.jena.ontapi.common.ObjectFactory;
 import com.github.sszuev.jena.ontapi.model.OntModel;
 
 /**

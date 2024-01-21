@@ -15,17 +15,17 @@
 package com.github.sszuev.jena.ontapi.impl.objects;
 
 import com.github.sszuev.jena.ontapi.OntJenaException;
-import com.github.sszuev.jena.ontapi.impl.conf.BaseFactoryImpl;
-import com.github.sszuev.jena.ontapi.impl.conf.Factories;
-import com.github.sszuev.jena.ontapi.impl.conf.ObjectFactory;
-import com.github.sszuev.jena.ontapi.impl.conf.OntFinder;
-import com.github.sszuev.jena.ontapi.impl.conf.WrappedFactoryImpl;
+import com.github.sszuev.jena.ontapi.common.BaseFactoryImpl;
+import com.github.sszuev.jena.ontapi.common.Factories;
+import com.github.sszuev.jena.ontapi.common.ObjectFactory;
+import com.github.sszuev.jena.ontapi.common.OntFinder;
+import com.github.sszuev.jena.ontapi.common.WrappedFactoryImpl;
 import com.github.sszuev.jena.ontapi.model.OntAnnotationProperty;
 import com.github.sszuev.jena.ontapi.model.OntClass;
 import com.github.sszuev.jena.ontapi.model.OntDataProperty;
 import com.github.sszuev.jena.ontapi.model.OntObjectProperty;
 import com.github.sszuev.jena.ontapi.model.OntProperty;
-import com.github.sszuev.jena.ontapi.model.OntRealProperty;
+import com.github.sszuev.jena.ontapi.model.OntRelationalProperty;
 import com.github.sszuev.jena.ontapi.utils.Iterators;
 import com.github.sszuev.jena.ontapi.vocabulary.OWL;
 import com.github.sszuev.jena.ontapi.vocabulary.RDF;
@@ -130,7 +130,7 @@ public abstract class OntPEImpl extends OntObjectImpl implements OntProperty {
         return new AnonymousObjectPropertyFactory();
     }
 
-    public static Stream<OntClass> declaringClasses(OntRealProperty property, boolean direct) {
+    public static Stream<OntClass> declaringClasses(OntRelationalProperty property, boolean direct) {
         Set<OntClass> domains = property.domains()
                 .flatMap(clazz -> Stream.concat(Stream.of(clazz), clazz.subClasses(false)))
                 .filter(OntCEImpl::isNotBuiltin)

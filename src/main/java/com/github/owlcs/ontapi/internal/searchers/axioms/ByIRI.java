@@ -22,7 +22,7 @@ import com.github.sszuev.jena.ontapi.model.OntModel;
 import com.github.sszuev.jena.ontapi.model.OntObject;
 import com.github.sszuev.jena.ontapi.model.OntStatement;
 import com.github.sszuev.jena.ontapi.utils.Iterators;
-import com.github.sszuev.jena.ontapi.utils.Models;
+import com.github.sszuev.jena.ontapi.utils.StdModels;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.EntityType;
@@ -57,7 +57,7 @@ public class ByIRI extends ByPrimitive<IRI> {
     }
 
     protected ExtendedIterator<OntStatement> listCandidates(OntModel model, String iri) {
-        return Iterators.flatMap(listStatements(model).filterKeep(x -> Models.containsURI(x, iri)), s -> listRootStatements(model, s));
+        return Iterators.flatMap(listStatements(model).filterKeep(x -> StdModels.containsURI(x, iri)), s -> listRootStatements(model, s));
     }
 
     /**

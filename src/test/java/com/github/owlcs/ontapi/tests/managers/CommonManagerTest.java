@@ -32,7 +32,7 @@ import com.github.owlcs.ontapi.transforms.GraphTransformers;
 import com.github.sszuev.graphs.ReadWriteLockingGraph;
 import com.github.sszuev.jena.ontapi.OntModelFactory;
 import com.github.sszuev.jena.ontapi.UnionGraph;
-import com.github.sszuev.jena.ontapi.impl.conf.OntModelConfig;
+import com.github.sszuev.jena.ontapi.common.OntPersonalities;
 import com.github.sszuev.jena.ontapi.model.OntClass;
 import com.github.sszuev.jena.ontapi.model.OntEntity;
 import com.github.sszuev.jena.ontapi.model.OntModel;
@@ -216,13 +216,13 @@ public class CommonManagerTest {
         OntologyManager m1 = OntManagers.createManager();
         OntologyManager m2 = OntManagers.createManager();
         OntLoaderConfiguration conf1 = m1.getOntologyLoaderConfiguration();
-        conf1.setPersonality(OntModelConfig.ONT_PERSONALITY_LAX);
+        conf1.setPersonality(OntPersonalities.ONT_PERSONALITY_LAX);
         OntLoaderConfiguration conf2 = m2.getOntologyLoaderConfiguration();
-        conf2.setPersonality(OntModelConfig.ONT_PERSONALITY_STRICT);
+        conf2.setPersonality(OntPersonalities.ONT_PERSONALITY_STRICT);
         Assertions.assertEquals(conf1, conf2);
         Assertions.assertEquals(conf1.getPersonality(), conf2.getPersonality());
-        m1.setOntologyLoaderConfiguration(conf1.setPersonality(OntModelConfig.ONT_PERSONALITY_LAX));
-        m2.setOntologyLoaderConfiguration(conf1.setPersonality(OntModelConfig.ONT_PERSONALITY_STRICT));
+        m1.setOntologyLoaderConfiguration(conf1.setPersonality(OntPersonalities.ONT_PERSONALITY_LAX));
+        m2.setOntologyLoaderConfiguration(conf1.setPersonality(OntPersonalities.ONT_PERSONALITY_STRICT));
         Assertions.assertNotEquals(m1.getOntologyLoaderConfiguration().getPersonality(),
                 m2.getOntologyLoaderConfiguration().getPersonality());
 

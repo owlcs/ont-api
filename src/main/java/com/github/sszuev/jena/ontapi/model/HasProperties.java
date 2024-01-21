@@ -23,11 +23,11 @@ import com.github.sszuev.jena.ontapi.vocabulary.OWL;
  * <p>
  * Created by @ssz on 09.05.2019.
  *
- * @param <P> - any subtype of {@link OntRealProperty} in general case,
+ * @param <P> - any subtype of {@link OntRelationalProperty} in general case,
  *            but in the current model it can only be {@link OntDataProperty}
  * @see SetProperties
  */
-interface HasProperties<P extends OntRealProperty> extends HasRDFNodeList<P>, HasProperty<P> {
+interface HasProperties<P extends OntRelationalProperty> extends HasRDFNodeList<P>, HasProperty<P> {
 
     /**
      * Gets the first property from {@code owl:onProperties} []-list.

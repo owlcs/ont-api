@@ -25,8 +25,8 @@ import com.github.owlcs.ontapi.owlapi.objects.AnnotationImpl;
 import com.github.sszuev.jena.ontapi.model.OntAnnotation;
 import com.github.sszuev.jena.ontapi.model.OntModel;
 import com.github.sszuev.jena.ontapi.model.OntStatement;
-import com.github.sszuev.jena.ontapi.utils.Models;
 import com.github.sszuev.jena.ontapi.utils.OntModels;
+import com.github.sszuev.jena.ontapi.utils.StdModels;
 import com.github.sszuev.jena.ontapi.vocabulary.OWL;
 import org.apache.jena.graph.BlankNodeId;
 import org.apache.jena.graph.FrontsTriple;
@@ -145,7 +145,7 @@ public abstract class ONTAnnotationImpl extends ONTStatementImpl
      * @return boolean
      */
     public static boolean isDeprecated(String predicate, Object value) {
-        return OWL.deprecated.getURI().equals(predicate) && Models.TRUE.asNode().getLiteral().equals(value);
+        return OWL.deprecated.getURI().equals(predicate) && StdModels.TRUE.asNode().getLiteral().equals(value);
     }
 
     /**

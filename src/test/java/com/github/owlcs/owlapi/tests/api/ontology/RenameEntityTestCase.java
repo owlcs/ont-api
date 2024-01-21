@@ -16,7 +16,7 @@ package com.github.owlcs.owlapi.tests.api.ontology;
 import com.github.owlcs.ontapi.testutils.OWLIOUtils;
 import com.github.owlcs.owlapi.OWLManager;
 import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
-import com.github.sszuev.jena.ontapi.impl.conf.OntModelConfig;
+import com.github.sszuev.jena.ontapi.common.OntPersonalities;
 import com.google.common.collect.Sets;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -97,7 +97,7 @@ public class RenameEntityTestCase extends TestBase {
         // to allow DataProperty <-> ObjectProperty intersections
         com.github.owlcs.ontapi.config.OntLoaderConfiguration conf =
                 ((com.github.owlcs.ontapi.config.OntLoaderConfiguration) m.getOntologyLoaderConfiguration())
-                        .setPersonality(OntModelConfig.ONT_PERSONALITY_LAX);
+                        .setPersonality(OntPersonalities.ONT_PERSONALITY_LAX);
         m.setOntologyLoaderConfiguration(conf);
     }
 

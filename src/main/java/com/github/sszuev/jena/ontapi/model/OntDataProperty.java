@@ -26,7 +26,7 @@ import java.util.stream.Stream;
 /**
  * Interface encapsulating an Ontology (Named) Data Property.
  * This is an extension to the standard jena {@link Property},
- * the {@link OntEntity OWL Entity} and the {@link OntRealProperty real property} interfaces.
+ * the {@link OntEntity OWL Entity} and the {@link OntRelationalProperty real property} interfaces.
  * Range values for this property are {@link OntDataRange datarange} values
  * (as distinct from object property expression valued {@link OntObjectProperty properties}).
  * In OWL2 a Data Property cannot be anonymous.
@@ -35,7 +35,7 @@ import java.util.stream.Stream;
  *
  * @see <a href='https://www.w3.org/TR/owl2-syntax/#Data_Properties'>5.4 Data Properties</a>
  */
-public interface OntDataProperty extends OntRealProperty, OntNamedProperty<OntDataProperty>, HasDisjoint<OntDataProperty> {
+public interface OntDataProperty extends OntRelationalProperty, OntNamedProperty<OntDataProperty>, HasDisjoint<OntDataProperty> {
 
     /**
      * Adds a negative data property assertion.
@@ -261,7 +261,7 @@ public interface OntDataProperty extends OntRealProperty, OntNamedProperty<OntDa
      * @param other {@link OntDataProperty}, not {@code null}
      * @return {@link OntDataProperty} <b>this</b> instance to allow cascading calls
      * @see #addEquivalentPropertyStatement(OntDataProperty)
-     * @see OntRealProperty#removeEquivalentProperty(Resource)
+     * @see OntRelationalProperty#removeEquivalentProperty(Resource)
      * @see OntObjectProperty#addEquivalentProperty(OntObjectProperty)
      */
     default OntDataProperty addEquivalentProperty(OntDataProperty other) {
@@ -277,7 +277,7 @@ public interface OntDataProperty extends OntRealProperty, OntNamedProperty<OntDa
      * @return {@link OntDataProperty} <b>this</b> instance to allow cascading calls
      * @see #addPropertyDisjointWithStatement(OntDataProperty)
      * @see OntObjectProperty#addDisjointProperty(OntObjectProperty)
-     * @see OntRealProperty#removeDisjointProperty(Resource)
+     * @see OntRelationalProperty#removeDisjointProperty(Resource)
      * @see OntDisjoint.DataProperties
      */
     default OntDataProperty addDisjointProperty(OntDataProperty other) {

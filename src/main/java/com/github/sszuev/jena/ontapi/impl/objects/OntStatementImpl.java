@@ -23,7 +23,7 @@ import com.github.sszuev.jena.ontapi.model.OntObject;
 import com.github.sszuev.jena.ontapi.model.OntStatement;
 import com.github.sszuev.jena.ontapi.utils.Graphs;
 import com.github.sszuev.jena.ontapi.utils.Iterators;
-import com.github.sszuev.jena.ontapi.utils.Models;
+import com.github.sszuev.jena.ontapi.utils.StdModels;
 import com.github.sszuev.jena.ontapi.vocabulary.OWL;
 import com.github.sszuev.jena.ontapi.vocabulary.RDF;
 import org.apache.jena.enhanced.EnhGraph;
@@ -178,7 +178,7 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
             @Override
             public OntStatement addAnnotation(OntAnnotationProperty property, RDFNode value) {
                 throw new OntJenaException.Unsupported("Sub-annotations are not supported (attempt to annotate " +
-                        Models.toString(this) + " with predicate " + m.shortForm(property.getURI()) +
+                        StdModels.toString(this) + " with predicate " + m.shortForm(property.getURI()) +
                         " and value " + value + ")");
             }
         };

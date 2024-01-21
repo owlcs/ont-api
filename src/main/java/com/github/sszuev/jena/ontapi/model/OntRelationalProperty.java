@@ -27,21 +27,21 @@ import java.util.stream.Stream;
  * <p>
  * Created by @ssz on 21.07.2018.
  */
-public interface OntRealProperty extends OntProperty {
+public interface OntRelationalProperty extends OntProperty {
 
     /**
      * {@inheritDoc}
      *
      * @return <b>distinct</b> {@code Stream} of data <b>or</b> object properties
      */
-    Stream<? extends OntRealProperty> superProperties(boolean direct);
+    Stream<? extends OntRelationalProperty> superProperties(boolean direct);
 
     /**
      * {@inheritDoc}
      *
      * @return <b>distinct</b> {@code Stream} of data <b>or</b> object properties
      */
-    Stream<? extends OntRealProperty> subProperties(boolean direct);
+    Stream<? extends OntRelationalProperty> subProperties(boolean direct);
 
     /**
      * Lists all property ranges,
@@ -56,9 +56,9 @@ public interface OntRealProperty extends OntProperty {
      * In other words, returns all objects {@code R} from statements like {@code P rdfs:subPropertyOf R},
      * where {@code P} is this property.
      *
-     * @return {@code Stream} of {@link OntRealProperty}s - object <b>or</b> data properties
+     * @return {@code Stream} of {@link OntRelationalProperty}s - object <b>or</b> data properties
      */
-    Stream<? extends OntRealProperty> superProperties();
+    Stream<? extends OntRelationalProperty> superProperties();
 
     /**
      * Answers a {@code Stream} of all the classes in this ontology,
@@ -81,19 +81,19 @@ public interface OntRealProperty extends OntProperty {
      * In other words, returns all objects from statements of the form {@code P owl:propertyDisjointWith R},
      * where {@code P} is this property and {@code R} is a returned property of the same type.
      *
-     * @return {@code Stream} of {@link OntRealProperty}s - object <b>or</b> data properties
+     * @return {@code Stream} of {@link OntRelationalProperty}s - object <b>or</b> data properties
      * @see OntDisjoint.Properties
      */
-    Stream<? extends OntRealProperty> disjointProperties();
+    Stream<? extends OntRelationalProperty> disjointProperties();
 
     /**
      * Lists all properties that equivalent to this one.
      * In other words, returns all objects from statements of the form {@code P owl:equivalentProperty R},
      * where {@code P} is this property and {@code R} is a returned property of the same type.
      *
-     * @return {@code Stream} of {@link OntRealProperty}s - object <b>or</b> data properties
+     * @return {@code Stream} of {@link OntRelationalProperty}s - object <b>or</b> data properties
      */
-    Stream<? extends OntRealProperty> equivalentProperties();
+    Stream<? extends OntRelationalProperty> equivalentProperties();
 
     /**
      * Lists all negative property assertions.
@@ -115,7 +115,7 @@ public interface OntRealProperty extends OntProperty {
      * @return <b>this</b> instance to allow cascading calls
      * @see #addFunctionalDeclaration()
      */
-    OntRealProperty setFunctional(boolean functional);
+    OntRelationalProperty setFunctional(boolean functional);
 
     /**
      * Adds a statement with the {@link RDFS#domain} as predicate,
@@ -125,25 +125,25 @@ public interface OntRealProperty extends OntProperty {
      * @return <b>this</b> instance to allow cascading calls
      * @see #addDomainStatement(OntClass)
      */
-    OntRealProperty addDomain(OntClass ce);
+    OntRelationalProperty addDomain(OntClass ce);
 
     /**
      * {@inheritDoc}
      */
     @Override
-    OntRealProperty removeDomain(Resource domain);
+    OntRelationalProperty removeDomain(Resource domain);
 
     /**
      * {@inheritDoc}
      */
     @Override
-    OntRealProperty removeRange(Resource range);
+    OntRelationalProperty removeRange(Resource range);
 
     /**
      * {@inheritDoc}
      */
     @Override
-    OntRealProperty removeSuperProperty(Resource property);
+    OntRelationalProperty removeSuperProperty(Resource property);
 
     /**
      * Removes the equivalent property statement
@@ -156,7 +156,7 @@ public interface OntRealProperty extends OntProperty {
      * @param property {@link Resource} or {@code null} to remove all equivalent properties
      * @return <b>this</b> instance to allow cascading calls
      */
-    OntRealProperty removeEquivalentProperty(Resource property);
+    OntRelationalProperty removeEquivalentProperty(Resource property);
 
     /**
      * Removes the {@code owl:propertyDisjointWith} statement
@@ -170,7 +170,7 @@ public interface OntRealProperty extends OntProperty {
      * @return <b>this</b> instance to allow cascading calls
      * @see OntDisjoint.Properties
      */
-    OntRealProperty removeDisjointProperty(Resource property);
+    OntRelationalProperty removeDisjointProperty(Resource property);
 
     /**
      * Answers a {@code Stream} over any restrictions that mention this property as
@@ -189,7 +189,7 @@ public interface OntRealProperty extends OntProperty {
      * This method is provided as a convenience to assist callers to navigate the relationships in the model.
      * @return a {@code Stream} whose values are the restrictions from the local model that reference this property.
      */
-    Stream<? extends OntClass.RestrictionCE<? extends OntRealProperty>> referringRestrictions();
+    Stream<? extends OntClass.RestrictionCE<? extends OntRelationalProperty>> referringRestrictions();
 
     /**
      * Lists all the declared domain class expressions of this property expression.

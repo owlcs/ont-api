@@ -20,7 +20,7 @@ import com.github.sszuev.jena.ontapi.model.OntModel;
 import com.github.sszuev.jena.ontapi.model.OntObject;
 import com.github.sszuev.jena.ontapi.model.OntStatement;
 import com.github.sszuev.jena.ontapi.utils.Iterators;
-import com.github.sszuev.jena.ontapi.utils.Models;
+import com.github.sszuev.jena.ontapi.utils.StdModels;
 import com.github.sszuev.jena.ontapi.vocabulary.XSD;
 import org.apache.jena.rdf.model.Literal;
 import org.apache.jena.util.iterator.ExtendedIterator;
@@ -40,7 +40,7 @@ public class ByLiteral extends ByPrimitive<OWLLiteral> {
         if (XSD.nonNegativeInteger.getURI().equals(object.getDatatypeURI())) {
             // cardinality restrictions
             res = res.filterDrop(s -> s.getSubject().canAs(OntClass.CardinalityRestrictionCE.class));
-        } else if (Models.TRUE.equals(object)) {
+        } else if (StdModels.TRUE.equals(object)) {
             // HasSelf
             res = res.filterDrop(s -> s.getSubject().canAs(OntClass.HasSelf.class));
         }

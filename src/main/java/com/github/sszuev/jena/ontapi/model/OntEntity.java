@@ -15,7 +15,7 @@
 package com.github.sszuev.jena.ontapi.model;
 
 import com.github.sszuev.jena.ontapi.OntVocabulary;
-import com.github.sszuev.jena.ontapi.impl.conf.OntPersonality;
+import com.github.sszuev.jena.ontapi.common.OntPersonality;
 import com.github.sszuev.jena.ontapi.utils.Iterators;
 import com.github.sszuev.jena.ontapi.vocabulary.OWL;
 import org.apache.jena.util.iterator.ExtendedIterator;

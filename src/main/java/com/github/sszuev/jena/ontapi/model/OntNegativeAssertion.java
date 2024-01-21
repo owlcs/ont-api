@@ -43,7 +43,7 @@ import org.apache.jena.rdf.model.RDFNode;
  * @param <P> - either {@link OntObjectProperty object property expression} or {@link OntDataProperty data property}
  * @param <V> - either {@link OntIndividual} or {@link Literal}
  */
-public interface OntNegativeAssertion<P extends OntRealProperty, V extends RDFNode> extends OntObject {
+public interface OntNegativeAssertion<P extends OntRelationalProperty, V extends RDFNode> extends OntObject {
 
     /**
      * Returns the source individual.

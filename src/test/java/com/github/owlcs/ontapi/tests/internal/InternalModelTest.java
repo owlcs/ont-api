@@ -24,8 +24,9 @@ import com.github.owlcs.ontapi.testutils.MiscTestUtils;
 import com.github.owlcs.ontapi.testutils.OWLIOUtils;
 import com.github.owlcs.ontapi.transforms.GraphTransformers;
 import com.github.sszuev.jena.ontapi.OntModelFactory;
-import com.github.sszuev.jena.ontapi.impl.conf.OntModelConfig;
-import com.github.sszuev.jena.ontapi.impl.conf.OntPersonality;
+import com.github.sszuev.jena.ontapi.common.OntPersonalities;
+import com.github.sszuev.jena.ontapi.common.OntPersonality;
+import com.github.sszuev.jena.ontapi.common.PunningsMode;
 import com.github.sszuev.jena.ontapi.model.OntModel;
 import com.github.sszuev.jena.ontapi.vocabulary.OWL;
 import com.github.sszuev.jena.ontapi.vocabulary.RDF;
@@ -157,7 +158,7 @@ public class InternalModelTest {
         String file = "/ontapi/foaf.rdf";
         OntFormat format = OntFormat.RDF_XML;
 
-        OntPersonality profile = OntModelConfig.getPersonality();
+        OntPersonality profile = OntPersonalities.getPersonality();
         OWLDataFactory factory = OntManagers.getDataFactory();
 
         OWLOntology owl = loadOWLOntology(file);
@@ -180,7 +181,7 @@ public class InternalModelTest {
         OWLObjectProperty creator = factory.getOWLObjectProperty(IRI.create("http://purl.org/dc/terms/creator"));
         expectedObjectProperties.add(creator);
 
-        OntModelConfig.StdMode mode = MiscTestUtils.getMode(profile);
+        PunningsMode mode = MiscTestUtils.getMode(profile);
         // remove all illegal punnings from OWL-API output:
         Set<Resource> illegalPunnings = MiscTestUtils.getIllegalPunnings(jena, mode);
         LOGGER.debug("Illegal punnings inside graph: {}", illegalPunnings);

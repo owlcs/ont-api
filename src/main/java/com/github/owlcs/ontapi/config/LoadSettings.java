@@ -21,7 +21,7 @@ import com.github.owlcs.ontapi.OntologyFactory;
 import com.github.owlcs.ontapi.OntologyManager;
 import com.github.owlcs.ontapi.transforms.GraphFilter;
 import com.github.owlcs.ontapi.transforms.GraphTransformers;
-import com.github.sszuev.jena.ontapi.impl.conf.OntPersonality;
+import com.github.sszuev.jena.ontapi.common.OntPersonality;
 import com.github.sszuev.jena.ontapi.model.OntModel;
 import org.apache.jena.graph.Graph;
 import org.semanticweb.owlapi.model.IRI;

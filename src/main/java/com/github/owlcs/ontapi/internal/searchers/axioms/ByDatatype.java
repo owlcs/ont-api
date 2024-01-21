@@ -20,7 +20,7 @@ import com.github.sszuev.jena.ontapi.model.OntModel;
 import com.github.sszuev.jena.ontapi.model.OntObject;
 import com.github.sszuev.jena.ontapi.model.OntStatement;
 import com.github.sszuev.jena.ontapi.utils.Iterators;
-import com.github.sszuev.jena.ontapi.utils.Models;
+import com.github.sszuev.jena.ontapi.utils.StdModels;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.semanticweb.owlapi.model.OWLDatatype;
 
@@ -42,7 +42,7 @@ public class ByDatatype extends WithCardinality<OWLDatatype> implements ForDatat
 
     protected boolean filter(OntStatement s, String uri) {
         if (uri.equals(s.getSubject().getURI())) return true;
-        return Models.containsURI(s.getObject(), uri);
+        return StdModels.containsURI(s.getObject(), uri);
     }
 
     @Override

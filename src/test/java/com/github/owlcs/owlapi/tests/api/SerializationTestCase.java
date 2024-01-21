@@ -15,8 +15,8 @@ package com.github.owlcs.owlapi.tests.api;
 
 import com.github.owlcs.ontapi.testutils.OWLIOUtils;
 import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
-import com.github.sszuev.jena.ontapi.impl.conf.OntModelConfig;
-import com.github.sszuev.jena.ontapi.impl.conf.OntPersonality;
+import com.github.sszuev.jena.ontapi.common.OntPersonality;
+import com.github.sszuev.jena.ontapi.common.PunningsMode;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.semanticweb.owlapi.model.AddImport;
@@ -64,7 +64,7 @@ public class SerializationTestCase extends TestBase {
     /**
      * Invite {@link #TEST_STRING_1}, it is to avoid illegal punning Class <-> Datatype
      * (default {@link OntPersonality} does not allow such things,
-     * mode = {@link OntModelConfig.StdMode#MEDIUM}).
+     * mode = {@link PunningsMode#DL_WEAK}).
      * And NOTE: neither {@link OntPersonality} and
      * {@link OWLOntologyLoaderConfiguration} in the manager (OWL-5.0.5) are not serializable.
      * So the list of axioms from origin and copy ontologies could be different.

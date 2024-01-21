@@ -14,7 +14,7 @@
 
 package com.github.owlcs.ontapi.config;
 
-import com.github.sszuev.jena.ontapi.impl.conf.OntPersonality;
+import com.github.sszuev.jena.ontapi.common.OntPersonality;
 
 /**
  * A common interface to access axioms settings.

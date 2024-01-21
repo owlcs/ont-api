@@ -23,7 +23,8 @@ import com.github.owlcs.ontapi.transforms.RDFSTransform;
 import com.github.owlcs.ontapi.transforms.SWRLTransform;
 import com.github.owlcs.ontapi.transforms.Transform;
 import com.github.owlcs.ontapi.transforms.TransformationModel;
-import com.github.sszuev.jena.ontapi.impl.conf.OntModelConfig;
+import com.github.sszuev.jena.ontapi.common.OntPersonalities;
+import com.github.sszuev.jena.ontapi.common.PunningsMode;
 import com.github.sszuev.jena.ontapi.vocabulary.OWL;
 import com.github.sszuev.jena.ontapi.vocabulary.RDF;
 import com.github.sszuev.jena.ontapi.vocabulary.SWRL;
@@ -111,26 +112,26 @@ public enum OntSettings {
     OWL_API_WRITE_CONF_BANNERS_ENABLED(true),
     OWL_API_WRITE_CONF_INDENT_SIZE(4),
 
-    ONT_API_LOAD_CONF_PERSONALITY_MODE(OntModelConfig.StdMode.MEDIUM) {
+    ONT_API_LOAD_CONF_PERSONALITY_MODE(PunningsMode.DL_WEAK) {
         @Override
         public Object getDefaultValue() { // note: the return object is not Serializable
-            OntModelConfig.StdMode mode = getPersonalityMode();
+            PunningsMode mode = getPersonalityMode();
             switch (mode) {
-                case LAX:
-                    return OntModelConfig.ONT_PERSONALITY_LAX;
-                case MEDIUM:
-                    return OntModelConfig.ONT_PERSONALITY_MEDIUM;
-                case STRICT:
-                    return OntModelConfig.ONT_PERSONALITY_STRICT;
+                case FULL:
+                    return OntPersonalities.ONT_PERSONALITY_LAX;
+                case DL_WEAK:
+                    return OntPersonalities.ONT_PERSONALITY_MEDIUM;
+                case DL2:
+                    return OntPersonalities.ONT_PERSONALITY_STRICT;
                 default:
                     throw new OntApiException.Unsupported("Unsupported personality mode " + mode);
             }
         }
 
-        OntModelConfig.StdMode getPersonalityMode() {
-            OntModelConfig.StdMode res = (OntModelConfig.StdMode) PROPERTIES.getEnumProperty(key);
+        PunningsMode getPersonalityMode() {
+            PunningsMode res = (PunningsMode) PROPERTIES.getEnumProperty(key);
             if (res == null) {
-                res = (OntModelConfig.StdMode) secondary;
+                res = (PunningsMode) secondary;
             }
             return res;
         }

@@ -29,7 +29,7 @@ import com.github.owlcs.ontapi.transforms.TransformException;
 import com.github.owlcs.ontapi.transforms.TransformationModel;
 import com.github.sszuev.jena.ontapi.OntModelFactory;
 import com.github.sszuev.jena.ontapi.UnionGraph;
-import com.github.sszuev.jena.ontapi.impl.conf.OntModelConfig;
+import com.github.sszuev.jena.ontapi.common.OntPersonalities;
 import com.github.sszuev.jena.ontapi.model.OntClass;
 import com.github.sszuev.jena.ontapi.model.OntEntity;
 import com.github.sszuev.jena.ontapi.model.OntModel;
@@ -151,7 +151,7 @@ public class GraphTransformersTest {
 
         OntModel jenaSP = OntModelFactory.createModel(
                 GraphTransformers.convert(OWLIOUtils.loadResourceAsModel("/etc/sp.ttl", Lang.TURTLE).getGraph()),
-                OntModelConfig.ONT_PERSONALITY_LAX);
+                OntPersonalities.ONT_PERSONALITY_LAX);
         OWLOntology owlSP = load(manager, "/etc/sp.ttl");
         LOGGER.debug("SP(Jena): ");
         OWLIOUtils.print(jenaSP);
@@ -195,7 +195,7 @@ public class GraphTransformersTest {
         IRI iri = IRI.create("http://www.w3.org/2003/11/swrl");
         IRI file = IRI.create(OWLIOUtils.getResourceURI("/ontapi/swrl.owl.rdf"));
         OntologyManager m = OntManagers.createManager();
-        m.getOntologyConfigurator().setPersonality(OntModelConfig.ONT_PERSONALITY_LAX);
+        m.getOntologyConfigurator().setPersonality(OntPersonalities.ONT_PERSONALITY_LAX);
         Ontology o = m.loadOntology(file);
         Assertions.assertTrue(m.contains(iri));
 

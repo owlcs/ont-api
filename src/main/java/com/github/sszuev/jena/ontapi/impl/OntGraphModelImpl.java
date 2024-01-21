@@ -16,7 +16,7 @@ package com.github.sszuev.jena.ontapi.impl;
 
 import com.github.sszuev.jena.ontapi.OntJenaException;
 import com.github.sszuev.jena.ontapi.UnionGraph;
-import com.github.sszuev.jena.ontapi.impl.conf.OntPersonality;
+import com.github.sszuev.jena.ontapi.common.OntPersonality;
 import com.github.sszuev.jena.ontapi.impl.objects.OntCEImpl;
 import com.github.sszuev.jena.ontapi.impl.objects.OntDRImpl;
 import com.github.sszuev.jena.ontapi.impl.objects.OntDisjointImpl;

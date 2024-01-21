@@ -12,7 +12,7 @@
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
  */
 
-package com.github.sszuev.jena.ontapi.impl.conf;
+package com.github.sszuev.jena.ontapi.common;
 
 import com.github.sszuev.jena.ontapi.OntJenaException;
 import com.github.sszuev.jena.ontapi.OntModelFactory;
@@ -45,7 +45,7 @@ import com.github.sszuev.jena.ontapi.model.OntNegativeAssertion;
 import com.github.sszuev.jena.ontapi.model.OntObject;
 import com.github.sszuev.jena.ontapi.model.OntObjectProperty;
 import com.github.sszuev.jena.ontapi.model.OntProperty;
-import com.github.sszuev.jena.ontapi.model.OntRealProperty;
+import com.github.sszuev.jena.ontapi.model.OntRelationalProperty;
 import com.github.sszuev.jena.ontapi.model.OntSWRL;
 import com.github.sszuev.jena.ontapi.utils.Iterators;
 import com.github.sszuev.jena.ontapi.vocabulary.OWL;
@@ -88,7 +88,7 @@ import java.util.stream.Collectors;
  * Created by @ssz on 04.11.2016.
  */
 @SuppressWarnings("WeakerAccess")
-public class OntModelConfig {
+public class OntPersonalities {
 
     /**
      * A system-wide vocabulary.
@@ -150,7 +150,7 @@ public class OntModelConfig {
             // property expressions:
             .add(OntObjectProperty.Inverse.class, OntPEImpl.inversePropertyFactory)
             .add(OntObjectProperty.class, OntPEImpl.abstractOPEFactory)
-            .add(OntRealProperty.class, OntPEImpl.abstractDOPFactory)
+            .add(OntRelationalProperty.class, OntPEImpl.abstractDOPFactory)
             .add(OntNamedProperty.class, OntPEImpl.abstractNamedPropertyFactory)
             .add(OntProperty.class, OntPEImpl.abstractPEFactory)
 
@@ -263,12 +263,12 @@ public class OntModelConfig {
      * Personalities which don't care about the owl-entities "punnings" (no restriction on the type declarations).
      *
      * @see <a href='https://www.w3.org/TR/owl2-new-features/#F12:_Punning'>2.4.1 F12: Punning</a>
-     * @see StdMode#LAX
+     * @see PunningsMode#FULL
      */
     public static final OntPersonality ONT_PERSONALITY_LAX = getPersonalityBuilder()
             .setBuiltins(BUILTINS)
             .setReserved(RESERVED)
-            .setPunnings(StdMode.LAX.getVocabulary())
+            .setPunnings(PunningsMode.FULL.getVocabulary())
             .build();
 
     /**
@@ -285,12 +285,12 @@ public class OntModelConfig {
      * that a name can only be used for one kind of property."
      *
      * @see <a href='https://www.w3.org/TR/owl2-new-features/#F12:_Punning'>2.4.1 F12: Punning</a>
-     * @see StdMode#STRICT
+     * @see PunningsMode#DL2
      */
     public static final OntPersonality ONT_PERSONALITY_STRICT = getPersonalityBuilder()
             .setBuiltins(BUILTINS)
             .setReserved(RESERVED)
-            .setPunnings(StdMode.STRICT.getVocabulary())
+            .setPunnings(PunningsMode.DL2.getVocabulary())
             .build();
 
     /**
@@ -301,17 +301,17 @@ public class OntModelConfig {
      * </ul>
      *
      * @see <a href='https://www.w3.org/TR/owl2-new-features/#F12:_Punning'>2.4.1 F12: Punning</a>
-     * @see StdMode#MEDIUM
+     * @see PunningsMode#DL_WEAK
      */
     public static final OntPersonality ONT_PERSONALITY_MEDIUM = getPersonalityBuilder()
             .setBuiltins(BUILTINS)
             .setReserved(RESERVED)
-            .setPunnings(StdMode.MEDIUM.getVocabulary())
+            .setPunnings(PunningsMode.DL_WEAK.getVocabulary())
             .build();
 
 
     /**
-     * Use {@link StdMode#MEDIUM} by default as a trade-off between the specification and the number of checks,
+     * Use {@link PunningsMode#DL_WEAK} by default as a trade-off between the specification and the number of checks,
      * which are usually not necessary and only load the system.
      */
     private static OntPersonality personality = ONT_PERSONALITY_MEDIUM;
@@ -374,23 +374,23 @@ public class OntModelConfig {
     }
 
     /**
-     * Creates a {@link OntPersonality.Punnings punnings personality vocabulary} according to {@link StdMode}.
+     * Creates a {@link OntPersonality.Punnings punnings personality vocabulary} according to {@link PunningsMode}.
      *
-     * @param mode {@link StdMode}, not {@code null}
+     * @param mode {@link PunningsMode}, not {@code null}
      * @return {@link OntPersonality.Punnings}
      */
-    private static OntPersonality.Punnings createPunningsVocabulary(StdMode mode) {
+    static OntPersonality.Punnings createPunningsVocabulary(PunningsMode mode) {
         Map<Class<? extends OntObject>, Set<Node>> res = new HashMap<>();
-        if (!StdMode.LAX.equals(mode)) {
+        if (!PunningsMode.FULL.equals(mode)) {
             toMap(res, OntClass.Named.class, RDFS.Datatype);
             toMap(res, OntDataRange.Named.class, OWL.Class);
         }
-        if (StdMode.STRICT.equals(mode)) {
+        if (PunningsMode.DL2.equals(mode)) {
             toMap(res, OntAnnotationProperty.class, OWL.ObjectProperty, OWL.DatatypeProperty);
             toMap(res, OntDataProperty.class, OWL.ObjectProperty, OWL.AnnotationProperty);
             toMap(res, OntObjectProperty.Named.class, OWL.DatatypeProperty, OWL.AnnotationProperty);
         }
-        if (StdMode.MEDIUM.equals(mode)) {
+        if (PunningsMode.DL_WEAK.equals(mode)) {
             toMap(res, OntDataProperty.class, OWL.ObjectProperty);
             toMap(res, OntObjectProperty.Named.class, OWL.DatatypeProperty);
         }
@@ -402,41 +402,6 @@ public class OntModelConfig {
     @SafeVarargs
     private static <K, V extends RDFNode> void toMap(Map<K, Set<Node>> map, K key, V... values) {
         map.put(key, Arrays.stream(values).map(FrontsNode::asNode).collect(Collectors.toUnmodifiableSet()));
-    }
-
-    /**
-     * A standard personality mode to manage punnings.
-     */
-    public enum StdMode {
-        /**
-         * The following punnings are considered as illegal and are excluded:
-         * <ul>
-         * <li>owl:Class &lt;-&gt; rdfs:Datatype</li>
-         * <li>owl:ObjectProperty &lt;-&gt; owl:DatatypeProperty</li>
-         * <li>owl:ObjectProperty &lt;-&gt; owl:AnnotationProperty</li>
-         * <li>owl:AnnotationProperty &lt;-&gt; owl:DatatypeProperty</li>
-         * </ul>
-         */
-        STRICT,
-        /**
-         * Forbidden intersections of rdf-declarations:
-         * <ul>
-         * <li>Class &lt;-&gt; Datatype</li>
-         * <li>ObjectProperty &lt;-&gt; DataProperty</li>
-         * </ul>
-         */
-        MEDIUM,
-        /**
-         * Allow everything.
-         */
-        LAX,
-        ;
-
-        private OntPersonality.Punnings punnings;
-
-        public OntPersonality.Punnings getVocabulary() {
-            return punnings == null ? punnings = createPunningsVocabulary(this) : punnings;
-        }
     }
 
 }

@@ -207,6 +207,38 @@ public class OntModels {
     }
 
     /**
+     * For the specified {@link OntStatement Statement}
+     * lists all its annotation assertions recursively including their sub-annotations.
+     * <p>
+     * For example, for the following snippet
+     * <pre>{@code
+     * [ a                      owl:Annotation ;
+     *   rdfs:label             "label2" ;
+     *   owl:annotatedProperty  rdfs:label ;
+     *   owl:annotatedSource    [ a                      owl:Axiom ;
+     *                            rdfs:label             "label1" ;
+     *                            owl:annotatedProperty  rdfs:comment ;
+     *                            owl:annotatedSource    [ a             owl:Ontology ;
+     *                                                     rdfs:comment  "comment"
+     *                                                   ] ;
+     *                            owl:annotatedTarget    "comment"
+     *                          ] ;
+     *   owl:annotatedTarget    "label1"
+     * ] .
+     * }</pre>
+     * there would be three annotations:
+     * {@code _:b0 rdfs:comment "comment"},
+     * {@code _:b1 rdfs:label "label1"},
+     * {@code _:b2 rdfs:label "label2"}.
+     *
+     * @param statement {@link OntStatement}, not {@code null}
+     * @return an {@link ExtendedIterator} of {@link OntStatement}s
+     */
+    public static ExtendedIterator<OntStatement> listAllAnnotations(OntStatement statement) {
+        return Iterators.flatMap(listAnnotations(statement), s -> Iterators.concat(Iterators.of(s), listAllAnnotations(s)));
+    }
+
+    /**
      * Returns an {@code ExtendedIterator} over all {@link OntStatement Ontology Statement}s,
      * which are obtained from splitting the given statement into several equivalent ones but with disjoint annotations.
      * Each of the returned statements is equal to the given, the difference is only in the related annotations.
@@ -251,37 +283,4 @@ public class OntModels {
     public static ExtendedIterator<OntStatement> listSplitStatements(OntStatement statement) {
         return ((OntStatementImpl) statement).listSplitStatements();
     }
-
-    /**
-     * For the specified {@link OntStatement Statement}
-     * lists all its annotation assertions recursively including their sub-annotations.
-     * <p>
-     * For example, for the following snippet
-     * <pre>{@code
-     * [ a                      owl:Annotation ;
-     *   rdfs:label             "label2" ;
-     *   owl:annotatedProperty  rdfs:label ;
-     *   owl:annotatedSource    [ a                      owl:Axiom ;
-     *                            rdfs:label             "label1" ;
-     *                            owl:annotatedProperty  rdfs:comment ;
-     *                            owl:annotatedSource    [ a             owl:Ontology ;
-     *                                                     rdfs:comment  "comment"
-     *                                                   ] ;
-     *                            owl:annotatedTarget    "comment"
-     *                          ] ;
-     *   owl:annotatedTarget    "label1"
-     * ] .
-     * }</pre>
-     * there would be three annotations:
-     * {@code _:b0 rdfs:comment "comment"},
-     * {@code _:b1 rdfs:label "label1"},
-     * {@code _:b2 rdfs:label "label2"}.
-     *
-     * @param statement {@link OntStatement}, not {@code null}
-     * @return an {@link ExtendedIterator} of {@link OntStatement}s
-     */
-    public static ExtendedIterator<OntStatement> listAllAnnotations(OntStatement statement) {
-        return Iterators.flatMap(listAnnotations(statement), s -> Iterators.concat(Iterators.of(s), listAllAnnotations(s)));
-    }
-
 }

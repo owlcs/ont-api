@@ -100,6 +100,6 @@ public interface OntDisjoint<O extends OntObject> extends OntObject, HasRDFNodeL
      *
      * @param <P> either {@link OntObjectProperty object property expression} or {@link OntDataProperty data property}
      */
-    interface Properties<P extends OntRealProperty> extends OntDisjoint<P> {
+    interface Properties<P extends OntRelationalProperty> extends OntDisjoint<P> {
     }
 }

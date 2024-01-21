@@ -16,8 +16,8 @@ package com.github.owlcs.ontapi.internal;
 
 import com.github.owlcs.ontapi.ID;
 import com.github.sszuev.jena.ontapi.UnionGraph;
+import com.github.sszuev.jena.ontapi.common.OntPersonality;
 import com.github.sszuev.jena.ontapi.impl.PersonalityModel;
-import com.github.sszuev.jena.ontapi.impl.conf.OntPersonality;
 import com.github.sszuev.jena.ontapi.model.OntModel;
 import org.apache.jena.rdf.model.Model;
 import org.semanticweb.owlapi.model.AxiomType;

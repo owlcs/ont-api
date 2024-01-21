@@ -261,18 +261,6 @@ public class Graphs {
     }
 
     /**
-     * Creates a new {@code UnionGraph} with the given base {@code Graph}
-     * and the same structure and settings as in the specified {@code UnionGraph}.
-     *
-     * @param base  {@link Graph} new base, not {@code null}
-     * @param union {@link UnionGraph} to inherit settings and hierarchy, not {@code null}
-     * @return {@link UnionGraph}
-     */
-    public static UnionGraph withBase(Graph base, UnionGraph union) {
-        return new UnionGraph(base, union.getUnderlying(), union.getEventManager(), union.isDistinct());
-    }
-
-    /**
      * Gets Ontology URI from the base graph or returns {@code null}
      * if there is no {@code owl:Ontology} or it is anonymous ontology.
      *
@@ -418,6 +406,21 @@ public class Graphs {
     }
 
     /**
+     * Returns a {@link Spliterator} characteristics based on graph analysis.
+     *
+     * @param graph {@link Graph}
+     * @return int
+     */
+    public static int getSpliteratorCharacteristics(Graph graph) {
+        // a graph cannot return iterator with null-elements
+        int res = Spliterator.NONNULL;
+        if (isDistinct(graph)) {
+            return res | Spliterator.DISTINCT;
+        }
+        return res;
+    }
+
+    /**
      * Answers {@code true} if all parts of the given RDF triple are URIs (i.e. not blank nodes or literals).
      *
      * @param triple a regular graph {@link Triple}, not {@code null}
@@ -437,20 +440,5 @@ public class Graphs {
      */
     public static Triple invertTriple(Triple triple) {
         return Triple.create(triple.getObject(), triple.getPredicate(), triple.getSubject());
-    }
-
-    /**
-     * Returns a {@link Spliterator} characteristics based on graph analysis.
-     *
-     * @param graph {@link Graph}
-     * @return int
-     */
-    public static int getSpliteratorCharacteristics(Graph graph) {
-        // a graph cannot return iterator with null-elements
-        int res = Spliterator.NONNULL;
-        if (isDistinct(graph)) {
-            return res | Spliterator.DISTINCT;
-        }
-        return res;
     }
 }

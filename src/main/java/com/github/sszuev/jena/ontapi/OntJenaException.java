@@ -14,7 +14,7 @@
 
 package com.github.sszuev.jena.ontapi;
 
-import com.github.sszuev.jena.ontapi.impl.conf.ObjectFactory;
+import com.github.sszuev.jena.ontapi.common.ObjectFactory;
 import org.apache.jena.shared.JenaException;
 
 /**
