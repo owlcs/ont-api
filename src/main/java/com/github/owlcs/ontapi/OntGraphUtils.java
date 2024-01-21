@@ -18,8 +18,9 @@ import com.github.owlcs.ontapi.config.OntConfig;
 import com.github.owlcs.ontapi.config.OntLoaderConfiguration;
 import com.github.owlcs.ontapi.jena.UnionGraph;
 import com.github.owlcs.ontapi.jena.impl.objects.OntIDImpl;
+import com.github.owlcs.ontapi.jena.model.OntID;
+import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.utils.Graphs;
-import com.github.owlcs.ontapi.jena.utils.Models;
 import com.github.owlcs.ontapi.transforms.GraphStats;
 import com.github.sszuev.graphs.ReadWriteLockingGraph;
 import org.apache.jena.graph.Graph;
@@ -73,6 +74,8 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.locks.ReadWriteLock;
+import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 import static com.github.owlcs.ontapi.OntologyFactoryImpl.ConfigMismatchException;
 import static com.github.owlcs.ontapi.OntologyFactoryImpl.UnsupportedFormatException;
@@ -181,7 +184,7 @@ public class OntGraphUtils {
      */
     public static PrefixMapping prefixMapping(PrefixManager pm) {
         PrefixMapping res = PrefixMapping.Factory.create();
-        Models.setNsPrefixes(res, pm.getPrefixName2PrefixMap());
+        setNsPrefixes(res, pm.getPrefixName2PrefixMap());
         return res;
     }
 
@@ -542,5 +545,55 @@ public class OntGraphUtils {
                 .mapWith(OntGraphUtils::asNonConcurrent)
                 .forEachRemaining(res::addGraph);
         return res;
+    }
+
+    /**
+     * Inserts the given ontology in the dependencies of each ontology from the specified collection,
+     * provided as {@code Supplier} (the {@code manager} parameter).
+     * Can be used to fix missed graph links or
+     * to replace existing dependency with the new one in case {@code replace} is {@code true}.
+     *
+     * @param manager the collection of other ontologies in form of {@link Supplier} that answers a {@code Stream}
+     * @param ont     {@link OntModel} the ontology to insert, must be named
+     * @param replace if {@code true} then any existing graph,
+     *                that is linked through the {@code owl:import} declaration,
+     *                will be replaced with the given graph,
+     *                otherwise the graph will be inserted only if
+     *                there is a declaration {@code owl:import} without any graph associated
+     * @see OntID#getImportsIRI()
+     */
+    public static void insert(Supplier<Stream<OntModel>> manager, OntModel ont, boolean replace) {
+        String uri = Objects.requireNonNull(ont.getID().getImportsIRI(), "Must be named ontology");
+        manager.get()
+                .filter(m -> {
+                    // select only those, that have the uri in owl:imports:
+                    try (Stream<String> uris = m.getID().imports()) {
+                        return uris.anyMatch(uri::equals);
+                    }
+                })
+                .peek(m -> {
+                    if (!replace) return;
+                    // remove a first found previously associated graph:
+                    m.imports()
+                            .filter(i -> uri.equals(i.getID().getImportsIRI()))
+                            .findFirst()
+                            .ifPresent(i -> ((UnionGraph) m.getGraph()).removeGraph(i.getGraph()));
+                })
+                .filter(m -> m.imports().map(OntModel::getID).map(OntID::getImportsIRI).noneMatch(uri::equals))
+                .forEach(m -> m.addImport(ont));
+    }
+
+    /**
+     * Replaces namespaces map with new one.
+     *
+     * @param mapping  {@link PrefixMapping Prefix Mapping} to modify
+     * @param prefixes java Map of new prefixes to set
+     * @return a {@code Map} of previously associated prefixes
+     */
+    public static Map<String, String> setNsPrefixes(PrefixMapping mapping, Map<String, String> prefixes) {
+        Map<String, String> init = mapping.getNsPrefixMap();
+        init.keySet().forEach(mapping::removeNsPrefix);
+        prefixes.forEach((p, u) -> mapping.setNsPrefix(p.replaceAll(":$", ""), u));
+        return init;
     }
 }

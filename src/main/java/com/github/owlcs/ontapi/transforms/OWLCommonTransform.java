@@ -33,6 +33,7 @@ import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.vocabulary.RDFS;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -74,6 +75,45 @@ public class OWLCommonTransform extends TransformationModel {
 
     private static Literal asNonNegativeIntegerLiteral(Literal n) {
         return n.getModel().createTypedLiteral(n.asLiteral().getLexicalForm(), NON_NEGATIVE_INTEGER);
+    }
+
+    /**
+     * Recursively gets all statements related to the specified subject.
+     * Note: {@code rdf:List} may content a large number of members (1000+),
+     * which may imply heavy calculation.
+     *
+     * @param inModel Resource with associated model inside.
+     * @return a {@code Set} of {@link Statement}s
+     */
+    public static Set<Statement> getAssociatedStatements(Resource inModel) {
+        Set<Statement> res = new HashSet<>();
+        calcAssociatedStatements(inModel, res);
+        return res;
+    }
+
+    private static void calcAssociatedStatements(Resource root, Set<Statement> res) {
+        if (root.canAs(RDFList.class)) {
+            RDFList list = root.as(RDFList.class);
+            if (list.isEmpty()) return;
+            Models.getListStatements(list).forEach(statement -> {
+                res.add(statement);
+                if (!RDF.first.equals(statement.getPredicate())) return;
+                RDFNode obj = statement.getObject();
+                if (obj.isAnon())
+                    calcAssociatedStatements(obj.asResource(), res);
+            });
+            return;
+        }
+        root.listProperties().forEachRemaining(statement -> {
+            try {
+                if (!statement.getObject().isAnon() ||
+                        res.stream().anyMatch(s -> statement.getObject().equals(s.getSubject()))) // to avoid cycles
+                    return;
+                calcAssociatedStatements(statement.getObject().asResource(), res);
+            } finally {
+                res.add(statement);
+            }
+        });
     }
 
     @Override
@@ -318,7 +358,7 @@ public class OWLCommonTransform extends TransformationModel {
                     RDFList list = s.as(RDFList.class);
                     p.getResource().addProperty(OWL.propertyChainAxiom, m.createList(list.iterator()));
                     m.remove(p);
-                    Models.getAssociatedStatements(list).forEach(m::remove);
+                    getAssociatedStatements(list).forEach(m::remove);
                 });
     }
 

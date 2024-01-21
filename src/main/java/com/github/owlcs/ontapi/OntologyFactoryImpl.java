@@ -14,8 +14,8 @@
 
 package com.github.owlcs.ontapi;
 
-import com.github.owlcs.ontapi.jena.utils.Models;
 import com.github.owlcs.ontapi.transforms.TransformException;
+import javax.annotation.ParametersAreNonnullByDefault;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.jena.riot.system.ErrorHandlerFactory;
 import org.semanticweb.owlapi.model.IRI;
@@ -23,7 +23,6 @@ import org.semanticweb.owlapi.model.OWLDocumentFormat;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyFactory;
 
-import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.Objects;
 
 /**
@@ -83,7 +82,7 @@ public class OntologyFactoryImpl implements OntologyFactory {
         OWLOntologyCreationHandler handler = getAdapter().asHandler(manager);
         handler.ontologyCreated(model);
         OWLDocumentFormat format = OntFormat.TURTLE.createOwlFormat();
-        Models.setNsPrefixes(model.asGraphModel(), format.asPrefixOWLDocumentFormat().getPrefixName2PrefixMap());
+        OntGraphUtils.setNsPrefixes(model.asGraphModel(), format.asPrefixOWLDocumentFormat().getPrefixName2PrefixMap());
         handler.setOntologyFormat(model, format);
     }
 

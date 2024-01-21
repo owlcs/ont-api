@@ -23,7 +23,8 @@ import com.github.owlcs.ontapi.internal.InternalModel;
 import com.github.owlcs.ontapi.jena.UnionGraph;
 import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.utils.Graphs;
-import com.github.owlcs.ontapi.jena.utils.OntModels;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.GraphUtil;
 import org.apache.jena.graph.impl.WrappedGraph;
@@ -93,8 +94,6 @@ import org.semanticweb.owlapi.model.parameters.OntologyCopy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.Serializable;
@@ -1202,13 +1201,10 @@ public class OntologyManagerImpl
      * Checks and restores the import references between models in the manager.
      * Note: the complexity of the method is {@code O(N^2)}, where {@code N} is a number of ontologies.
      * The method can be used to fix links while copying.
-     *
-     * @see OntModels#insert(java.util.function.Supplier, OntModel, boolean)
-     * @see OntModels#syncImports(OntModel)
      */
     public void syncImports() {
         models().filter(m -> m.getID().isURIResource())
-                .forEach(m -> OntModels.insert(() -> models()
+                .forEach(m -> OntGraphUtils.insert(() -> models()
                         .filter(x -> m != x && !Graphs.isSameBase(x.getBaseGraph(), m.getBaseGraph())), m, false));
     }
 
@@ -1505,7 +1501,7 @@ public class OntologyManagerImpl
 
             if (!res.isAnonymous()) {
                 // restore missed dependencies
-                OntModels.insert(this::models, res.asGraphModel(), false);
+                OntGraphUtils.insert(this::models, res.asGraphModel(), false);
             }
 
             if (settings == OntologyCopy.DEEP) {

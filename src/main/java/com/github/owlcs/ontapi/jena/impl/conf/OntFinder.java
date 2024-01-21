@@ -40,7 +40,6 @@ public interface OntFinder {
     OntFinder ANY_SUBJECT = eg -> Graphs.listSubjects(eg.asGraph());
     OntFinder ANY_BLANK_SUBJECT = eg -> Iterators.distinct(eg.asGraph().find().mapWith(Triple::getSubject).filterKeep(Node::isBlank));
     OntFinder ANY_SUBJECT_AND_OBJECT = eg -> Graphs.listSubjectsAndObjects(eg.asGraph());
-    OntFinder ANYTHING = eg -> Graphs.listAllNodes(eg.asGraph());
     OntFinder TYPED = new ByPredicate(RDF.type);
 
     /**

@@ -152,7 +152,7 @@ public class OWLIOUtils {
     }
 
     public static OWLOntology convertJenaToOWL(OWLOntologyManager manager, Model model, OntFormat convertFormat) {
-        String uri = TestUtils.getURI(model);
+        String uri = MiscTestUtils.getURI(model);
         LOGGER.debug("Put ontology {}({}) to the manager.", uri, convertFormat);
         try (InputStream is = asInputStream(model, convertFormat == null ? OntFormat.TURTLE : convertFormat)) {
             return manager.loadOntologyFromOntologyDocument(is);

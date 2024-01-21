@@ -17,8 +17,8 @@ package com.github.owlcs.ontapi.tests.model;
 import com.github.owlcs.ontapi.OntFormat;
 import com.github.owlcs.ontapi.OntManagers;
 import com.github.owlcs.ontapi.Ontology;
+import com.github.owlcs.ontapi.testutils.MiscTestUtils;
 import com.github.owlcs.ontapi.testutils.OWLIOUtils;
-import com.github.owlcs.ontapi.testutils.TestUtils;
 import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLOntology;
@@ -59,8 +59,8 @@ abstract class OntModelTestBase {
         OWLOntology result = OWLIOUtils.convertJenaToOWL(manager, original.asGraphModel());
         LOGGER.debug("All (actual) axioms from reloaded ontology[OWL]:");
         result.axioms().map(String::valueOf).forEach(LOGGER::debug);
-        Map<AxiomType<?>, List<OWLAxiom>> expected = TestUtils.toMap(filterAxioms(original, excluded));
-        Map<AxiomType<?>, List<OWLAxiom>> actual = TestUtils.toMap(filterAxioms(result, excluded));
-        TestUtils.compareAxioms(expected, actual);
+        Map<AxiomType<?>, List<OWLAxiom>> expected = MiscTestUtils.toMap(filterAxioms(original, excluded));
+        Map<AxiomType<?>, List<OWLAxiom>> actual = MiscTestUtils.toMap(filterAxioms(result, excluded));
+        MiscTestUtils.compareAxioms(expected, actual);
     }
 }

@@ -26,8 +26,8 @@ import com.github.owlcs.ontapi.jena.impl.conf.OntPersonality;
 import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.vocabulary.OWL;
 import com.github.owlcs.ontapi.jena.vocabulary.RDF;
+import com.github.owlcs.ontapi.testutils.MiscTestUtils;
 import com.github.owlcs.ontapi.testutils.OWLIOUtils;
-import com.github.owlcs.ontapi.testutils.TestUtils;
 import com.github.owlcs.ontapi.transforms.GraphTransformers;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Triple;
@@ -180,9 +180,9 @@ public class InternalModelTest {
         OWLObjectProperty creator = factory.getOWLObjectProperty(IRI.create("http://purl.org/dc/terms/creator"));
         expectedObjectProperties.add(creator);
 
-        OntModelConfig.StdMode mode = TestUtils.getMode(profile);
+        OntModelConfig.StdMode mode = MiscTestUtils.getMode(profile);
         // remove all illegal punnings from OWL-API output:
-        Set<Resource> illegalPunnings = TestUtils.getIllegalPunnings(jena, mode);
+        Set<Resource> illegalPunnings = MiscTestUtils.getIllegalPunnings(jena, mode);
         LOGGER.debug("Illegal punnings inside graph: {}", illegalPunnings);
         Set<OWLAnnotationProperty> illegalAnnotationProperties = illegalPunnings.stream().map(r -> r.inModel(jena))
                 .filter(r -> r.hasProperty(RDF.type, OWL.AnnotationProperty))

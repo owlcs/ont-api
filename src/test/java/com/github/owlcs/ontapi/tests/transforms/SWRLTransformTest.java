@@ -18,8 +18,8 @@ import com.github.owlcs.ontapi.OntFormat;
 import com.github.owlcs.ontapi.OntManagers;
 import com.github.owlcs.ontapi.Ontology;
 import com.github.owlcs.ontapi.OntologyManager;
+import com.github.owlcs.ontapi.testutils.MiscTestUtils;
 import com.github.owlcs.ontapi.testutils.OWLIOUtils;
-import com.github.owlcs.ontapi.testutils.TestUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.semanticweb.owlapi.io.OWLOntologyDocumentSource;
@@ -43,10 +43,10 @@ public class SWRLTransformTest {
 
         OWLIOUtils.print(o);
 
-        TestUtils.assertAxiom(o, AxiomType.DECLARATION, 6);
-        TestUtils.assertAxiom(o, AxiomType.DATA_PROPERTY_ASSERTION, 6);
-        TestUtils.assertAxiom(o, AxiomType.CLASS_ASSERTION, 1);
-        TestUtils.assertAxiom(o, AxiomType.SWRL_RULE, 0);
+        MiscTestUtils.assertAxiom(o, AxiomType.DECLARATION, 6);
+        MiscTestUtils.assertAxiom(o, AxiomType.DATA_PROPERTY_ASSERTION, 6);
+        MiscTestUtils.assertAxiom(o, AxiomType.CLASS_ASSERTION, 1);
+        MiscTestUtils.assertAxiom(o, AxiomType.SWRL_RULE, 0);
         Assertions.assertEquals(13, o.axioms().count());
     }
 
@@ -59,10 +59,10 @@ public class SWRLTransformTest {
 
         OWLIOUtils.print(o);
 
-        TestUtils.assertAxiom(o, AxiomType.DECLARATION, 8);
-        TestUtils.assertAxiom(o, AxiomType.DATA_PROPERTY_ASSERTION, 6);
-        TestUtils.assertAxiom(o, AxiomType.CLASS_ASSERTION, 1);
-        TestUtils.assertAxiom(o, AxiomType.SWRL_RULE, 1);
+        MiscTestUtils.assertAxiom(o, AxiomType.DECLARATION, 8);
+        MiscTestUtils.assertAxiom(o, AxiomType.DATA_PROPERTY_ASSERTION, 6);
+        MiscTestUtils.assertAxiom(o, AxiomType.CLASS_ASSERTION, 1);
+        MiscTestUtils.assertAxiom(o, AxiomType.SWRL_RULE, 1);
         Assertions.assertEquals(16, o.axioms().count());
     }
 }

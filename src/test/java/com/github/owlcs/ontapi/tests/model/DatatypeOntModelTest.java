@@ -15,8 +15,8 @@
 package com.github.owlcs.ontapi.tests.model;
 
 import com.github.owlcs.ontapi.Ontology;
+import com.github.owlcs.ontapi.testutils.MiscTestUtils;
 import com.github.owlcs.ontapi.testutils.OntIRI;
-import com.github.owlcs.ontapi.testutils.TestUtils;
 import org.junit.jupiter.api.Test;
 import org.semanticweb.owlapi.model.AddAxiom;
 import org.semanticweb.owlapi.model.AxiomType;
@@ -44,7 +44,7 @@ public class DatatypeOntModelTest extends OntModelTestBase {
     @Test
     public void testDefinitionAxiom() {
         OntIRI iri = OntIRI.create("http://test.org/datatypes/1");
-        Ontology owl = TestUtils.createModel(iri);
+        Ontology owl = MiscTestUtils.createModel(iri);
         OWLOntologyManager manager = owl.getOWLOntologyManager();
 
         OWLDataFactory factory = manager.getOWLDataFactory();
@@ -67,7 +67,7 @@ public class DatatypeOntModelTest extends OntModelTestBase {
     @Test
     public void testWithClassExpressions() {
         OntIRI iri = OntIRI.create("http://test.org/datatypes/2");
-        Ontology owl = TestUtils.createModel(iri);
+        Ontology owl = MiscTestUtils.createModel(iri);
         OWLOntologyManager manager = owl.getOWLOntologyManager();
 
         OWLDataFactory factory = manager.getOWLDataFactory();

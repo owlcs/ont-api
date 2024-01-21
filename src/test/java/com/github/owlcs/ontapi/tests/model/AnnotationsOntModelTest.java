@@ -25,9 +25,9 @@ import com.github.owlcs.ontapi.jena.model.OntClass;
 import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.vocabulary.OWL;
 import com.github.owlcs.ontapi.jena.vocabulary.RDF;
+import com.github.owlcs.ontapi.testutils.MiscTestUtils;
 import com.github.owlcs.ontapi.testutils.OWLIOUtils;
 import com.github.owlcs.ontapi.testutils.OntIRI;
-import com.github.owlcs.ontapi.testutils.TestUtils;
 import org.apache.jena.rdf.model.Literal;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.Statement;
@@ -161,13 +161,13 @@ public class AnnotationsOntModelTest extends OntModelTestBase {
 
         LOGGER.debug("Current axioms:");
         owl.axioms().map(String::valueOf).forEach(LOGGER::debug);
-        TestUtils.compareAxioms(Stream.of(expected), owl.axioms());
+        MiscTestUtils.compareAxioms(Stream.of(expected), owl.axioms());
 
         LOGGER.debug("Reload ontology.");
         OWLOntology reload = OWLIOUtils.convertJenaToOWL(OntManagers.createOWLAPIImplManager(), jena, null);
         LOGGER.debug("Axioms after reload:");
         reload.axioms().map(String::valueOf).forEach(LOGGER::debug);
-        TestUtils.compareAxioms(Stream.of(expected), reload.axioms());
+        MiscTestUtils.compareAxioms(Stream.of(expected), reload.axioms());
     }
 
     /**
@@ -294,7 +294,7 @@ public class AnnotationsOntModelTest extends OntModelTestBase {
     @Test
     public void testBulkNaryAnnotatedAxioms() {
         OntIRI iri = OntIRI.create("http://test.org/annotations/3");
-        Ontology owl = TestUtils.createModel(iri);
+        Ontology owl = MiscTestUtils.createModel(iri);
         OWLOntologyManager manager = owl.getOWLOntologyManager();
         OWLDataFactory factory = manager.getOWLDataFactory();
 
@@ -366,7 +366,7 @@ public class AnnotationsOntModelTest extends OntModelTestBase {
     @Test
     public void testNaryAnnotatedAxioms() {
         OntIRI iri = OntIRI.create("http://test.org/annotations/4");
-        Ontology owl = TestUtils.createModel(iri);
+        Ontology owl = MiscTestUtils.createModel(iri);
         OWLOntologyManager manager = owl.getOWLOntologyManager();
         OWLDataFactory factory = manager.getOWLDataFactory();
 
@@ -434,7 +434,7 @@ public class AnnotationsOntModelTest extends OntModelTestBase {
     @Test
     public void testAnnotatedAxiomsWithSubChain() {
         OntIRI iri = OntIRI.create("http://test.org/annotations/5");
-        Ontology owl = TestUtils.createModel(iri);
+        Ontology owl = MiscTestUtils.createModel(iri);
 
         OWLOntologyManager manager = owl.getOWLOntologyManager();
         OWLDataFactory factory = manager.getOWLDataFactory();
@@ -483,7 +483,7 @@ public class AnnotationsOntModelTest extends OntModelTestBase {
     @Test
     public void testSWRLRuleAnnotation() {
         OntIRI iri = OntIRI.create("http://test.org/annotations/6");
-        Ontology owl = TestUtils.createModel(iri);
+        Ontology owl = MiscTestUtils.createModel(iri);
         OWLOntologyManager manager = owl.getOWLOntologyManager();
         OWLDataFactory factory = manager.getOWLDataFactory();
 

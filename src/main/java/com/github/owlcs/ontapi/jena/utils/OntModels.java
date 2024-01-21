@@ -15,37 +15,25 @@
 package com.github.owlcs.ontapi.jena.utils;
 
 import com.github.owlcs.ontapi.jena.OntJenaException;
-import com.github.owlcs.ontapi.jena.UnionGraph;
 import com.github.owlcs.ontapi.jena.impl.OntGraphModelImpl;
 import com.github.owlcs.ontapi.jena.impl.objects.OntIndividualImpl;
 import com.github.owlcs.ontapi.jena.impl.objects.OntListImpl;
 import com.github.owlcs.ontapi.jena.impl.objects.OntObjectImpl;
 import com.github.owlcs.ontapi.jena.impl.objects.OntStatementImpl;
 import com.github.owlcs.ontapi.jena.model.OntClass;
-import com.github.owlcs.ontapi.jena.model.OntDataRange;
-import com.github.owlcs.ontapi.jena.model.OntDisjoint;
 import com.github.owlcs.ontapi.jena.model.OntEntity;
-import com.github.owlcs.ontapi.jena.model.OntID;
 import com.github.owlcs.ontapi.jena.model.OntIndividual;
 import com.github.owlcs.ontapi.jena.model.OntList;
 import com.github.owlcs.ontapi.jena.model.OntModel;
-import com.github.owlcs.ontapi.jena.model.OntNegativeAssertion;
 import com.github.owlcs.ontapi.jena.model.OntObject;
-import com.github.owlcs.ontapi.jena.model.OntObjectProperty;
-import com.github.owlcs.ontapi.jena.model.OntSWRL;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
 import com.github.owlcs.ontapi.jena.model.RDFNodeList;
-import com.github.owlcs.ontapi.jena.vocabulary.OWL;
-import org.apache.jena.graph.Graph;
-import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.impl.ModelCom;
 import org.apache.jena.util.iterator.ExtendedIterator;
 
-import java.util.Objects;
-import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 /**
@@ -88,77 +76,6 @@ public class OntModels {
      */
     public static OntIndividual.Anonymous asAnonymousIndividual(RDFNode inModel) {
         return OntIndividualImpl.createAnonymousIndividual(inModel);
-    }
-
-    /**
-     * Inserts the given ontology in the dependencies of each ontology from the specified collection,
-     * provided as {@code Supplier} (the {@code manager} parameter).
-     * Can be used to fix missed graph links or
-     * to replace existing dependency with the new one in case {@code replace} is {@code true}.
-     *
-     * @param manager the collection of other ontologies in form of {@link Supplier} that answers a {@code Stream}
-     * @param ont     {@link OntModel} the ontology to insert, must be named
-     * @param replace if {@code true} then any existing graph,
-     *                that is linked through the {@code owl:import} declaration,
-     *                will be replaced with the given graph,
-     *                otherwise the graph will be inserted only if
-     *                there is a declaration {@code owl:import} without any graph associated
-     * @see OntID#getImportsIRI()
-     */
-    public static void insert(Supplier<Stream<OntModel>> manager, OntModel ont, boolean replace) {
-        String uri = Objects.requireNonNull(ont.getID().getImportsIRI(), "Must be named ontology");
-        manager.get()
-                .filter(m -> {
-                    // select only those, that have the uri in owl:imports:
-                    try (Stream<String> uris = m.getID().imports()) {
-                        return uris.anyMatch(uri::equals);
-                    }
-                })
-                .peek(m -> {
-                    if (!replace) return;
-                    // remove a first found previously associated graph:
-                    m.imports()
-                            .filter(i -> uri.equals(i.getID().getImportsIRI()))
-                            .findFirst()
-                            .ifPresent(i -> ((UnionGraph) m.getGraph()).removeGraph(i.getGraph()));
-                })
-                .filter(m -> m.imports().map(OntModel::getID).map(OntID::getImportsIRI).noneMatch(uri::equals))
-                .forEach(m -> m.addImport(ont));
-    }
-
-    /**
-     * Synchronizes the import declarations with the graph hierarchy.
-     * Underling graph tree may content named graphs which are not included to the {@code owl:imports} declaration.
-     * This method tries to fix such situation by modifying base graph.
-     *
-     * @param m {@link OntModel}, not {@code null}
-     * @throws StackOverflowError in case the given model has a recursion in the hierarchy
-     * @see Graphs#importsTreeAsString(Graph)
-     */
-    public static void syncImports(OntModel m) {
-        OntID id = m.getID();
-        id.removeAll(OWL.imports);
-        m.imports()
-                .peek(OntModels::syncImports)
-                .map(OntModel::getID)
-                .filter(Resource::isURIResource)
-                .map(OntID::getImportsIRI)
-                .forEach(id::addImport);
-    }
-
-    /**
-     * Recursively lists all models that are associated with the given model in the form of a flat stream.
-     * In normal situation, each of the models must have {@code owl:imports} statement in the overlying graph.
-     * In this case the returned stream must correspond the result of the {@link Graphs#baseGraphs(Graph)} method.
-     *
-     * @param m {@link OntModel}, not {@code null}
-     * @return {@code Stream} of models, cannot be empty: must contain at least the input (root) model
-     * @throws StackOverflowError in case the given model has a recursion in the hierarchy
-     * @see Graphs#baseGraphs(Graph)
-     * @see OntID#getImportsIRI()
-     */
-    public static Stream<OntModel> importsClosure(OntModel m) {
-        return Stream.concat(Stream.of(m), m.imports().flatMap(OntModels::importsClosure));
     }
 
     /**
@@ -336,21 +253,6 @@ public class OntModels {
     }
 
     /**
-     * Recursively lists all annotations for the given {@link OntStatement Ontology Statement}
-     * in the form of a flat stream.
-     *
-     * @param statement {@link OntStatement}, not {@code null}
-     * @return a {@code Stream} of {@link OntStatement}s, each of them is annotation property assertion
-     * @see #listAllAnnotations(OntStatement)
-     */
-    public static Stream<OntStatement> annotations(OntStatement statement) {
-        if (statement instanceof OntStatementImpl) {
-            return Iterators.asStream(listAllAnnotations(statement));
-        }
-        return statement.annotations().flatMap(s -> Stream.concat(Stream.of(s), annotations(s)));
-    }
-
-    /**
      * For the specified {@link OntStatement Statement}
      * lists all its annotation assertions recursively including their sub-annotations.
      * <p>
@@ -382,30 +284,4 @@ public class OntModels {
         return Iterators.flatMap(listAnnotations(statement), s -> Iterators.concat(Iterators.of(s), listAllAnnotations(s)));
     }
 
-    /**
-     * Answers an {@link OntStatement Ontology Statement} in the specified {@code model}
-     * that wraps the given {@code triple}.
-     * This method differs from the method {@link OntModel#asStatement(Triple)}
-     * in that it provides {@link OntObject#getMainStatement() main statement} if it is possible.
-     *
-     * @param triple {@link Triple SPO}, not {@code null}
-     * @param model  {@link OntModel}, not {@code null}
-     * @return {@link OntStatement}
-     * @see OntModel#asStatement(Triple)
-     * @see OntObject#getMainStatement()
-     */
-    public static OntStatement toOntStatement(Triple triple, OntModel model) {
-        OntStatement res = model.asStatement(triple);
-        Resource subj = res.getSubject();
-        return Stream.of(OntEntity.class
-                , OntClass.class
-                , OntDataRange.class
-                , OntDisjoint.class
-                , OntObjectProperty.class
-                , OntNegativeAssertion.class
-                , OntSWRL.class)
-                .filter(subj::canAs).map(subj::as)
-                .map(OntObject::getMainStatement).filter(res::equals)
-                .findFirst().orElse(res);
-    }
 }

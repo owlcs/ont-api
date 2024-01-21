@@ -15,7 +15,6 @@
 package com.github.owlcs.ontapi.jena.utils;
 
 import com.github.owlcs.ontapi.jena.UnionGraph;
-import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.vocabulary.OWL;
 import com.github.owlcs.ontapi.jena.vocabulary.RDF;
 import org.apache.jena.graph.Graph;
@@ -25,9 +24,7 @@ import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.graph.compose.Dyadic;
 import org.apache.jena.graph.compose.Polyadic;
-import org.apache.jena.graph.impl.GraphWithPerform;
 import org.apache.jena.mem.GraphMem;
-import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.sparql.graph.GraphWrapper;
 import org.apache.jena.sparql.util.graph.GraphUtils;
 import org.apache.jena.util.iterator.ExtendedIterator;
@@ -35,13 +32,11 @@ import org.apache.jena.util.iterator.ExtendedIterator;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.Spliterator;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -54,11 +49,9 @@ import java.util.stream.Stream;
  * @see GraphUtil
  * @see GraphUtils
  */
-@SuppressWarnings({"WeakerAccess"})
 public class Graphs {
 
     public static final String NULL_ONTOLOGY_IDENTIFIER = "NullOntology";
-    public static final String RECURSIVE_GRAPH_IDENTIFIER = "Recursion";
 
     /**
      * Extracts and lists all top-level sub-graphs from the given composite graph-container,
@@ -122,16 +115,6 @@ public class Graphs {
     }
 
     /**
-     * Returns {@code GraphWithPerform} in-memory instance.
-     *
-     * @return {@link GraphWithPerform}
-     */
-    @SuppressWarnings("deprecation")
-    public static GraphWithPerform getGraphWithPerformInMem() {
-        return new GraphMem();
-    }
-
-    /**
      * Answers {@code true} if the graph specified is {@code GraphMem}.
      *
      * @param graph {@link Graph}
@@ -148,15 +131,11 @@ public class Graphs {
      * Note: this method is safe for a common {@link UnionGraph}, that produced by the system,
      * but for any other composite graph there is a risk of {@code StackOverflowError} method
      * in case a considered graph has a recursion somewhere in its hierarchy.
-     * For a well-formed ontological {@code Graph} the returned stream must
-     * correspond the result of the method {@link OntModels#importsClosure(OntModel)}.
      *
      * @param graph {@link Graph}
      * @return {@code Stream} of {@link Graph}s
      * @throws StackOverflowError in case the given graph is not {@link UnionGraph} from a system
      *                            and has a recursion in its hierarchy
-     * @see UnionGraph#listBaseGraphs()
-     * @see OntModels#importsClosure(OntModel)
      */
     public static Stream<Graph> baseGraphs(Graph graph) {
         if (graph == null) return Stream.empty();
@@ -389,76 +368,6 @@ public class Graphs {
     }
 
     /**
-     * Prints a graph hierarchy tree.
-     * For a valid ontology it should match an imports ({@code owl:imports}) tree also.
-     * For debugging.
-     * <p>
-     * An examples of possible output:
-     * <pre> {@code
-     * <http://imports.test.Main.ttl>
-     *      <http://imports.test.C.ttl>
-     *          <http://imports.test.A.ttl>
-     *          <http://imports.test.B.ttl>
-     *      <http://imports.test.D.ttl>
-     * }, {@code
-     * <http://imports.test.D.ttl>
-     *      <http://imports.test.C.ttl>
-     *          <http://imports.test.A.ttl>
-     *          <http://imports.test.B.ttl>
-     *              <http://imports.test.Main.ttl>
-     * } </pre>
-     *
-     * @param graph {@link Graph}
-     * @return hierarchy tree as String
-     */
-    public static String importsTreeAsString(Graph graph) {
-        Function<Graph, String> printDefaultGraphName = g -> g.getClass().getSimpleName() + "@" + Integer.toHexString(g.hashCode());
-        return makeImportsTree(graph, g -> {
-            if (g.isClosed()) return "Closed(" + printDefaultGraphName.apply(g) + ")";
-            String res = getName(g);
-            if (NULL_ONTOLOGY_IDENTIFIER.equals(res)) {
-                res += "(" + printDefaultGraphName.apply(g) + ")";
-            }
-            return res;
-        }, "\t", "\t", new HashSet<>()).toString();
-    }
-
-    private static StringBuilder makeImportsTree(Graph graph,
-                                                 Function<Graph, String> getName,
-                                                 String indent,
-                                                 String step,
-                                                 Set<Graph> seen) {
-        StringBuilder res = new StringBuilder();
-        Graph base = getBase(graph);
-        String name = getName.apply(base);
-        try {
-            if (!seen.add(graph)) {
-                return res.append(RECURSIVE_GRAPH_IDENTIFIER).append(": ").append(name);
-            }
-            res.append(name).append("\n");
-            subGraphs(graph)
-                    .sorted(Comparator.comparingLong(o -> subGraphs(o).count()))
-                    .forEach(sub -> res.append(indent)
-                            .append(makeImportsTree(sub, getName, indent + step, step, seen)));
-            return res;
-        } finally {
-            seen.remove(graph);
-        }
-    }
-
-    /**
-     * Collects a prefixes library from the collection of the graphs.
-     *
-     * @param graphs {@link Iterable} a collection of graphs
-     * @return unmodifiable (locked) {@link PrefixMapping prefix mapping}
-     */
-    public static PrefixMapping collectPrefixes(Iterable<Graph> graphs) {
-        PrefixMapping res = PrefixMapping.Factory.create();
-        graphs.forEach(g -> res.setNsPrefixes(g.getPrefixMapping()));
-        return res.lock();
-    }
-
-    /**
      * Answers {@code true} if the left graph depends on the right one.
      *
      * @param left  {@link Graph}
@@ -496,19 +405,6 @@ public class Graphs {
     public static ExtendedIterator<Node> listSubjectsAndObjects(Graph graph) {
         return Iterators.create(() -> Collections.unmodifiableSet(Iterators.flatMap(graph.find(),
                 t -> Iterators.of(t.getSubject(), t.getObject())).toSet()).iterator());
-    }
-
-    /**
-     * Lists all unique nodes in the given graph.
-     * Warning: the result is temporary stored in-memory!
-     *
-     * @param graph {@link Graph}, not {@code null}
-     * @return an {@link ExtendedIterator ExtendedIterator} (<b>distinct</b>) of all nodes in the graph
-     * @throws OutOfMemoryError while iterating in case the graph is too large to be placed in memory as a {@code Set}
-     */
-    public static ExtendedIterator<Node> listAllNodes(Graph graph) {
-        return Iterators.create(() -> Collections.unmodifiableSet(Iterators.flatMap(graph.find(),
-                t -> Iterators.of(t.getSubject(), t.getPredicate(), t.getObject())).toSet()).iterator());
     }
 
     /**

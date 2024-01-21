@@ -19,11 +19,14 @@ import com.github.owlcs.ontapi.Ontology;
 import com.github.owlcs.ontapi.OntologyManager;
 import com.github.owlcs.ontapi.jena.impl.conf.OntModelConfig;
 import com.github.owlcs.ontapi.jena.impl.conf.OntPersonality;
+import com.github.owlcs.ontapi.jena.model.OntID;
+import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.utils.Graphs;
 import com.github.owlcs.ontapi.jena.vocabulary.OWL;
 import com.github.owlcs.ontapi.jena.vocabulary.RDF;
 import com.github.owlcs.ontapi.owlapi.objects.AnonymousIndividualImpl;
 import org.apache.jena.graph.BlankNodeId;
+import org.apache.jena.graph.Graph;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.Statement;
@@ -56,8 +59,8 @@ import java.util.stream.Stream;
  * Created by @ssz on 16.10.2016.
  */
 @SuppressWarnings("WeakerAccess")
-public class TestUtils {
-    private static final Logger LOGGER = LoggerFactory.getLogger(TestUtils.class);
+public class MiscTestUtils {
+    private static final Logger LOGGER = LoggerFactory.getLogger(MiscTestUtils.class);
 
     private static final OWLAnonymousIndividual ANONYMOUS_INDIVIDUAL = new AnonymousIndividualImpl(BlankNodeId.create());
 
@@ -217,5 +220,20 @@ public class TestUtils {
             o.axioms(t).forEach(x -> LOGGER.error("{}", x));
         }
         Assertions.assertEquals(expected, actual, "Wrong axioms for " + t);
+    }
+
+    /**
+     * Recursively lists all models that are associated with the given model in the form of a flat stream.
+     * In normal situation, each of the models must have {@code owl:imports} statement in the overlying graph.
+     * In this case the returned stream must correspond the result of the {@link Graphs#baseGraphs(Graph)} method.
+     *
+     * @param m {@link OntModel}, not {@code null}
+     * @return {@code Stream} of models, cannot be empty: must contain at least the input (root) model
+     * @throws StackOverflowError in case the given model has a recursion in the hierarchy
+     * @see Graphs#baseGraphs(Graph)
+     * @see OntID#getImportsIRI()
+     */
+    public static Stream<OntModel> importsClosure(OntModel m) {
+        return Stream.concat(Stream.of(m), m.imports().flatMap(MiscTestUtils::importsClosure));
     }
 }

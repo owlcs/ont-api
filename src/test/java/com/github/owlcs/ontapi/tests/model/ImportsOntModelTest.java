@@ -29,9 +29,9 @@ import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.utils.Graphs;
 import com.github.owlcs.ontapi.jena.vocabulary.OWL;
 import com.github.owlcs.ontapi.jena.vocabulary.RDF;
+import com.github.owlcs.ontapi.testutils.MiscTestUtils;
 import com.github.owlcs.ontapi.testutils.OWLIOUtils;
 import com.github.owlcs.ontapi.testutils.OntIRI;
-import com.github.owlcs.ontapi.testutils.TestUtils;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.RDFNode;
@@ -411,7 +411,7 @@ public class ImportsOntModelTest extends OntModelTestBase {
     @Test
     public void testMixedAddImports() {
         OntIRI iri = OntIRI.create("http://test.test/add-import/1");
-        Ontology owl = TestUtils.createModel(iri);
+        Ontology owl = MiscTestUtils.createModel(iri);
         OntologyManager manager = owl.getOWLOntologyManager();
         OWLDataFactory factory = manager.getOWLDataFactory();
         OntModel jena = owl.asGraphModel();
@@ -527,14 +527,14 @@ public class ImportsOntModelTest extends OntModelTestBase {
         Assertions.assertEquals(1, newChild.imports().count());
         Assertions.assertEquals(child.asGraphModel().listStatements().toList().size(),
                 newChild.asGraphModel().listStatements().toList().size());
-        TestUtils.compareAxioms(base.axioms(), newBase.axioms());
+        MiscTestUtils.compareAxioms(base.axioms(), newBase.axioms());
 
         LOGGER.debug("Check axioms after reload:");
         LOGGER.debug("Origin ont");
         child.axioms().map(String::valueOf).forEach(LOGGER::debug);
         LOGGER.debug("Reloaded ont");
         newChild.axioms().map(String::valueOf).forEach(LOGGER::debug);
-        TestUtils.compareAxioms(child.axioms(), newChild.axioms());
+        MiscTestUtils.compareAxioms(child.axioms(), newChild.axioms());
 
         LOGGER.debug("Remove import test");
         child.applyChanges(new RemoveImport(child, factory.getOWLImportsDeclaration(baseIRI)));

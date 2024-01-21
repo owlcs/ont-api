@@ -14,8 +14,8 @@
 
 package com.github.owlcs.ontapi.internal;
 
-import com.github.owlcs.ontapi.jena.utils.Graphs;
 import org.apache.jena.graph.Graph;
+import org.apache.jena.graph.GraphMemFactory;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.graph.impl.GraphWithPerform;
 import org.semanticweb.owlapi.model.OWLObject;
@@ -55,7 +55,7 @@ public interface ONTObject<O extends OWLObject> {
      * @return {@link Graph}.
      */
     default Graph toGraph() {
-        GraphWithPerform res = Graphs.getGraphWithPerformInMem();
+        GraphWithPerform res = (GraphWithPerform) GraphMemFactory.createGraphMem();
         triples().forEach(res::performAdd);
         return res;
     }

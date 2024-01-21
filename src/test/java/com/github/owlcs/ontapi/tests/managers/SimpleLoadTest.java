@@ -21,8 +21,8 @@ import com.github.owlcs.ontapi.config.OntLoaderConfiguration;
 import com.github.owlcs.ontapi.jena.impl.conf.OntModelConfig;
 import com.github.owlcs.ontapi.jena.model.OntEntity;
 import com.github.owlcs.ontapi.jena.model.OntModel;
+import com.github.owlcs.ontapi.testutils.MiscTestUtils;
 import com.github.owlcs.ontapi.testutils.OWLIOUtils;
-import com.github.owlcs.ontapi.testutils.TestUtils;
 import org.apache.jena.rdf.model.Resource;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -72,7 +72,7 @@ public class SimpleLoadTest {
         OntModel model = ont.asGraphModel();
         OWLIOUtils.print(model);
 
-        Set<Resource> illegalPunningURIs = TestUtils.getIllegalPunnings(model, OntModelConfig.StdMode.STRICT);
+        Set<Resource> illegalPunningURIs = MiscTestUtils.getIllegalPunnings(model, OntModelConfig.StdMode.STRICT);
         LOGGER.debug("There are following illegal punnins inside original graph: {}", illegalPunningURIs);
         List<OntEntity> illegalPunnings = model.ontEntities()
                 .filter(illegalPunningURIs::contains).collect(Collectors.toList());
@@ -104,8 +104,8 @@ public class SimpleLoadTest {
         Ontology ont = OntManagers.createManager().loadOntologyFromOntologyDocument(fileIRI);
         OWLOntology owl = OntManagers.createOWLAPIImplManager().loadOntologyFromOntologyDocument(fileIRI);
 
-        List<OWLAxiom> owlList = TestUtils.splitAxioms(owl).sorted().collect(Collectors.toList());
-        List<OWLAxiom> ontList = TestUtils.splitAxioms(ont).sorted().collect(Collectors.toList());
+        List<OWLAxiom> owlList = MiscTestUtils.splitAxioms(owl).sorted().collect(Collectors.toList());
+        List<OWLAxiom> ontList = MiscTestUtils.splitAxioms(ont).sorted().collect(Collectors.toList());
 
         OWLIOUtils.print(ont.asGraphModel());
 
@@ -172,8 +172,8 @@ public class SimpleLoadTest {
         Ontology ont = OntManagers.createManager().loadOntologyFromOntologyDocument(fileIRI);
         OWLOntology owl = OntManagers.createOWLAPIImplManager().loadOntologyFromOntologyDocument(fileIRI);
 
-        List<OWLAxiom> owlList = TestUtils.splitAxioms(owl).sorted().collect(Collectors.toList());
-        List<OWLAxiom> ontList = TestUtils.splitAxioms(ont).sorted().collect(Collectors.toList());
+        List<OWLAxiom> owlList = MiscTestUtils.splitAxioms(owl).sorted().collect(Collectors.toList());
+        List<OWLAxiom> ontList = MiscTestUtils.splitAxioms(ont).sorted().collect(Collectors.toList());
 
         OWLIOUtils.print(ont.asGraphModel());
 

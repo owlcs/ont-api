@@ -32,17 +32,18 @@ import com.github.owlcs.ontapi.config.OntLoaderConfiguration;
 import com.github.owlcs.ontapi.jena.OntModelFactory;
 import com.github.owlcs.ontapi.jena.UnionGraph;
 import com.github.owlcs.ontapi.jena.model.OntModel;
-import com.github.owlcs.ontapi.jena.utils.OntModels;
 import com.github.owlcs.ontapi.jena.vocabulary.OWL;
 import com.github.owlcs.ontapi.jena.vocabulary.RDF;
 import com.github.owlcs.ontapi.jena.vocabulary.XSD;
 import com.github.owlcs.ontapi.testutils.FileMap;
+import com.github.owlcs.ontapi.testutils.MiscTestUtils;
 import com.github.owlcs.ontapi.testutils.OWLIOUtils;
 import com.github.owlcs.ontapi.testutils.SP;
 import com.github.owlcs.ontapi.testutils.StringInputStreamDocumentSource;
 import com.github.owlcs.ontapi.transforms.GraphTransformers;
 import com.github.owlcs.ontapi.transforms.OWLRecursiveTransform;
 import com.github.owlcs.ontapi.transforms.Transform;
+import javax.annotation.ParametersAreNonnullByDefault;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.rdf.model.RDFList;
@@ -81,7 +82,6 @@ import org.semanticweb.owlapi.util.SimpleIRIMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.ParametersAreNonnullByDefault;
 import java.io.InputStream;
 import java.net.URI;
 import java.nio.file.Path;
@@ -251,11 +251,12 @@ public class LoadFactoryManagerTest {
         String str = OWLIOUtils.asString(a, OntFormat.TURTLE);
         LOGGER.debug("{}", str);
 
-        UnmodifiableGraph g = new UnmodifiableGraph(b.getGraph());
+        @SuppressWarnings("deprecation") UnmodifiableGraph g = new UnmodifiableGraph(b.getGraph());
         m.addOntology(g);
 
-        Assertions.assertTrue(m.models().findFirst()
-                .orElseThrow(AssertionError::new).getBaseGraph() instanceof UnmodifiableGraph);
+        //noinspection deprecation
+        Assertions.assertInstanceOf(UnmodifiableGraph.class, m.models().findFirst()
+                .orElseThrow(AssertionError::new).getBaseGraph());
         m.loadOntologyFromOntologyDocument(OWLIOUtils.getStringDocumentSource(str, OntFormat.TURTLE));
         Assertions.assertEquals(2, m.ontologies().count());
         Assertions.assertNotNull(m.getGraphModel("http://b"));
@@ -767,16 +768,16 @@ public class LoadFactoryManagerTest {
 
         m.applyChange(new AddImport(c, m.getOWLDataFactory().getOWLImportsDeclaration(IRI.create(uri_a))));
 
-        Assertions.assertTrue(a.asGraphModel().getGraph() instanceof MyUnion);
-        Assertions.assertTrue(b.asGraphModel().getGraph() instanceof MyUnion);
-        Assertions.assertTrue(c.asGraphModel().getGraph() instanceof MyUnion);
+        Assertions.assertInstanceOf(MyUnion.class, a.asGraphModel().getGraph());
+        Assertions.assertInstanceOf(MyUnion.class, b.asGraphModel().getGraph());
+        Assertions.assertInstanceOf(MyUnion.class, c.asGraphModel().getGraph());
 
-        Assertions.assertEquals(3, OntModels.importsClosure(c.asGraphModel())
-                .peek(x -> Assertions.assertTrue(x.getGraph() instanceof MyUnion)).count());
-        Assertions.assertEquals(2, OntModels.importsClosure(a.asGraphModel())
-                .peek(x -> Assertions.assertTrue(x.getGraph() instanceof MyUnion)).count());
-        Assertions.assertEquals(1, OntModels.importsClosure(b.asGraphModel())
-                .peek(x -> Assertions.assertTrue(x.getGraph() instanceof MyUnion)).count());
+        Assertions.assertEquals(3, MiscTestUtils.importsClosure(c.asGraphModel())
+                .peek(x -> Assertions.assertInstanceOf(MyUnion.class, x.getGraph())).count());
+        Assertions.assertEquals(2, MiscTestUtils.importsClosure(a.asGraphModel())
+                .peek(x -> Assertions.assertInstanceOf(MyUnion.class, x.getGraph())).count());
+        Assertions.assertEquals(1, MiscTestUtils.importsClosure(b.asGraphModel())
+                .peek(x -> Assertions.assertInstanceOf(MyUnion.class, x.getGraph())).count());
     }
 
     @Test

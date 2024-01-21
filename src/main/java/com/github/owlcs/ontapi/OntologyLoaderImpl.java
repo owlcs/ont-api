@@ -18,10 +18,10 @@ import com.github.owlcs.ontapi.config.OntConfig;
 import com.github.owlcs.ontapi.config.OntLoaderConfiguration;
 import com.github.owlcs.ontapi.jena.UnionGraph;
 import com.github.owlcs.ontapi.jena.utils.Graphs;
-import com.github.owlcs.ontapi.jena.utils.OntModels;
 import com.github.owlcs.ontapi.jena.vocabulary.OWL;
 import com.github.owlcs.ontapi.transforms.GraphStats;
 import com.github.owlcs.ontapi.transforms.TransformException;
+import javax.annotation.Nonnull;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.GraphUtil;
 import org.apache.jena.graph.Node;
@@ -45,7 +45,6 @@ import org.semanticweb.owlapi.model.UnloadableImportException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nonnull;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -201,7 +200,7 @@ public class OntologyLoaderImpl implements OntologyFactory.Loader {
                 // Such situation may occur if some ontology has been added with unresolved imports,
                 // which is possible, for example
                 // if org.semanticweb.owlapi.model.MissingImportHandlingStrategy#SILENT was specified.
-                OntModels.insert(manager::models, res.asGraphModel(), false);
+                OntGraphUtils.insert(manager::models, res.asGraphModel(), false);
             }
             // put ontology inside the manager:
             getAdapter().asHandler(manager).ontologyCreated(res);
