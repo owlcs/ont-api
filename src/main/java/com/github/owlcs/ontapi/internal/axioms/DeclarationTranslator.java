@@ -21,6 +21,7 @@ import com.github.owlcs.ontapi.internal.ModelObjectFactory;
 import com.github.owlcs.ontapi.internal.ONTObject;
 import com.github.owlcs.ontapi.internal.ONTObjectFactory;
 import com.github.owlcs.ontapi.internal.ONTWrapperImpl;
+import com.github.owlcs.ontapi.internal.OWLEntity;
 import com.github.owlcs.ontapi.internal.WriteHelper;
 import com.github.owlcs.ontapi.internal.objects.FactoryAccessor;
 import com.github.owlcs.ontapi.internal.objects.ONTAnnotationImpl;
@@ -29,7 +30,6 @@ import com.github.owlcs.ontapi.internal.objects.ONTStatementImpl;
 import com.github.owlcs.ontapi.internal.objects.WithContent;
 import com.github.owlcs.ontapi.internal.objects.WithoutAnnotations;
 import com.github.sszuev.jena.ontapi.OntJenaException;
-import com.github.sszuev.jena.ontapi.impl.objects.Entity;
 import com.github.sszuev.jena.ontapi.model.OntEntity;
 import com.github.sszuev.jena.ontapi.model.OntModel;
 import com.github.sszuev.jena.ontapi.model.OntObject;
@@ -48,7 +48,6 @@ import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLDataProperty;
 import org.semanticweb.owlapi.model.OWLDatatype;
 import org.semanticweb.owlapi.model.OWLDeclarationAxiom;
-import org.semanticweb.owlapi.model.OWLEntity;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
@@ -62,7 +61,7 @@ import java.util.stream.Stream;
 
 /**
  * It is a translator for axioms of the {@link AxiomType#DECLARATION} type.
- * Each non-builtin {@link OWLEntity entity} must have a declaration.
+ * Each non-builtin {@link org.semanticweb.owlapi.model.OWLEntity entity} must have a declaration.
  * The entity declaration is a simple triplet with {@code rdf:type} predicate,
  * in OWL2 the subject and object of that triple are IRIs.
  * <p>
@@ -93,8 +92,8 @@ public class DeclarationTranslator extends AbstractSimpleTranslator<OWLDeclarati
         if (!statement.getObject().isURIResource()) return false;
         if (!statement.isDeclaration()) return false;
         // again. this way is used to restrict illegal punnings
-        return Entity.find(statement.getResource())
-                .map(Entity::getActualType)
+        return OWLEntity.find(statement.getResource())
+                .map(OWLEntity::getOntType)
                 .map(t -> statement.getModel().getOntEntity(t, statement.getSubject()))
                 .isPresent();
     }
@@ -121,11 +120,11 @@ public class DeclarationTranslator extends AbstractSimpleTranslator<OWLDeclarati
     public ONTObject<OWLDeclarationAxiom> toAxiomWrap(OntStatement statement,
                                                       ONTObjectFactory factory,
                                                       AxiomsSettings config) {
-        OntEntity e = Entity.find(statement.getResource())
-                .map(Entity::getActualType)
+        OntEntity e = OWLEntity.find(statement.getResource())
+                .map(OWLEntity::getOntType)
                 .map(t -> statement.getModel().getOntEntity(t, statement.getSubject()))
                 .orElseThrow(() -> new OntJenaException.IllegalArgument("Can't find entity by the statement " + statement));
-        ONTObject<? extends OWLEntity> entity = factory.getEntity(e);
+        ONTObject<? extends org.semanticweb.owlapi.model.OWLEntity> entity = factory.getEntity(e);
         Collection<ONTObject<OWLAnnotation>> annotations = factory.getAnnotations(statement, config);
         OWLDeclarationAxiom res = factory.getOWLDataFactory().getOWLDeclarationAxiom(entity.getOWLObject(),
                 TranslateHelper.toSet(annotations));
@@ -192,15 +191,15 @@ public class DeclarationTranslator extends AbstractSimpleTranslator<OWLDeclarati
         }
 
         @Override
-        public OWLEntity getEntity() {
+        public org.semanticweb.owlapi.model.OWLEntity getEntity() {
             return getONTEntity().getOWLObject();
         }
 
-        public ONTObject<? extends OWLEntity> getONTEntity() {
+        public ONTObject<? extends org.semanticweb.owlapi.model.OWLEntity> getONTEntity() {
             return findONTEntity(getObjectFactory());
         }
 
-        protected ONTObject<? extends OWLEntity> findONTEntity(ONTObjectFactory factory) {
+        protected ONTObject<? extends org.semanticweb.owlapi.model.OWLEntity> findONTEntity(ONTObjectFactory factory) {
             if (factory instanceof ModelObjectFactory) {
                 return ((ModelObjectFactory) factory).getEntity((String) subject, getResourceType());
             }
@@ -214,7 +213,7 @@ public class DeclarationTranslator extends AbstractSimpleTranslator<OWLDeclarati
          */
         public OntEntity getResource() {
             Node s = getSubjectNode();
-            Class<? extends OntEntity> t = getResourceType().getActualType();
+            Class<? extends OntEntity> t = getResourceType().getOntType();
             return OntApiException.mustNotBeNull(getPersonalityModel()
                     .findNodeAs(s, t), "Can't find entity " + subject);
         }
@@ -222,11 +221,11 @@ public class DeclarationTranslator extends AbstractSimpleTranslator<OWLDeclarati
         /**
          * Returns an entity type from jena subsystem.
          *
-         * @return {@link Entity}
+         * @return {@link OWLEntity}
          */
-        public Entity getResourceType() {
+        public OWLEntity getResourceType() {
             Node type = getObjectNode();
-            return Entity.find(type)
+            return OWLEntity.find(type)
                     .orElseThrow(() -> new OntApiException.IllegalState("Can't find type for " + subject));
         }
 
@@ -243,31 +242,31 @@ public class DeclarationTranslator extends AbstractSimpleTranslator<OWLDeclarati
 
         @Override
         public Set<OWLClass> getNamedClassSet() {
-            OWLEntity res = getEntity();
+            org.semanticweb.owlapi.model.OWLEntity res = getEntity();
             return res.isOWLClass() ? createSet(res.asOWLClass()) : createSet();
         }
 
         @Override
         public Set<OWLClassExpression> getClassExpressionSet() {
-            OWLEntity res = getEntity();
+            org.semanticweb.owlapi.model.OWLEntity res = getEntity();
             return res.isOWLClass() ? createSet(res.asOWLClass()) : createSet();
         }
 
         @Override
         public Set<OWLNamedIndividual> getNamedIndividualSet() {
-            OWLEntity res = getEntity();
+            org.semanticweb.owlapi.model.OWLEntity res = getEntity();
             return res.isOWLNamedIndividual() ? createSet(res.asOWLNamedIndividual()) : createSet();
         }
 
         @Override
         public Set<OWLDataProperty> getDataPropertySet() {
-            OWLEntity res = getEntity();
+            org.semanticweb.owlapi.model.OWLEntity res = getEntity();
             return res.isOWLDataProperty() ? createSet(res.asOWLDataProperty()) : createSet();
         }
 
         @Override
         public Set<OWLObjectProperty> getObjectPropertySet() {
-            OWLEntity res = getEntity();
+            org.semanticweb.owlapi.model.OWLEntity res = getEntity();
             return res.isOWLObjectProperty() ? createSet(res.asOWLObjectProperty()) : createSet();
         }
 
@@ -281,24 +280,24 @@ public class DeclarationTranslator extends AbstractSimpleTranslator<OWLDeclarati
             }
 
             @Override
-            public boolean containsEntity(OWLEntity entity) {
+            public boolean containsEntity(org.semanticweb.owlapi.model.OWLEntity entity) {
                 return getEntity().equals(entity);
             }
 
             @Override
-            public Set<OWLEntity> getSignatureSet() {
+            public Set<org.semanticweb.owlapi.model.OWLEntity> getSignatureSet() {
                 return createSet(getEntity());
             }
 
             @Override
             public Set<OWLDatatype> getDatatypeSet() {
-                OWLEntity res = getEntity();
+                org.semanticweb.owlapi.model.OWLEntity res = getEntity();
                 return res.isOWLDatatype() ? createSet(res.asOWLDatatype()) : createSet();
             }
 
             @Override
             public Set<OWLAnnotationProperty> getAnnotationPropertySet() {
-                OWLEntity res = getEntity();
+                org.semanticweb.owlapi.model.OWLEntity res = getEntity();
                 return res.isOWLAnnotationProperty() ? createSet(res.asOWLAnnotationProperty()) : createSet();
             }
 
@@ -361,7 +360,7 @@ public class DeclarationTranslator extends AbstractSimpleTranslator<OWLDeclarati
             }
 
             @Override
-            public boolean containsEntity(OWLEntity entity) {
+            public boolean containsEntity(org.semanticweb.owlapi.model.OWLEntity entity) {
                 if (entity.isOWLAnnotationProperty() || entity.isOWLDatatype()) {
                     return super.containsEntity(entity);
                 }

@@ -95,7 +95,7 @@ public class OntologyMetaData implements OWLOntologyLoaderMetaData {
      * @return {@link OntologyMetaData} instance, not null
      */
     public static OntologyMetaData createParserMetaData(Graph graph) {
-        return new OntologyMetaData(Graphs.getBase(Objects.requireNonNull(graph, "Null graph")),
+        return new OntologyMetaData(Graphs.getPrimary(Objects.requireNonNull(graph, "Null graph")),
                 RDFOntologyHeaderStatus.PARSED_ONE_HEADER,
                 Collections.emptySet(),
                 ArrayListMultimap.create());
@@ -109,7 +109,7 @@ public class OntologyMetaData implements OWLOntologyLoaderMetaData {
      * @return {@link OntologyMetaData} instance, not null
      */
     public static OntologyMetaData createParserMetaData(GraphStats stats) {
-        Graph graph = Graphs.getBase(Objects.requireNonNull(stats, "Null graph").getGraph());
+        Graph graph = Graphs.getPrimary(Objects.requireNonNull(stats, "Null graph").getGraph());
         RDFOntologyHeaderStatus header = RDFOntologyHeaderStatus.PARSED_ONE_HEADER;
         String idKey = OWLIDTransform.class.getSimpleName();
         if (stats.hasTriples(GraphStats.Type.ADDED, idKey)) {

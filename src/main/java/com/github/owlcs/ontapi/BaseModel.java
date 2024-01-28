@@ -18,8 +18,10 @@ import com.github.owlcs.ontapi.internal.InternalCache;
 import com.github.owlcs.ontapi.internal.InternalConfig;
 import com.github.owlcs.ontapi.internal.InternalModel;
 import com.github.owlcs.ontapi.internal.InternalModelImpl;
+import com.github.sszuev.jena.ontapi.UnionGraph;
 import com.github.sszuev.jena.ontapi.common.OntPersonalities;
 import com.github.sszuev.jena.ontapi.common.OntPersonality;
+import com.github.sszuev.jena.ontapi.impl.UnionGraphImpl;
 import com.github.sszuev.jena.ontapi.model.OntModel;
 import org.apache.jena.graph.Graph;
 import org.semanticweb.owlapi.model.OWLPrimitive;
@@ -79,7 +81,7 @@ public interface BaseModel {
      */
     static InternalModel createInternalModel(Graph graph) {
         return createInternalModel(graph,
-                OntPersonalities.getPersonality(),
+                OntPersonalities.OWL2_ONT_PERSONALITY().build(),
                 InternalConfig.DEFAULT,
                 OntManagers.getDataFactory(),
                 null);
@@ -102,7 +104,12 @@ public interface BaseModel {
                                              InternalConfig config,
                                              DataFactory dataFactory,
                                              Map<Class<? extends OWLPrimitive>, InternalCache<?, ?>> caches) {
-        return new InternalModelImpl(OntApiException.notNull(graph, "Null graph."),
+        OntApiException.notNull(graph, "Null graph.");
+        if (!(graph instanceof UnionGraph)) {
+            // for deserialization
+            graph = new UnionGraphImpl(graph, false);
+        }
+        return new InternalModelImpl(graph,
                 OntApiException.notNull(personality, "Null personality."),
                 OntApiException.notNull(config, "Null config."),
                 OntApiException.notNull(dataFactory, "Null data-factory"),

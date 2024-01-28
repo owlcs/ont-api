@@ -51,7 +51,7 @@ public class ContainsSignatureTest {
 
     protected static Map<String, Boolean> createTestEntities(OWLOntology o, Class<? extends OWLEntity> type) {
         Map<String, Boolean> res = collectEntities(o, type);
-        OntVocabulary.Factory.get().get(OWLEntityUtils.getResourceType(type)).stream().map(Resource::getURI)
+        OntVocabulary.Factory.OWL2_DC_SKOS_SWRL_VOCABULARY.get(OWLEntityUtils.getResourceType(type)).stream().map(Resource::getURI)
                 .forEach(s -> res.putIfAbsent(s, Boolean.FALSE));
         res.put("http://" + RandomStringUtils.randomAlphanumeric(4) + ".xxx", Boolean.FALSE);
         return res;

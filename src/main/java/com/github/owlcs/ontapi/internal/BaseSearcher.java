@@ -16,7 +16,7 @@ package com.github.owlcs.ontapi.internal;
 
 import com.github.owlcs.ontapi.DataFactory;
 import com.github.owlcs.ontapi.config.AxiomsSettings;
-import com.github.sszuev.jena.ontapi.impl.PersonalityModel;
+import com.github.sszuev.jena.ontapi.common.OntEnhGraph;
 import com.github.sszuev.jena.ontapi.model.OntClass;
 import com.github.sszuev.jena.ontapi.model.OntModel;
 import com.github.sszuev.jena.ontapi.model.OntStatement;
@@ -147,11 +147,11 @@ public abstract class BaseSearcher {
      * Gets all uri-{@link Node}s that are reserved for a model and cannot represent a {@link OntClass.Named}.
      *
      * @param model {@link OntModel}, not {@code null}
-     * @return a {@code Set} of {@link Node}s
+     * @return a {@code Set} of {@code String}s
      */
-    protected static Set<Node> getSystemResources(OntModel model) {
-        if (model instanceof PersonalityModel) {
-            return ((PersonalityModel) model).getOntPersonality().forbidden(OntClass.Named.class);
+    protected static Set<String> getSystemResources(OntModel model) {
+        if (model instanceof OntEnhGraph) {
+            return ((OntEnhGraph) model).getOntPersonality().forbidden(OntClass.Named.class);
         }
         return Collections.emptySet();
     }

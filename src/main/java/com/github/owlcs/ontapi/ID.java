@@ -89,7 +89,7 @@ public class ID extends OWLOntologyID implements AsNode {
      *                               but we have not yet learned about it
      * @throws NullPointerException  if {@code id} is {@code null}
      */
-    protected ID(Node id, String version) throws OntApiException, IllegalStateException, NullPointerException {
+    public ID(Node id, String version) throws OntApiException, IllegalStateException, NullPointerException {
         Optional<String> internalID;
         Optional<IRI> ontologyIRI, versionIRI;
         if (Objects.requireNonNull(id, "Null id node").isBlank()) {

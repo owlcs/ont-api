@@ -47,7 +47,7 @@ public class SWRLTransform extends TransformationModel {
     protected final Set<Statement> unparsed = new HashSet<>();
 
     public SWRLTransform(Graph graph) {
-        super(graph, OntVocabulary.Factory.get());
+        super(graph, OntVocabulary.Factory.OWL2_DC_SKOS_SWRL_VOCABULARY);
     }
 
     @Override

@@ -18,13 +18,15 @@ import com.github.owlcs.ontapi.DataFactory;
 import com.github.owlcs.ontapi.ID;
 import com.github.owlcs.ontapi.OntApiException;
 import com.github.owlcs.ontapi.Ontology;
-import com.github.sszuev.jena.ontapi.GraphListenerBase;
 import com.github.sszuev.jena.ontapi.UnionGraph;
 import com.github.sszuev.jena.ontapi.common.OntPersonality;
+import com.github.sszuev.jena.ontapi.impl.GraphListenerBase;
 import com.github.sszuev.jena.ontapi.impl.OntGraphModelImpl;
+import com.github.sszuev.jena.ontapi.impl.UnionGraphImpl;
 import com.github.sszuev.jena.ontapi.model.OntID;
 import com.github.sszuev.jena.ontapi.model.OntModel;
 import com.github.sszuev.jena.ontapi.model.OntObject;
+import com.github.sszuev.jena.ontapi.utils.Graphs;
 import com.github.sszuev.jena.ontapi.utils.Iterators;
 import javax.annotation.Nonnull;
 import org.apache.jena.graph.Graph;
@@ -106,17 +108,22 @@ public class InternalModelImpl extends InternalReadModel implements InternalMode
     }
 
     @Override
+    public UnionGraph getUnionGraph() {
+        return super.getUnionGraph();
+    }
+
+    @Override
     public void setOntologyID(OWLOntologyID id) throws IllegalArgumentException {
         this.cachedID = null;
         try {
             disableDirectListening();
             // these are controlled changes; do not reset the whole cache,
-            // just only annotations (associated triples map is changed):
+            // just only annotations (an associated triples map is changed):
             getHeaderCache().clear();
             if (Objects.requireNonNull(id, "Null id").isAnonymous()) {
                 OntID res;
                 if (id instanceof ID) {
-                    res = getNodeAs(createOntologyID(this, ((ID) id).asNode()).asNode(), OntID.class);
+                    res = getNodeAs(Graphs.makeOntologyHeaderNode(getBaseGraph(), ((ID) id).asNode()), OntID.class);
                 } else {
                     res = setID(null);
                 }
@@ -188,7 +195,7 @@ public class InternalModelImpl extends InternalReadModel implements InternalMode
      * @param container either {@link OWLAxiom} or {@link OWLAnnotation},
      *                  that corresponds to the {@code key}, not {@code null}
      * @return {@code true} if the graph has been changed
-     * @throws OntApiException in case the object cannot be added into model
+     * @throws OntApiException in case the object cannot be added into the model
      */
     protected boolean add(OWLTopObjectType key, OWLObject container) throws OntApiException {
         OWLTriples.Listener listener = OWLTriples.createListener();
@@ -347,8 +354,8 @@ public class InternalModelImpl extends InternalReadModel implements InternalMode
         if (LOGGER.isDebugEnabled()) {
             g.getPrefixMapping().setNsPrefixes(getNsPrefixMap());
         }
-        UnionGraph u = new UnionGraph(g, false);
-        u.addGraph(getGraph());
+        UnionGraph u = new UnionGraphImpl(g, false);
+        u.addSubGraph(getGraph());
         class ObjectModel extends OntGraphModelImpl implements HasConfig, HasObjectFactory {
             public ObjectModel(Graph g) {
                 super(g, InternalModelImpl.this.getOntPersonality());
@@ -494,17 +501,17 @@ public class InternalModelImpl extends InternalReadModel implements InternalMode
         }
 
         @Override
-        protected void addEvent(Triple t) {
+        protected void addTripleEvent(Graph g, Triple t) {
             // we don't know which axiom would own this triple, so we clear the whole cache.
             invalidate();
         }
 
         @Override
-        protected void deleteEvent(Triple t) {
+        protected void deleteTripleEvent(Graph g, Triple t) {
             // Although it is possible to detect only those cache elements,
             // that are really affected by deleting the triple,
             // but such a calculation would be rather too complicated and time-consuming and (therefore) possibly buggy.
-            // So it seems to be better just release all caches.
+            // So it seems better to just release all caches.
             invalidate();
         }
 

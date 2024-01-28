@@ -19,8 +19,8 @@ import com.github.owlcs.ontapi.OntFormat;
 import com.github.owlcs.ontapi.OntManagers;
 import com.github.owlcs.ontapi.Ontology;
 import com.github.owlcs.ontapi.OntologyManager;
+import com.github.owlcs.ontapi.TestOntPersonalities;
 import com.github.owlcs.ontapi.testutils.OWLIOUtils;
-import com.github.sszuev.jena.ontapi.common.OntPersonalities;
 import com.github.sszuev.jena.ontapi.model.OntClass;
 import com.github.sszuev.jena.ontapi.model.OntDataRange;
 import com.github.sszuev.jena.ontapi.model.OntFacetRestriction;
@@ -376,7 +376,7 @@ public class ModifyAxiomsTest {
     @Test
     public void testEquivalentClassIntersection() {
         OntologyManager man = OntManagers.createManager();
-        man.getOntologyConfigurator().setPersonality(OntPersonalities.ONT_PERSONALITY_LAX);
+        man.getOntologyConfigurator().setPersonality(TestOntPersonalities.ONT_PERSONALITY_FULL);
 
         Ontology o = man.createOntology(IRI.create("http://test1"));
         OntModel m = o.asGraphModel();
@@ -413,7 +413,7 @@ public class ModifyAxiomsTest {
     @Test
     public void testSubPropertyPunnings() {
         OntologyManager man = OntManagers.createManager();
-        man.getOntologyConfigurator().setPersonality(OntPersonalities.ONT_PERSONALITY_LAX);
+        man.getOntologyConfigurator().setPersonality(TestOntPersonalities.ONT_PERSONALITY_FULL);
 
         OWLDataFactory df = man.getOWLDataFactory();
         OWLDataProperty dp_a = df.getOWLDataProperty("A");

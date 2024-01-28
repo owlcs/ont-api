@@ -15,8 +15,10 @@
 package com.github.owlcs.ontapi.transforms;
 
 import com.github.owlcs.ontapi.OntApiException;
-import com.github.sszuev.jena.ontapi.GraphListenerBase;
+import com.github.owlcs.ontapi.OntGraphUtils;
+import com.github.sszuev.jena.ontapi.OntModelFactory;
 import com.github.sszuev.jena.ontapi.UnionGraph;
+import com.github.sszuev.jena.ontapi.impl.GraphListenerBase;
 import com.github.sszuev.jena.ontapi.utils.Graphs;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.GraphEventManager;
@@ -303,8 +305,9 @@ public class GraphTransformers implements Serializable {
      * @throws TransformException if something is wrong
      */
     public GraphStats transform(Graph graph, Set<Graph> skip) throws TransformException {
-        List<Graph> children = Graphs.toUnion(graph).getUnderlying().listGraphs().toList();
-        Graph base = Graphs.getBase(graph);
+        UnionGraph u = Graphs.makeOntUnionFrom(graph, OntModelFactory::createUnionGraph);
+        List<Graph> children = u.subGraphs().collect(Collectors.toList());
+        Graph base = u.getBaseGraph();
         GraphStats res = new GraphStats(base);
         for (Graph g : children) {
             try {
@@ -324,7 +327,7 @@ public class GraphTransformers implements Serializable {
                 .filter(x -> x.test(graph))
                 .forEach(x -> {
                     if (LOGGER.isDebugEnabled()) {
-                        LOGGER.debug(String.format("Process <%s> on <%s>", x.id(), Graphs.getName(base)));
+                        LOGGER.debug(String.format("Process <%s> on <%s>", x.id(), OntGraphUtils.getOntologyGraphPrintName(base)));
                     }
                     GraphEventManager events = base.getEventManager();
                     TransformListener listener = createTrackListener();
@@ -376,25 +379,25 @@ public class GraphTransformers implements Serializable {
         private final Set<Triple> deleted = new HashSet<>();
 
         @Override
-        protected void addEvent(Triple t) {
+        protected void addTripleEvent(Graph g, Triple t) {
             added.add(t);
             deleted.remove(t);
         }
 
         @Override
-        protected void deleteEvent(Triple t) {
+        protected void deleteTripleEvent(Graph g, Triple t) {
             added.remove(t);
             deleted.add(t);
         }
 
         @Override
         public void notifyAddGraph(Graph g, Graph other) {
-            other.find(Triple.ANY).forEachRemaining(this::addEvent);
+            other.find(Triple.ANY).forEachRemaining(t -> addTripleEvent(g, t));
         }
 
         @Override
         public void notifyDeleteGraph(Graph g, Graph other) {
-            other.find(Triple.ANY).forEachRemaining(this::deleteEvent);
+            other.find(Triple.ANY).forEachRemaining(t -> deleteTripleEvent(g, t));
         }
 
         public Set<Triple> getAdded() {
@@ -428,7 +431,7 @@ public class GraphTransformers implements Serializable {
         public String getMessage() {
             StringBuilder res = new StringBuilder();
             if (this.parent != null) {
-                res.append(Graphs.getName(this.parent)).append(" => ");
+                res.append(OntGraphUtils.getOntologyGraphPrintName(this.parent)).append(" => ");
             }
             res.append(transform);
             Throwable cause = getCause();

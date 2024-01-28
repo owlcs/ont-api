@@ -36,7 +36,7 @@ public class ByDatatype extends WithCardinality<OWLDatatype> implements ForDatat
     }
 
     protected ExtendedIterator<OntStatement> excludeImplicit(ExtendedIterator<OntStatement> res, String uri) {
-        Class<? extends OntClass.RestrictionCE<?>> type = ForDatatype.getSpecialDataRestrictionType(uri);
+        Class<? extends OntClass.Restriction> type = ForDatatype.getSpecialDataRestrictionType(uri);
         return type != null ? res.filterDrop(s -> s.getSubject().canAs(type)) : res;
     }
 

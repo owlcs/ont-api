@@ -16,9 +16,9 @@ package com.github.owlcs.ontapi.transforms;
 
 import com.github.owlcs.ontapi.OntGraphUtils;
 import com.github.owlcs.ontapi.OntologyManager;
+import com.github.owlcs.ontapi.UnionGraphConnector;
 import com.github.sszuev.jena.ontapi.OntVocabulary;
 import com.github.sszuev.jena.ontapi.UnionGraph;
-import com.github.sszuev.jena.ontapi.utils.Graphs;
 import com.github.sszuev.jena.ontapi.utils.Iterators;
 import com.github.sszuev.jena.ontapi.vocabulary.RDF;
 import org.apache.jena.graph.Graph;
@@ -36,6 +36,8 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -66,7 +68,7 @@ public abstract class TransformationModel {
      * @param graph {@link Graph}, not {@code null}
      */
     public TransformationModel(Graph graph) {
-        this(graph, OntVocabulary.Factory.get());
+        this(graph, OntVocabulary.Factory.OWL2_DC_SKOS_SWRL_VOCABULARY);
     }
 
     /**
@@ -81,13 +83,14 @@ public abstract class TransformationModel {
         this.graph = Objects.requireNonNull(graph, "Null graph.");
         if (graph instanceof UnionGraph) {
             UnionGraph u = (UnionGraph) graph;
-            UnionGraph g = OntGraphUtils.withBase(new TrackedGraph(u.getBaseGraph()), u);
+            UnionGraph g = UnionGraphConnector.withBase(u, new TrackedGraph(u.getBaseGraph()));
             queryModel = createModel(u.getBaseGraph());
             workModel = createModel(g);
         } else {
             queryModel = createModel(graph);
             workModel = createModel(new TrackedGraph(graph));
         }
+
     }
 
     /**
@@ -99,7 +102,7 @@ public abstract class TransformationModel {
     public Stream<Triple> process() throws TransformException {
         if (test()) {
             if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug(String.format("Process <%s> on <%s>", name(), Graphs.getName(getBaseGraph())));
+                LOGGER.debug(String.format("Process <%s> on <%s>", name(), OntGraphUtils.getOntologyGraphPrintName(getBaseGraph())));
             }
             perform();
         }
@@ -306,7 +309,7 @@ public abstract class TransformationModel {
 
     @Override
     public String toString() {
-        return String.format("[%s:%s]", name(), Graphs.getName(getBaseGraph()));
+        return String.format("[%s:%s]", name(), OntGraphUtils.getOntologyGraphPrintName(getBaseGraph()));
     }
 
     /**
@@ -330,5 +333,31 @@ public abstract class TransformationModel {
             if (!base.contains(t)) return;
             super.delete(t);
         }
+    }
+
+    /**
+     * Returns a {@code Set} of all {@link Resource}s.
+     *
+     * @return {@code Set} of {@link Resource Resources}
+     */
+    protected Set<Resource> collectReservedResources() {
+        return Stream.of(builtins.getSystemProperties(), builtins.getSystemResources())
+                .flatMap(Collection::stream)
+                .collect(Collectors.toUnmodifiableSet());
+    }
+
+    /**
+     * Answers a {@code Set} containing all builtin properties (annotation, object or datatype).
+     *
+     * @return {@code Set} of {@link Property Properties}
+     */
+    protected Set<Property> collectBuiltinOWLProperties() {
+        return Stream.of(
+                        builtins.getBuiltinAnnotationProperties(),
+                        builtins.getBuiltinDatatypeProperties(),
+                        builtins.getBuiltinObjectProperties()
+                )
+                .flatMap(Collection::stream)
+                .collect(Collectors.toUnmodifiableSet());
     }
 }

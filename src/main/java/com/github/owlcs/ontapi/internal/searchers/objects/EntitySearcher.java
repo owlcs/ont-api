@@ -21,7 +21,7 @@ import com.github.owlcs.ontapi.internal.ONTObject;
 import com.github.owlcs.ontapi.internal.ONTObjectFactory;
 import com.github.owlcs.ontapi.internal.ObjectsSearcher;
 import com.github.owlcs.ontapi.internal.searchers.WithRootStatement;
-import com.github.sszuev.jena.ontapi.impl.PersonalityModel;
+import com.github.sszuev.jena.ontapi.common.OntEnhGraph;
 import com.github.sszuev.jena.ontapi.model.OntModel;
 import com.github.sszuev.jena.ontapi.model.OntObject;
 import com.github.sszuev.jena.ontapi.model.OntStatement;
@@ -46,8 +46,8 @@ import java.util.function.Function;
  */
 abstract class EntitySearcher<E extends OWLEntity> extends WithRootStatement implements ObjectsSearcher<E> {
 
-    static PersonalityModel asPersonalityModel(OntModel m) {
-        return PersonalityModel.asPersonalityModel(m);
+    static OntEnhGraph asPersonalityModel(OntModel m) {
+        return OntEnhGraph.asPersonalityModel(m);
     }
 
     /**

@@ -542,7 +542,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntClass, OWL 
      * @see OntClass.DataHasValue
      */
     public static class DHV
-            extends WithDataProperty<OntClass.DataHasValue, OWLDataHasValue>
+            extends WithDataPropertyUnary<OntClass.DataHasValue, OWLDataHasValue>
             implements OWLDataHasValue {
 
         protected DHV(BlankNodeId n, Supplier<OntModel> m) {
@@ -1096,7 +1096,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntClass, OWL 
         }
     }
 
-    protected abstract static class WithClassMembers<ONT extends OntClass.ComponentsCE<OntClass>,
+    protected abstract static class WithClassMembers<ONT extends OntClass.CollectionOf<OntClass>,
             OWL extends OWLAnonymousClassExpression>
             extends WithMembers<OntClass, ONT, OWLClassExpression, OWL> {
 
@@ -1125,12 +1125,12 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntClass, OWL 
      * Describes a class expression that is based on []-list.
      *
      * @param <ONT_M> subtype of {@link OntObject} - member of list
-     * @param <ONT_C> subtype of {@link OntClass.ComponentsCE} - the class expression
+     * @param <ONT_C> subtype of {@link OntClass.CollectionOf} - the class expression
      * @param <OWL_M> subtype of {@link OWLObject} that matches {@link ONT_M}
      * @param <OWL_C> subtype of {@link OWLAnonymousClassExpression} that matches {@link ONT_C}
      */
     protected abstract static class WithMembers<ONT_M extends OntObject,
-            ONT_C extends OntClass.ComponentsCE<ONT_M>,
+            ONT_C extends OntClass.CollectionOf<ONT_M>,
             OWL_M extends OWLObject,
             OWL_C extends OWLAnonymousClassExpression>
             extends ONTAnonymousClassExpressionImpl<ONT_C, OWL_C>
@@ -1231,10 +1231,10 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntClass, OWL 
     /**
      * Represents a data property restriction (class expression) with cardinality.
      *
-     * @param <ONT> - a subtype of {@link OntClass.CardinalityRestrictionCE}
+     * @param <ONT> - a subtype of {@link OntClass.CardinalityRestriction}
      * @param <OWL> - a subtype of {@link OWLRestriction} that matches {@link ONT}
      */
-    protected abstract static class WithDataRangeAndDataPropertyAndCardinality<ONT extends OntClass.CardinalityRestrictionCE<OntDataRange, OntDataProperty>,
+    protected abstract static class WithDataRangeAndDataPropertyAndCardinality<ONT extends OntClass.CardinalityRestriction<OntDataRange, OntDataProperty>,
             OWL extends OWLRestriction>
             extends WithDataRangeAndDataPropertyUnary<ONT, OWL> {
 
@@ -1271,15 +1271,20 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntClass, OWL 
     /**
      * Represents an n-ary universal or existential data property restriction.
      *
-     * @param <ONT> - a subtype of {@link OntClass.NaryRestrictionCE}
+     * @param <ONT> - a subtype of {@link OntClass.NaryRestriction}
      * @param <OWL> - a subtype of {@link OWLRestriction} that matches {@link ONT}
      */
-    protected abstract static class WithDataRangeAndDataPropertyNary<ONT extends OntClass.NaryRestrictionCE<OntDataRange, OntDataProperty>,
+    protected abstract static class WithDataRangeAndDataPropertyNary<ONT extends OntClass.NaryRestriction<OntDataRange, OntDataProperty>,
             OWL extends OWLRestriction>
             extends WithDataRangeAndDataProperty<ONT, OWL> {
 
         protected WithDataRangeAndDataPropertyNary(BlankNodeId n, Supplier<OntModel> m) {
             super(n, m);
+        }
+
+        @Override
+        protected OntDataProperty getOntDataProperty(ONT clazz) {
+            return clazz.getProperty();
         }
 
         @Override
@@ -1291,15 +1296,20 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntClass, OWL 
     /**
      * Represents a unary data property restriction that has a reference to a data range.
      *
-     * @param <ONT> - a subtype of {@link OntClass.ComponentRestrictionCE}
+     * @param <ONT> - a subtype of {@link OntClass.ComponentRestriction}
      * @param <OWL> - a subtype of {@link OWLRestriction} that matches {@link ONT}
      */
-    protected abstract static class WithDataRangeAndDataPropertyUnary<ONT extends OntClass.ComponentRestrictionCE<OntDataRange, OntDataProperty>,
+    protected abstract static class WithDataRangeAndDataPropertyUnary<ONT extends OntClass.ComponentRestriction<OntDataRange, OntDataProperty>,
             OWL extends OWLRestriction>
             extends WithDataRangeAndDataProperty<ONT, OWL> {
 
         protected WithDataRangeAndDataPropertyUnary(BlankNodeId n, Supplier<OntModel> m) {
             super(n, m);
+        }
+
+        @Override
+        protected OntDataProperty getOntDataProperty(ONT clazz) {
+            return clazz.getProperty();
         }
 
         @Override
@@ -1311,16 +1321,18 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntClass, OWL 
     /**
      * Represents a data property restriction that has a reference to a data range.
      *
-     * @param <ONT> - a subtype of {@link OntClass.RestrictionCE}
+     * @param <ONT> - a subtype of {@link OntClass}
      * @param <OWL> - a subtype of {@link OWLRestriction} that matches {@link ONT}
      */
-    protected abstract static class WithDataRangeAndDataProperty<ONT extends OntClass.RestrictionCE<OntDataProperty>,
+    protected abstract static class WithDataRangeAndDataProperty<ONT extends OntClass.Restriction,
             OWL extends OWLRestriction>
             extends WithDataProperty<ONT, OWL> {
 
         protected WithDataRangeAndDataProperty(BlankNodeId n, Supplier<OntModel> m) {
             super(n, m);
         }
+
+        protected abstract OntDataRange getValue(ONT ce);
 
         public OWLDataRange getFiller() {
             return getONTDataRange().getOWLObject();
@@ -1345,14 +1357,13 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntClass, OWL 
         @Override
         protected Object[] collectContent(ONT ce, ONTObjectFactory factory) {
             // [property, filler]
-            return new Object[]{toContentItem(ce.getProperty()), toContentItem(getValue(ce), factory)};
+            return new Object[]{toContentItem(getOntDataProperty(ce)), toContentItem(getValue(ce), factory)};
         }
 
-        protected abstract OntDataRange getValue(ONT ce);
 
         @Override
         protected Object[] initContent(ONT ce, ONTObjectFactory factory) {
-            OntDataProperty p = ce.getProperty();
+            OntDataProperty p = getOntDataProperty(ce);
             OntDataRange v = getValue(ce);
             return initContent(p.asNode(), v.asNode(), factory.getProperty(p), factory.getDatatype(v));
         }
@@ -1371,11 +1382,25 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntClass, OWL 
      * Its signature also contains {@link OWLDatatype datatype} (explicitly or implicitly).
      * It cannot contain nested class expressions.
      *
-     * @param <ONT> - a subtype of {@link OntClass.RestrictionCE}
+     * @param <ONT> - a subtype of {@link OntClass.UnaryRestriction}
      * @param <OWL> - a subtype of {@link OWLRestriction} that matches {@link ONT}
      */
-    protected abstract static class WithDataProperty<ONT extends OntClass.RestrictionCE<OntDataProperty>,
+    protected abstract static class WithDataPropertyUnary<ONT extends OntClass.UnaryRestriction<OntDataProperty>,
             OWL extends OWLRestriction>
+            extends WithDataProperty<ONT, OWL> {
+
+        protected WithDataPropertyUnary(BlankNodeId n, Supplier<OntModel> m) {
+            super(n, m);
+        }
+
+        @Override
+        protected OntDataProperty getOntDataProperty(ONT clazz) {
+            return clazz.getProperty();
+        }
+
+    }
+
+    protected abstract static class WithDataProperty<ONT extends OntClass, OWL extends OWLRestriction>
             extends Restriction<ONT, OWL> {
 
         protected WithDataProperty(BlankNodeId n, Supplier<OntModel> m) {
@@ -1385,6 +1410,8 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntClass, OWL 
         public OWLDataProperty getProperty() {
             return getONTDataProperty().getOWLObject();
         }
+
+        protected abstract OntDataProperty getOntDataProperty(ONT clazz);
 
         @Override
         public Stream<ONTObject<? extends OWLObject>> objects() {
@@ -1403,12 +1430,12 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntClass, OWL 
         @Override
         protected Object[] collectContent(ONT ce, ONTObjectFactory factory) {
             // [property]
-            return new Object[]{toContentItem(ce.getProperty())};
+            return new Object[]{toContentItem(getOntDataProperty(ce))};
         }
 
         @Override
         protected Object[] initContent(ONT ce, ONTObjectFactory factory) {
-            OntDataProperty p = ce.getProperty();
+            OntDataProperty p = getOntDataProperty(ce);
             return initContent(p.asNode(), factory.getProperty(p));
         }
 
@@ -1441,10 +1468,10 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntClass, OWL 
     /**
      * Represents an object class expression with cardinality.
      *
-     * @param <ONT> - a subtype of {@link OntClass.CardinalityRestrictionCE}
+     * @param <ONT> - a subtype of {@link OntClass.CardinalityRestriction}
      * @param <OWL> - a subtype of {@link OWLRestriction} that matches {@link ONT}
      */
-    protected abstract static class WithClassAndObjectPropertyAndCardinality<ONT extends OntClass.CardinalityRestrictionCE<OntClass, OntObjectProperty>,
+    protected abstract static class WithClassAndObjectPropertyAndCardinality<ONT extends OntClass.CardinalityRestriction<OntClass, OntObjectProperty>,
             OWL extends OWLRestriction>
             extends WithClassAndObjectProperty<ONT, OWL> {
         protected WithClassAndObjectPropertyAndCardinality(BlankNodeId n, Supplier<OntModel> m) {
@@ -1476,10 +1503,10 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntClass, OWL 
      * Represents an object class expression,
      * that has reference to another class expression and object property expression.
      *
-     * @param <ONT> - a subtype of {@link OntClass.ComponentRestrictionCE}
+     * @param <ONT> - a subtype of {@link OntClass.ComponentRestriction}
      * @param <OWL> - a subtype of {@link OWLRestriction} that matches {@link ONT}
      */
-    protected abstract static class WithClassAndObjectProperty<ONT extends OntClass.ComponentRestrictionCE<OntClass, OntObjectProperty>,
+    protected abstract static class WithClassAndObjectProperty<ONT extends OntClass.ComponentRestriction<OntClass, OntObjectProperty>,
             OWL extends OWLRestriction>
             extends WithObjectProperty<ONT, OWL> {
 
@@ -1531,10 +1558,10 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntClass, OWL 
     /**
      * Represents a class expression with a reference to an object property expression.
      *
-     * @param <ONT> - a subtype of {@link OntClass.RestrictionCE}
+     * @param <ONT> - a subtype of {@link OntClass.UnaryRestriction}
      * @param <OWL> - a subtype of {@link OWLRestriction} that matches {@link ONT}
      */
-    protected abstract static class WithObjectProperty<ONT extends OntClass.RestrictionCE<OntObjectProperty>,
+    protected abstract static class WithObjectProperty<ONT extends OntClass.UnaryRestriction<OntObjectProperty>,
             OWL extends OWLRestriction>
             extends Restriction<ONT, OWL> {
 

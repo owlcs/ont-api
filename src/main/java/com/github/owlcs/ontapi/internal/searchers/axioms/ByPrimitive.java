@@ -20,8 +20,8 @@ import com.github.owlcs.ontapi.internal.InternalConfig;
 import com.github.owlcs.ontapi.internal.ONTObject;
 import com.github.owlcs.ontapi.internal.ONTObjectFactory;
 import com.github.owlcs.ontapi.internal.SearchModel;
+import com.github.sszuev.jena.ontapi.common.OntEnhGraph;
 import com.github.sszuev.jena.ontapi.common.OntPersonality;
-import com.github.sszuev.jena.ontapi.impl.PersonalityModel;
 import com.github.sszuev.jena.ontapi.model.OntAnnotation;
 import com.github.sszuev.jena.ontapi.model.OntModel;
 import com.github.sszuev.jena.ontapi.model.OntObject;
@@ -84,7 +84,7 @@ public abstract class ByPrimitive<P extends OWLPrimitive> extends BaseByObject<O
         if (model instanceof SearchModel) {
             return ((SearchModel) model).getSystemURIs().contains(uri);
         }
-        OntPersonality.Reserved voc = PersonalityModel.asPersonalityModel(model).getOntPersonality().getReserved();
+        OntPersonality.Reserved voc = OntEnhGraph.asPersonalityModel(model).getOntPersonality().getReserved();
         Node node = NodeFactory.createURI(uri);
         return voc.getProperties().contains(node) || voc.getResources().contains(node);
     }

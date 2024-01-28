@@ -19,7 +19,6 @@ import com.github.sszuev.jena.ontapi.UnionGraph;
 import com.github.sszuev.jena.ontapi.common.OntPersonality;
 import com.github.sszuev.jena.ontapi.impl.OntGraphModelImpl;
 import com.github.sszuev.jena.ontapi.model.OntModel;
-import com.github.sszuev.jena.ontapi.utils.Graphs;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import org.apache.jena.graph.Graph;
@@ -41,9 +40,7 @@ import org.semanticweb.owlapi.model.parameters.ChangeApplied;
 
 import java.io.Serializable;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
@@ -242,11 +239,10 @@ public class OntologyModelImpl extends OntBaseModelImpl implements Ontology, OWL
             // to match behaviour of OWL-API removes both declaration IRI and ontology IRI
             // (could be different in case of renaming)
             Ontology ont = getOWLOntologyManager().getImportedOntology(declaration);
-            getBase().getID().removeImport(declaration.getIRI().getIRIString());
-            if (ont == null) {
-                return;
+            if (ont != null) {
+                getBase().removeImport(getAdapter().asBaseModel(ont).getBase());
             }
-            getBase().removeImport(getAdapter().asBaseModel(ont).getBase());
+            getBase().getID().removeImport(declaration.getIRI().getIRIString());
         }
 
         @Override
@@ -286,7 +282,7 @@ public class OntologyModelImpl extends OntBaseModelImpl implements Ontology, OWL
             lock.readLock().lock();
             try {
                 InternalModel base = getBase();
-                return asConcurrent(base.getGraph(), base.getOntPersonality(), lock);
+                return asConcurrent(base.getUnionGraph(), base.getOntPersonality(), lock);
             } finally {
                 lock.readLock().unlock();
             }
@@ -346,17 +342,15 @@ public class OntologyModelImpl extends OntBaseModelImpl implements Ontology, OWL
         public static OntGraphModelImpl asConcurrent(UnionGraph graph,
                                                      OntPersonality personality,
                                                      ReadWriteLock lock) {
-            Graph base = graph.getBaseGraph();
-            UnionGraph copy = withBase(graph, OntGraphUtils.asConcurrent(base, lock));
+            UnionGraph copy = UnionGraphConnector.withBase(graph, OntGraphUtils.asConcurrent(graph.getBaseGraph(), lock));
             return new OntGraphModelImpl(copy, personality) {
 
                 @Override
                 protected void addImportModel(Graph g, String u) {
                     lock.writeLock().lock();
                     try {
-                        UnionGraph from = asUnionGraph(g);
-                        Graph base = OntGraphUtils.asNonConcurrent(from.getBaseGraph());
-                        UnionGraph res = withBase(from, base);
+                        UnionGraph from = OntGraphUtils.asUnionGraph(g);
+                        UnionGraph res = UnionGraphConnector.withBase(from, OntGraphUtils.asNonConcurrent(from.getBaseGraph()));
                         super.addImportModel(res, u);
                     } finally {
                         lock.writeLock().unlock();
@@ -388,10 +382,10 @@ public class OntologyModelImpl extends OntBaseModelImpl implements Ontology, OWL
                 }
 
                 @Override
-                protected Optional<OntGraphModelImpl> findImport(Predicate<OntGraphModelImpl> filter) {
+                protected Optional<OntGraphModelImpl> findImportAsRawModel(Predicate<OntGraphModelImpl> filter) {
                     lock.readLock().lock();
                     try {
-                        return super.findImport(filter);
+                        return super.findImportAsRawModel(filter);
                     } finally {
                         lock.readLock().unlock();
                     }
@@ -399,60 +393,9 @@ public class OntologyModelImpl extends OntBaseModelImpl implements Ontology, OWL
 
                 @Override
                 public String toString() {
-                    return String.format("ConcurrentOntGraphModel{%s}", Graphs.getName(base));
+                    return String.format("ConcurrentOntGraphModel{%s}", OntGraphUtils.getOntologyGraphPrintName(graph));
                 }
             };
-        }
-
-        /**
-         * Makes a new {@link UnionGraph} with the specified {@code base} graph
-         * and with the inherited hierarchy structure from the given {@code from} graph.
-         * The returned union graph is backed by the specified union graph and vice versa.
-         *
-         * @param from {@link UnionGraph Union Graph} from which the hierarchical structure is taken, not {@code null}
-         * @param base {@link Graph}, a new base graph to suppress the existing from the given {@code from} graph.
-         * @return {@link UnionGraph} that is backed by the given {@code from},
-         * with the same hierarchy structure but with a new {@code base} graph
-         */
-        public static UnionGraph withBase(UnionGraph from, Graph base) {
-            if (Objects.requireNonNull(from).getBaseGraph().equals(Objects.requireNonNull(base))) {
-                return from;
-            }
-            class U extends UnionGraph {
-                private final UnionGraph from;
-
-                private U(Graph base, UnionGraph from) {
-                    super(base, from.getUnderlying(), from.getEventManager(), from.isDistinct());
-                    this.from = from;
-                }
-
-                @Override
-                public UnionGraph addGraph(Graph graph) {
-                    from.addGraph(graph);
-                    addParent(graph);
-                    resetGraphsCache();
-                    return this;
-                }
-
-                @Override
-                public UnionGraph removeGraph(Graph graph) {
-                    from.removeGraph(graph);
-                    removeParent(graph);
-                    resetGraphsCache();
-                    return this;
-                }
-
-                @Override
-                protected Set<Graph> collectBaseGraphs() {
-                    Set<Graph> res = super.collectBaseGraphs();
-                    res.remove(from.getBaseGraph());
-                    return res;
-                }
-            }
-            if (from instanceof U) {
-                return withBase(((U) from).from, base);
-            }
-            return new U(base, from);
         }
     }
 

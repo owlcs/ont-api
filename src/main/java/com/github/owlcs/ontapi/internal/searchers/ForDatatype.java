@@ -27,11 +27,11 @@ import java.util.Set;
  */
 public interface ForDatatype extends ForTopEntity {
 
-    Set<Class<? extends OntClass.CardinalityRestrictionCE<?, ?>>> DATA_CARDINALITY_TYPES =
+    Set<Class<? extends OntClass.CardinalityRestriction<?, ?>>> DATA_CARDINALITY_TYPES =
             Set.of(OntClass.DataMaxCardinality.class, OntClass.DataMinCardinality.class, OntClass.DataCardinality.class);
 
     /**
-     * Answers a class-type of a {@link OntClass.RestrictionCE},
+     * Answers a class-type of a {@link OntClass.Restriction},
      * whose instances have the specified {@code OWLDatatype} in their composition,
      * which, at the same time, is excluded from the signature according to OWLAPI design.
      *
@@ -40,13 +40,13 @@ public interface ForDatatype extends ForTopEntity {
      * @see <a href='https://github.com/owlcs/owlapi/issues/783'>OWLAPI Issue 783</a>
      */
     @SuppressWarnings({"unchecked", "rawtypes"})
-    static Class<? extends OntClass.RestrictionCE<?>> getSpecialDataRestrictionType(String uri) {
+    static Class<? extends OntClass.Restriction> getSpecialDataRestrictionType(String uri) {
         Class res = null;
         if (XSD.xboolean.getURI().equals(uri)) {
             res = OntClass.HasSelf.class;
         }
         if (XSD.nonNegativeInteger.getURI().equals(uri)) {
-            res = OntClass.CardinalityRestrictionCE.class;
+            res = OntClass.CardinalityRestriction.class;
         }
         return res;
     }

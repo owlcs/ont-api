@@ -15,6 +15,7 @@
 package com.github.owlcs.ontapi.testutils;
 
 import com.github.owlcs.ontapi.OntFormat;
+import com.github.owlcs.ontapi.OntGraphUtils;
 import com.github.owlcs.ontapi.OntManagers;
 import com.github.owlcs.ontapi.Ontology;
 import com.github.owlcs.ontapi.OntologyManager;
@@ -152,7 +153,7 @@ public class OWLIOUtils {
     }
 
     public static OWLOntology convertJenaToOWL(OWLOntologyManager manager, Model model, OntFormat convertFormat) {
-        String uri = MiscTestUtils.getURI(model);
+        String uri = OntGraphUtils.getOntologyIRIOrNull(model.getGraph());
         LOGGER.debug("Put ontology {}({}) to the manager.", uri, convertFormat);
         try (InputStream is = asInputStream(model, convertFormat == null ? OntFormat.TURTLE : convertFormat)) {
             return manager.loadOntologyFromOntologyDocument(is);

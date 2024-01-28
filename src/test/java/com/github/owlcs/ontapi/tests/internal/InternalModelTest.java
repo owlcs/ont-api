@@ -17,14 +17,15 @@ package com.github.owlcs.ontapi.tests.internal;
 import com.github.owlcs.ontapi.BaseModel;
 import com.github.owlcs.ontapi.OntFormat;
 import com.github.owlcs.ontapi.OntManagers;
+import com.github.owlcs.ontapi.TestOntPersonalities;
 import com.github.owlcs.ontapi.internal.AxiomTranslator;
+import com.github.owlcs.ontapi.internal.InternalConfig;
 import com.github.owlcs.ontapi.internal.InternalModel;
 import com.github.owlcs.ontapi.internal.ONTObject;
 import com.github.owlcs.ontapi.testutils.MiscTestUtils;
 import com.github.owlcs.ontapi.testutils.OWLIOUtils;
 import com.github.owlcs.ontapi.transforms.GraphTransformers;
 import com.github.sszuev.jena.ontapi.OntModelFactory;
-import com.github.sszuev.jena.ontapi.common.OntPersonalities;
 import com.github.sszuev.jena.ontapi.common.OntPersonality;
 import com.github.sszuev.jena.ontapi.common.PunningsMode;
 import com.github.sszuev.jena.ontapi.model.OntModel;
@@ -158,7 +159,6 @@ public class InternalModelTest {
         String file = "/ontapi/foaf.rdf";
         OntFormat format = OntFormat.RDF_XML;
 
-        OntPersonality profile = OntPersonalities.getPersonality();
         OWLDataFactory factory = OntManagers.getDataFactory();
 
         OWLOntology owl = loadOWLOntology(file);
@@ -181,6 +181,7 @@ public class InternalModelTest {
         OWLObjectProperty creator = factory.getOWLObjectProperty(IRI.create("http://purl.org/dc/terms/creator"));
         expectedObjectProperties.add(creator);
 
+        OntPersonality profile = jena.getOntPersonality();
         PunningsMode mode = MiscTestUtils.getMode(profile);
         // remove all illegal punnings from OWL-API output:
         Set<Resource> illegalPunnings = MiscTestUtils.getIllegalPunnings(jena, mode);
@@ -264,7 +265,11 @@ public class InternalModelTest {
         LOGGER.debug("Load jena model from {}", file);
         Model init = OWLIOUtils.loadResourceAsModel(file, Objects.requireNonNull(format.getLang()));
         Graph graph = GraphTransformers.convert(init.getGraph());
-        return BaseModel.createInternalModel(graph);
+        return BaseModel.createInternalModel(graph,
+                TestOntPersonalities.ONT_PERSONALITY_DL_WEAK,
+                InternalConfig.DEFAULT,
+                OntManagers.getDataFactory(),
+                null);
     }
 
 }

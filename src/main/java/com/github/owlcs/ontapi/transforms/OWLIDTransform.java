@@ -20,40 +20,58 @@ import com.github.sszuev.jena.ontapi.utils.Iterators;
 import com.github.sszuev.jena.ontapi.vocabulary.OWL;
 import com.github.sszuev.jena.ontapi.vocabulary.RDF;
 import org.apache.jena.graph.Graph;
-import org.apache.jena.rdf.model.Model;
-import org.apache.jena.rdf.model.RDFNode;
-import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.rdf.model.Statement;
-import org.apache.jena.util.iterator.ExtendedIterator;
+import org.apache.jena.graph.Node;
+import org.apache.jena.graph.NodeFactory;
+import org.apache.jena.graph.Triple;
 
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Class to perform ontology id transformation.
- * It merges several owl:Ontology sections to single one.
+ * It merges several {@code owl:Ontology} sections to single one.
  * As primary chooses the one that has the largest number of triplets.
- * If there is no any owl:Ontology then new anonymous owl:Ontology will be added to the graph.
+ * If there is no any {@code owl:Ontology} then new anonymous owl:Ontology will be added to the graph.
  */
 public class OWLIDTransform extends TransformationModel {
 
     public OWLIDTransform(Graph graph) {
-        super(graph, OntVocabulary.Factory.DUMMY);
+        super(graph, OntVocabulary.Factory.EMPTY_VOCABULARY);
     }
 
     @Override
     public void perform() {
-        Model m = getWorkModel();
+        Graph workGraph = getWorkModel().getGraph();
         // choose or create the new one:
-        Resource ontology = Graphs.ontologyNode(getQueryModel().getGraph())
-                .map(m::getRDFNode).map(RDFNode::asResource)
-                .orElseGet(() -> m.createResource(OWL.Ontology));
-        // move all content from other ontologies to the selected one
-        ExtendedIterator<Resource> other = listStatements(null, RDF.type, OWL.Ontology)
-                .mapWith(Statement::getSubject)
-                .filterDrop(ontology::equals);
-        List<Statement> rest = Iterators.flatMap(other, o -> listStatements(o, null, null)).toList();
-        rest.forEach(s -> ontology.addProperty(s.getPredicate(), s.getObject()));
-        // remove all other ontologies
-        m.remove(rest);
+        Graph queryGraph = getQueryModel().getGraph();
+        Node ontology = Graphs.ontologyNode(queryGraph, true)
+                .orElseGet(() -> {
+                    Node res = NodeFactory.createBlankNode();
+                    workGraph.add(Triple.create(res, RDF.type.asNode(), OWL.Ontology.asNode()));
+                    return res;
+                });
+        Set<Triple> prev = Iterators.addAll(Iterators.flatMap(
+                queryGraph.find(Node.ANY, RDF.type.asNode(), OWL.Ontology.asNode()),
+                it -> queryGraph.find(it.getSubject(), Node.ANY, Node.ANY)), new HashSet<>());
+        Set<Node> subjects = prev.stream().map(Triple::getSubject).collect(Collectors.toSet());
+        if (subjects.contains(ontology)) {
+            if (subjects.size() == 1) {
+                // single header found, nothing to do
+                return;
+            }
+        } else {
+            workGraph.add(ontology, RDF.type.asNode(), OWL.Ontology.asNode());
+        }
+        prev.forEach(t -> {
+            if (!ontology.equals(t.getSubject())) {
+                workGraph.delete(t);
+            }
+        });
+        prev.forEach(t -> {
+            if (!ontology.equals(t.getSubject())) {
+                workGraph.add(ontology, t.getPredicate(), t.getObject());
+            }
+        });
     }
 }

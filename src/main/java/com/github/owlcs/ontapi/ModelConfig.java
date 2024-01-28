@@ -56,11 +56,11 @@ public class ModelConfig implements InternalConfig, Serializable {
     /**
      * Creates an {@link InternalModel} instance.
      *
-     * @param graph {@link Graph}, not {@code null}
+     * @param base {@link Graph}, not {@code null}
      * @return {@link InternalModel}
      */
-    public InternalModel createInternalModel(Graph graph) {
-        return BaseModel.createInternalModel(graph, getPersonality(), this, manager.getOWLDataFactory(), getManagerCaches());
+    public InternalModel createInternalModel(Graph base) {
+        return BaseModel.createInternalModel(base, getPersonality(), this, manager.getOWLDataFactory(), getManagerCaches());
     }
 
     /**

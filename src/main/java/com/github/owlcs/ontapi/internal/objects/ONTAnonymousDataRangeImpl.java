@@ -400,7 +400,7 @@ public abstract class ONTAnonymousDataRangeImpl<ONT extends OntDataRange, OWL ex
         }
     }
 
-    protected abstract static class WithDRMembers<ONT extends OntDataRange.ComponentsDR<OntDataRange>, OWL extends OWLDataRange>
+    protected abstract static class WithDRMembers<ONT extends OntDataRange.Combination<OntDataRange>, OWL extends OWLDataRange>
             extends WithMembers<OntDataRange, ONT, OWLDataRange, OWL> {
 
         protected WithDRMembers(BlankNodeId id, Supplier<OntModel> m) {
@@ -425,7 +425,7 @@ public abstract class ONTAnonymousDataRangeImpl<ONT extends OntDataRange, OWL ex
     }
 
     protected abstract static class WithMembers<ONT_M extends RDFNode,
-            ONT_D extends OntDataRange.ComponentsDR<ONT_M>,
+            ONT_D extends OntDataRange.Combination<ONT_M>,
             OWL_M extends OWLObject,
             OWL_D extends OWLDataRange>
             extends ONTAnonymousDataRangeImpl<ONT_D, OWL_D>

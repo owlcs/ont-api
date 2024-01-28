@@ -18,7 +18,7 @@ import com.github.owlcs.ontapi.internal.HasObjectFactory;
 import com.github.owlcs.ontapi.internal.ModelObjectFactory;
 import com.github.owlcs.ontapi.internal.ONTObject;
 import com.github.owlcs.ontapi.owlapi.OWLObjectImpl;
-import com.github.sszuev.jena.ontapi.impl.PersonalityModel;
+import com.github.sszuev.jena.ontapi.common.OntEnhGraph;
 import com.github.sszuev.jena.ontapi.model.OntModel;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -105,12 +105,12 @@ public abstract class ONTObjectImpl extends OWLObjectImpl implements ONTComposit
     }
 
     /**
-     * Returns a {@link PersonalityModel personality model}.
+     * Returns a {@link OntEnhGraph personality model}.
      *
-     * @return {@link PersonalityModel}
+     * @return {@link OntEnhGraph}
      */
-    protected PersonalityModel getPersonalityModel() {
-        return PersonalityModel.asPersonalityModel(getModel());
+    protected OntEnhGraph getPersonalityModel() {
+        return OntEnhGraph.asPersonalityModel(getModel());
     }
 
     @Override

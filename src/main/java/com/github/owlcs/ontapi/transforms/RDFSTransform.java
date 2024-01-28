@@ -55,7 +55,7 @@ public class RDFSTransform extends TransformationModel {
     protected final boolean useAnnotationPropertyInUnclearCase;
 
     public RDFSTransform(Graph graph) {
-        this(graph, OntVocabulary.Factory.get(), true);
+        this(graph, OntVocabulary.Factory.OWL2_DC_SKOS_SWRL_VOCABULARY, true);
     }
 
     public RDFSTransform(Graph graph,

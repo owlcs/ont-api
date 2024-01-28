@@ -22,6 +22,7 @@ import com.github.owlcs.ontapi.Ontology;
 import com.github.owlcs.ontapi.OntologyManager;
 import com.github.owlcs.ontapi.testutils.FileMap;
 import com.github.owlcs.ontapi.testutils.OWLIOUtils;
+import com.github.sszuev.jena.ontapi.UnionGraph;
 import com.github.sszuev.jena.ontapi.model.OntModel;
 import com.github.sszuev.jena.ontapi.utils.Graphs;
 import org.junit.jupiter.api.Assertions;
@@ -451,7 +452,8 @@ public class CopyManagerTest {
     private void testManagerWithCyclicImports(OntologyManager m) {
         Assertions.assertEquals(2, m.ontologies().peek(x -> {
             LOGGER.debug("TEST: {}", x);
-            Assertions.assertEquals(2, Graphs.baseGraphs(((Ontology) x).asGraphModel().getGraph()).count());
+            UnionGraph g = (UnionGraph) ((Ontology) x).asGraphModel().getGraph();
+            Assertions.assertEquals(2, Graphs.dataGraphs(g).count());
         }).count());
     }
 

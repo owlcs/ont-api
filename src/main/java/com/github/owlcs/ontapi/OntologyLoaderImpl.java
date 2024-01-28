@@ -260,14 +260,14 @@ public class OntologyLoaderImpl implements OntologyFactory.Loader {
         stats.stats(true)
                 .filter(GraphStats::isNotEmpty)
                 .forEach(s -> {
-                    String uri = Graphs.getOntologyIRI(s.getGraph());
+                    String uri = OntGraphUtils.getOntologyIRIOrNull(s.getGraph());
                     if (uri == null) {
-                        LOGGER.warn("Not a named graph {}", Graphs.getName(s.getGraph()));
+                        LOGGER.warn("Not a named graph {}", OntGraphUtils.getOntologyGraphPrintName(s.getGraph()));
                         return;
                     }
                     GraphInfo g = graphs.get(uri);
                     if (g == null) {
-                        LOGGER.warn("Unable to find a graph for {}", Graphs.getName(s.getGraph()));
+                        LOGGER.warn("Unable to find a graph for {}", OntGraphUtils.getOntologyGraphPrintName(s.getGraph()));
                         return;
                     }
                     g.setStats(s);
@@ -299,7 +299,7 @@ public class OntologyLoaderImpl implements OntologyFactory.Loader {
             // this situation may occur only in a single case
             // when the graph is passed into OntologyManager#addOntology, see OntGraphUtils#toGraphMap(Graph)
             UnionGraph u = (UnionGraph) graph;
-            if (!u.getUnderlying().isEmpty())
+            if (u.subGraphs().findFirst().isPresent())
                 throw new OntApiException.IllegalState("A given graph has a hierarchy structure: " + graph);
             // always need to create a _new_ UnionGraph: the old may have listeners or caches attached
             graph = u.getBaseGraph();
@@ -307,7 +307,7 @@ public class OntologyLoaderImpl implements OntologyFactory.Loader {
         UnionGraph res = builder.createUnionGraph(graph, config);
         if (config.isProcessImports()) {
             processImports(node, seen, builder, manager, config)
-                    .forEach(ch -> res.addGraph(makeUnionGraph(ch, new HashSet<>(seen), builder, manager, config)));
+                    .forEach(ch -> res.addSubGraph(makeUnionGraph(ch, new HashSet<>(seen), builder, manager, config)));
         }
         return res;
     }
@@ -351,8 +351,9 @@ public class OntologyLoaderImpl implements OntologyFactory.Loader {
             // graphs#computeIfAbsent:
             GraphInfo info = graphs.get(uri);
             try {
-                if (info == null)
+                if (info == null) {
                     info = fetchGraph(uri, builder, manager, config);
+                }
                 graphs.put(uri, info);
                 // Anonymous ontology or ontology without header (i.e. if no "_:x rdf:type owl:Ontology") could be loaded
                 // if there is some resource-mapping in the manager on the import declaration.
@@ -725,7 +726,7 @@ public class OntologyLoaderImpl implements OntologyFactory.Loader {
 
         protected Node ontology() {
             return ontology == null ?
-                    ontology = Graphs.ontologyNode(Graphs.getBase(graph))
+                    ontology = Graphs.ontologyNode(Graphs.getPrimary(graph), true)
                             .orElse(NodeFactory.createVariable("NullOntology")) :
                     ontology;
         }

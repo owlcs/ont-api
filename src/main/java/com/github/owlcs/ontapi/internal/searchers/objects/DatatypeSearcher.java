@@ -134,7 +134,7 @@ public class DatatypeSearcher extends WithCardinality<OWLDatatype> implements Fo
         if (res.contains(uri)) { // already processed
             return;
         }
-        Class<? extends OntClass.RestrictionCE<?>> type = ForDatatype.getSpecialDataRestrictionType(uri);
+        Class<? extends OntClass.Restriction> type = ForDatatype.getSpecialDataRestrictionType(uri);
         if (type != null && statement.getSubject().canAs(type)) {
             return;
         }
@@ -151,7 +151,7 @@ public class DatatypeSearcher extends WithCardinality<OWLDatatype> implements Fo
     @Override
     protected boolean containsInOntology(String uri, OntModel model, AxiomsSettings conf) {
         Set<OntStatement> header = listHeaderAnnotations(model).toSet();
-        Class<? extends OntClass.RestrictionCE<?>> type = ForDatatype.getSpecialDataRestrictionType(uri);
+        Class<? extends OntClass.Restriction> type = ForDatatype.getSpecialDataRestrictionType(uri);
         return Iterators.anyMatch(listStatements(model), s -> {
             if (s.getObject().isURIResource() && uri.equals(s.getResource().getURI())) {
                 return isInAxiom(s, model, conf);

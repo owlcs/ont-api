@@ -16,8 +16,8 @@ package com.github.owlcs.ontapi.internal;
 
 import com.github.owlcs.ontapi.ID;
 import com.github.sszuev.jena.ontapi.UnionGraph;
+import com.github.sszuev.jena.ontapi.common.OntEnhGraph;
 import com.github.sszuev.jena.ontapi.common.OntPersonality;
-import com.github.sszuev.jena.ontapi.impl.PersonalityModel;
 import com.github.sszuev.jena.ontapi.model.OntModel;
 import org.apache.jena.rdf.model.Model;
 import org.semanticweb.owlapi.model.AxiomType;
@@ -48,14 +48,14 @@ import java.util.stream.Stream;
  * <p>
  * Created by @ssz on 24.05.2020.
  */
-public interface InternalModel extends OntModel, PersonalityModel, HasOntologyID, ListAxioms {
+public interface InternalModel extends OntModel, OntEnhGraph, HasOntologyID, ListAxioms {
 
     /**
      * Answers the {@link UnionGraph} which this Model is presenting.
      *
      * @return {@link UnionGraph}
      */
-    UnionGraph getGraph();
+    UnionGraph getUnionGraph();
 
     /**
      * Gets the {@link OWLOntologyID OWL Ontology ID} from the model.

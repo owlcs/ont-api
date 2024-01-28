@@ -15,7 +15,6 @@
 package com.github.owlcs.ontapi.internal;
 
 import com.github.owlcs.ontapi.OntApiException;
-import com.github.sszuev.jena.ontapi.impl.objects.Entity;
 import com.github.sszuev.jena.ontapi.model.OntAnnotationProperty;
 import com.github.sszuev.jena.ontapi.model.OntClass;
 import com.github.sszuev.jena.ontapi.model.OntDataProperty;
@@ -34,7 +33,6 @@ import org.semanticweb.owlapi.model.OWLAnonymousIndividual;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLDataProperty;
 import org.semanticweb.owlapi.model.OWLDatatype;
-import org.semanticweb.owlapi.model.OWLEntity;
 import org.semanticweb.owlapi.model.OWLIndividual;
 import org.semanticweb.owlapi.model.OWLLiteral;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
@@ -157,14 +155,14 @@ public interface ModelObjectFactory extends ONTObjectFactory {
     }
 
     /**
-     * Gets an {@link OWLEntity} as {@link ONTObject} from the {@link OntEntity}.
+     * Gets an {@link org.semanticweb.owlapi.model.OWLEntity} as {@link ONTObject} from the {@link OntEntity}.
      *
      * @param uri  String, not {@code null}
-     * @param type {@link Entity}, not {@code null}
+     * @param type {@link OWLEntity}, not {@code null}
      * @return {@link ONTObject} with {@link OntEntity}
      * @see ONTObjectFactory#getEntity(OntEntity)
      */
-    default ONTObject<? extends OWLEntity> getEntity(String uri, Entity type) {
+    default ONTObject<? extends org.semanticweb.owlapi.model.OWLEntity> getEntity(String uri, OWLEntity type) {
         switch (type) {
             case CLASS:
                 return getClass(uri);

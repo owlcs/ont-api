@@ -92,6 +92,9 @@ public class ReasonerDeclarator extends BaseDeclarator {
     // result of processing
     protected final Set<Statement> unparsed = new HashSet<>();
 
+    protected final Set<Resource> reservedInResources;
+    protected final Set<Property> builtinOWLProperties;
+
     public ReasonerDeclarator(Graph graph) {
         this(graph, DefaultStrategies.FIRST, 10);
     }
@@ -116,6 +119,8 @@ public class ReasonerDeclarator extends BaseDeclarator {
         this.rerun = Objects.requireNonNull(rerun);
         this.decider = Objects.requireNonNull(decider);
         this.maxRerunCount = count;
+        this.reservedInResources = collectReservedResources();
+        this.builtinOWLProperties = collectBuiltinOWLProperties();
     }
 
     protected void parse(Statement s, Function<Statement, Res> function) {
@@ -380,7 +385,7 @@ public class ReasonerDeclarator extends BaseDeclarator {
 
     protected boolean canBeIndividual(RDFNode candidate) {
         return candidate.isResource() && (candidate.isAnon() ? !candidate.canAs(RDFList.class) :
-                !builtins.getSystemALL().contains(candidate.asResource()));
+                !reservedInResources.contains(candidate.asResource()));
     }
 
     protected boolean canBeDataPropertyInAssertion(Property candidate) {
@@ -463,13 +468,13 @@ public class ReasonerDeclarator extends BaseDeclarator {
         Resource a = statement.getSubject();
         Resource b = statement.getResource();
         if (Stream.of(a, b).anyMatch(this::isObjectPropertyExpression)) {
-            declareObjectProperty(a, builtins.getBuiltinOWLProperties());
-            declareObjectProperty(b, builtins.getBuiltinOWLProperties());
+            declareObjectProperty(a, builtinOWLProperties);
+            declareObjectProperty(b, builtinOWLProperties);
             return Res.TRUE;
         }
         if (Stream.of(a, b).anyMatch(this::isDataProperty)) {
-            declareDataProperty(a, builtins.getBuiltinOWLProperties());
-            declareDataProperty(b, builtins.getBuiltinOWLProperties());
+            declareDataProperty(a, builtinOWLProperties);
+            declareDataProperty(b, builtinOWLProperties);
             return Res.TRUE;
         }
         return Res.UNKNOWN;
@@ -509,19 +514,19 @@ public class ReasonerDeclarator extends BaseDeclarator {
         Resource b = statement.getResource();
         Res res = Res.UNKNOWN;
         if (Stream.of(a, b).anyMatch(this::isObjectPropertyExpression)) {
-            declareObjectProperty(a, builtins.getBuiltinOWLProperties());
-            declareObjectProperty(b, builtins.getBuiltinOWLProperties());
+            declareObjectProperty(a, builtinOWLProperties);
+            declareObjectProperty(b, builtinOWLProperties);
             res = Res.TRUE;
         }
         if (Stream.of(a, b).anyMatch(this::isDataProperty)) {
-            declareDataProperty(a, builtins.getBuiltinOWLProperties());
-            declareDataProperty(b, builtins.getBuiltinOWLProperties());
+            declareDataProperty(a, builtinOWLProperties);
+            declareDataProperty(b, builtinOWLProperties);
             res = Res.TRUE;
         }
         if (Stream.of(a, b).anyMatch(this::isAnnotationProperty) ||
                 (Res.UNKNOWN.equals(res) && decider.chooseAnnotationProperty())) {
-            declareAnnotationProperty(a, builtins.getBuiltinOWLProperties());
-            declareAnnotationProperty(b, builtins.getBuiltinOWLProperties());
+            declareAnnotationProperty(a, builtinOWLProperties);
+            declareAnnotationProperty(b, builtinOWLProperties);
             res = Res.TRUE;
         }
         return res;

@@ -14,8 +14,8 @@
 
 package com.github.owlcs.owlapi.tests.profiles;
 
+import com.github.owlcs.ontapi.TestOntPersonalities;
 import com.github.owlcs.owlapi.OWLManager;
-import com.github.sszuev.jena.ontapi.common.OntPersonalities;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.semanticweb.owlapi.model.OWLOntology;
@@ -45,7 +45,7 @@ public class ProfileFullTestCase extends ProfileBase {
      * And one more thing: it seems that tested mechanism does not work always correct,
      * sometimes you can see strange errors about things that are not true in the graph.
      * ONT-API comment(2):
-     * Also there is a {@link OntPersonalities#ONT_PERSONALITY_LAX}
+     * Also there is a {@link TestOntPersonalities#ONT_PERSONALITY_FULL}
      * to allow illegal punnings. One of the test-ontologies contains such things.
      * It is also a 'hack' to match OWL-API behaviour.
      */
@@ -57,7 +57,7 @@ public class ProfileFullTestCase extends ProfileBase {
             OWLOntologyLoaderConfiguration conf = ((com.github.owlcs.ontapi.config.OntLoaderConfiguration) manager
                     .getOntologyLoaderConfiguration())
                     .setAllowReadDeclarations(false)
-                    .setPersonality(OntPersonalities.ONT_PERSONALITY_LAX);
+                    .setPersonality(TestOntPersonalities.ONT_PERSONALITY_FULL);
             manager.setOntologyLoaderConfiguration(conf);
         }
         test(manager, premise, false, false, false, false);

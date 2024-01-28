@@ -70,6 +70,6 @@ public class ClassSearcher extends WithCardinality<OWLClass> implements ForClass
 
     @Override
     protected Set<Node> getBuiltinsSpec(OntModel m) {
-        return getBuiltinsVocabulary(m).getClasses();
+        return getBuiltinsVocabulary(m).getNamedClasses();
     }
 }

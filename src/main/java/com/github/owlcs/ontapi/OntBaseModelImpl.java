@@ -20,8 +20,8 @@ import com.github.sszuev.jena.ontapi.model.OntModel;
 import com.github.sszuev.jena.ontapi.utils.Graphs;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
-import org.apache.jena.graph.Factory;
 import org.apache.jena.graph.Graph;
+import org.apache.jena.graph.GraphMemFactory;
 import org.apache.jena.riot.RDFDataMgr;
 import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.EntityType;
@@ -1184,7 +1184,7 @@ public abstract class OntBaseModelImpl implements OWLOntology, BaseModel {
     @SuppressWarnings("JavadocReference")
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
         in.defaultReadObject();
-        Graph base = Factory.createDefaultGraph();
+        Graph base = GraphMemFactory.createDefaultGraph();
         RDFDataMgr.read(base, in, DEFAULT_SERIALIZATION_FORMAT.getLang());
         // set temporary model with default personality, it will be reset inside manager while its #readObject
         setBase(BaseModel.createInternalModel(base));
@@ -1242,6 +1242,6 @@ public abstract class OntBaseModelImpl implements OWLOntology, BaseModel {
         }
         OntModel right = ((Ontology) obj).asGraphModel();
         OntModel left = getBase();
-        return left.getID().sameAs(right.getID());
+        return left.id().filter(id -> right.id().filter(id::sameAs).isPresent()).isPresent();
     }
 }

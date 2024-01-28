@@ -14,7 +14,6 @@
 
 package com.github.owlcs.ontapi;
 
-import com.github.sszuev.jena.ontapi.utils.Graphs;
 import org.apache.jena.atlas.web.ContentType;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.riot.Lang;
@@ -99,8 +98,8 @@ public abstract class OntGraphDocumentSourceImpl implements OntGraphDocumentSour
      * Creates a new {@code InputStream} for the given {@code Graph} and {@code lang}.
      * Please don't forget to call {@link AutoCloseable#close()} - all exceptions are handled there.
      *
-     * @param graph  {@link Graph} a graph to read from
-     * @param lang   {@link Lang} format syntax
+     * @param graph {@link Graph} a graph to read from
+     * @param lang  {@link Lang} format syntax
      * @param error {@link AtomicReference}, a container that will contain an {@code Exception} if it occurs
      * @return {@code InputStream}
      */
@@ -173,7 +172,7 @@ public abstract class OntGraphDocumentSourceImpl implements OntGraphDocumentSour
         if (from instanceof IOException) return (IOException) from;
         String name;
         try {
-            name = Graphs.getName(graph);
+            name = OntGraphUtils.getOntologyGraphPrintName(graph);
         } catch (Exception e) {
             name = "{unknown: '" + e.getMessage() + "'}";
         }

@@ -19,10 +19,12 @@ import com.github.owlcs.ontapi.config.OntLoaderConfiguration;
 import com.github.owlcs.ontapi.transforms.GraphStats;
 import com.github.sszuev.graphs.ReadWriteLockingGraph;
 import com.github.sszuev.jena.ontapi.UnionGraph;
-import com.github.sszuev.jena.ontapi.impl.objects.OntIDImpl;
+import com.github.sszuev.jena.ontapi.impl.UnionGraphImpl;
 import com.github.sszuev.jena.ontapi.model.OntID;
 import com.github.sszuev.jena.ontapi.model.OntModel;
 import com.github.sszuev.jena.ontapi.utils.Graphs;
+import com.github.sszuev.jena.ontapi.utils.Iterators;
+import com.github.sszuev.jena.ontapi.vocabulary.OWL;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
@@ -30,7 +32,6 @@ import org.apache.jena.graph.Node_Blank;
 import org.apache.jena.graph.Node_Literal;
 import org.apache.jena.graph.Node_URI;
 import org.apache.jena.graph.Triple;
-import org.apache.jena.rdf.model.impl.ModelCom;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.riot.RDFLanguages;
@@ -66,7 +67,9 @@ import java.net.URLConnection;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Iterator;
+import java.util.ArrayDeque;
+import java.util.Deque;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
@@ -75,6 +78,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.github.owlcs.ontapi.OntologyFactoryImpl.ConfigMismatchException;
@@ -113,11 +117,27 @@ public class OntGraphUtils {
      * @return {@link ID}, not {@code null}
      * @throws OntApiException in case it is an anonymous graph but with version iri
      */
-    public static ID getOntologyID(Graph graph) throws OntApiException {
-        Graph base = Graphs.getBase(graph);
-        Node res = Graphs.ontologyNode(base)
-                .orElseGet(() -> NodeFactory.createBlankNode(toString(graph)));
-        return new ID(new OntIDImpl(res, new ModelCom(base)));
+    public static ID getOrCreateOntologyID(Graph graph) throws OntApiException {
+        Graph base = Graphs.getPrimary(graph);
+        Node res = Graphs.ontologyNode(base, true)
+                .orElseGet(() ->
+                        Graphs.makeOntologyHeaderNode(base, NodeFactory.createBlankNode(toString(base)))
+                );
+        String versionIri = Graphs.findVersionIRI(base, res).map(Node::getURI).orElse(null);
+        return new ID(res, versionIri);
+    }
+
+    /**
+     * Gets Ontology URI from the base graph or returns {@code null}
+     * if there is no {@code owl:Ontology} or it is anonymous ontology.
+     *
+     * @param graph {@link Graph}
+     * @return String uri or {@code null}
+     * @see Graphs#getImports(Graph)
+     */
+    public static String getOntologyIRIOrNull(Graph graph) {
+        Graph base = Graphs.getPrimary(graph);
+        return Graphs.ontologyNode(base, true).filter(Node::isURI).map(Node::getURI).orElse(null);
     }
 
     /**
@@ -125,7 +145,8 @@ public class OntGraphUtils {
      * <p>
      * If the graph has no import declarations
      * (i.e., no statements {@code _:x owl:imports uri}) then this graph is put into the map as is.
-     * If it is a composite graph with imports, the base graph will be unwrapped using method {@link Graphs#getBase(Graph)},
+     * If it is a composite graph with imports,
+     * the base graph will be unwrapped using method {@link Graphs#getPrimary(Graph)},
      * i.e., not a graph itself will go as a value, but its base sub-graph.
      * If the input graph is composite, it should consist of named graphs; only the root (top-level primary graph)
      * is allowed to be anonymous.
@@ -137,43 +158,79 @@ public class OntGraphUtils {
      * @throws OntApiException in case of violation of the restrictions described above
      */
     public static Map<ID, Graph> toGraphMap(Graph graph) throws OntApiException {
+        Deque<Graph> queue = new ArrayDeque<>();
+        queue.add(graph);
         Map<ID, Graph> res = new LinkedHashMap<>();
-        ID id = getOntologyID(graph);
-        assembleMap(id, graph, res);
+        Set<ID> seen = new HashSet<>();
+        Map<String, Graph> named = ontGraphs(graph).map(it -> {
+            String name = Graphs.findOntologyNameNode(Graphs.getPrimary(it), true)
+                    .filter(Node::isURI)
+                    .map(Node::getURI)
+                    .orElse(null);
+            if (name == null) {
+                return null;
+            }
+            return Map.entry(name, it);
+        }).filter(Objects::nonNull).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+        while (!queue.isEmpty()) {
+            Graph next = queue.removeFirst();
+            Graph base = getPrimary(next);
+            Optional<Node> header = Graphs.ontologyNode(base, true);
+            if (header.isEmpty()) {
+                continue;
+            }
+            String versionIri = Graphs.findVersionIRI(base, header.get()).map(Node::getURI).orElse(null);
+            ID id = new ID(header.get(), versionIri);
+            if (!seen.add(id)) {
+                continue;
+            }
+            Graph prev = res.get(id);
+            if (prev != null) {
+                if (!prev.isIsomorphicWith(graph)) {
+                    throw new OntApiException("Duplicate sub graph: " + id);
+                }
+                continue;
+            } else {
+                res.put(id, base);
+            }
+            Set<String> imports = Graphs.getImports(base, true);
+            if (imports.isEmpty()) {
+                continue;
+            }
+            named.forEach((ig, g) -> {
+                if (imports.contains(ig)) {
+                    queue.add(g);
+                }
+            });
+        }
+        if (res.isEmpty()) {
+            throw new OntApiException.IllegalArgument("Unable to parse ontology tree");
+        }
         return res;
     }
 
-    private static void assembleMap(ID id, Graph graph, Map<ID, Graph> res) {
-        Set<String> imports = Graphs.getImports(graph);
-        if (imports.isEmpty()) {
-            // do not analyze graph structure -> put it as is
-            put(id, graph, res);
-            return;
-        }
-        put(id, Graphs.getBase(graph), res);
-        Iterator<Graph> graphs = Graphs.subGraphs(graph).iterator();
-        while (graphs.hasNext()) {
-            Graph g = graphs.next();
-            ID i = getOntologyID(g);
-            // get first version IRI, then ontology IRI:
-            String uri = i.getVersionIRI().orElse(i.getOntologyIRI()
-                    .orElseThrow(() -> new OntApiException("Anonymous sub graph found: " + i + ". " +
-                            "Only the top-level graph is allowed to be anonymous"))).getIRIString();
-            if (!imports.contains(uri))
-                throw new OntApiException("Can't find " + i + " in the imports: " + imports);
-            assembleMap(i, g, res);
+    public static Stream<Graph> ontGraphs(Graph graph) {
+        return Graphs.flatTree(graph, OntGraphUtils::getPrimary, OntGraphUtils::directSubGraphs);
+    }
+
+    public static Graph getPrimary(Graph it) {
+        if (Graphs.isWrapper(it) && hasImports(it)) {
+            return Graphs.getPrimary(it);
+        } else {
+            return it;
         }
     }
 
-    private static void put(ID id, Graph graph, Map<ID, Graph> map) {
-        Graph prev = map.get(id);
-        if (prev != null) {
-            if (prev.isIsomorphicWith(graph)) {
-                return;
-            }
-            throw new OntApiException("Duplicate sub graph: " + id);
+    public static Stream<Graph> directSubGraphs(Graph it) {
+        if (Graphs.isWrapper(it) && hasImports(it)) {
+            return Graphs.directSubGraphs(it);
+        } else {
+            return Stream.empty();
         }
-        map.put(id, graph);
+    }
+
+    public static boolean hasImports(Graph it) {
+        return Iterators.findFirst(Graphs.listImports(Graphs.getPrimary(it), true)).isPresent();
     }
 
     /**
@@ -265,9 +322,9 @@ public class OntGraphUtils {
     protected static OWLOntologyLoaderMetaData makeParserMetaData(Graph graph, GraphStats stats) {
         if (stats == null)
             return OntologyMetaData.createParserMetaData(graph);
-        if (Graphs.getBase(graph) != stats.getGraph())
+        if (Graphs.getPrimary(graph) != stats.getGraph())
             throw new IllegalArgumentException("Incompatible graphs: " +
-                    Graphs.getName(graph) + " != " + Graphs.getName(stats.getGraph()));
+                    getOntologyGraphPrintName(graph) + " != " + getOntologyGraphPrintName(stats.getGraph()));
         return OntologyMetaData.createParserMetaData(stats);
     }
 
@@ -277,13 +334,13 @@ public class OntGraphUtils {
      *
      * @param graph  {@link Graph} the graph(empty) to put in
      * @param source {@link OWLOntologyDocumentSource} the source
-     *                                                (encapsulates IO-stream,
-     *                                                IO-Reader or IRI of the document)
+     *               (encapsulates IO-stream,
+     *               IO-Reader or IRI of the document)
      * @param conf   {@link OntLoaderConfiguration} config
      * @return {@link OntFormat} corresponding to the specified source
      * @throws UnsupportedFormatException   if the source can't be read into graph using jena.
      * @throws ConfigMismatchException      if there is some conflict with config settings,
-     *                                       anyway, we can't continue
+     *                                      anyway, we can't continue
      * @throws OWLOntologyCreationException if there is some serious IO problem
      * @throws OntApiException              if some other problem
      */
@@ -420,7 +477,7 @@ public class OntGraphUtils {
      */
     @SuppressWarnings("deprecation") // for RDFDataMgr#write
     public static void writeGraph(Graph graph, Lang lang, OWLOntologyDocumentTarget target) throws OWLOntologyStorageException {
-        String name = Graphs.getName(graph);
+        String name = getOntologyGraphPrintName(graph);
         try {
             OutputStream outputStreamFromTarget = target.getOutputStream().orElse(null);
             if (outputStreamFromTarget != null) {
@@ -495,59 +552,6 @@ public class OntGraphUtils {
     }
 
     /**
-     * Makes a concurrent version of the given {@code Graph} by wrapping it as {@link ReadWriteLockingGraph}.
-     * If the input is an {@code UnionGraph},
-     * it makes an {@code UnionGraph} where only the base (primary) contains the specified R/W lock.
-     * The result graph has the same structure as specified.
-     *
-     * @param graph {@link Graph}, not {@code null}
-     * @param lock  {@link ReadWriteLock}, not {@code null}
-     * @return {@link Graph} with {@link ReadWriteLock}
-     * @throws StackOverflowError in case the given graph has a recursion in its hierarchy
-     */
-    public static Graph asConcurrent(Graph graph, ReadWriteLock lock) {
-        if (graph instanceof ReadWriteLockingGraph) {
-            return asConcurrent(((ReadWriteLockingGraph) graph).get(), lock);
-        }
-        if (!(graph instanceof UnionGraph)) {
-            return new ReadWriteLockingGraph(graph, lock);
-        }
-        UnionGraph u = (UnionGraph) graph;
-        Graph base = asConcurrent(u.getBaseGraph(), lock);
-        UnionGraph res = new UnionGraph(base);
-        u.getUnderlying().listGraphs()
-                .mapWith(OntGraphUtils::asNonConcurrent)
-                .forEachRemaining(res::addGraph);
-        return res;
-    }
-
-    /**
-     * Removes concurrency from the given graph.
-     * This operation is opposite to the {@link #asConcurrent(Graph, ReadWriteLock)} method:
-     * if the input is an {@code UnionGraph}
-     * it makes an {@code UnionGraph} with the same structure as specified but without R/W lock.
-     *
-     * @param graph {@link Graph}
-     * @return {@link Graph}
-     * @throws StackOverflowError in case the given graph has a recursion in its hierarchy
-     */
-    public static Graph asNonConcurrent(Graph graph) {
-        if (graph instanceof ReadWriteLockingGraph) {
-            return ((ReadWriteLockingGraph) graph).get();
-        }
-        if (!(graph instanceof UnionGraph)) {
-            return graph;
-        }
-        UnionGraph u = (UnionGraph) graph;
-        Graph base = asNonConcurrent(u.getBaseGraph());
-        UnionGraph res = new UnionGraph(base);
-        u.getUnderlying().listGraphs()
-                .mapWith(OntGraphUtils::asNonConcurrent)
-                .forEachRemaining(res::addGraph);
-        return res;
-    }
-
-    /**
      * Inserts the given ontology in the dependencies of each ontology from the specified collection,
      * provided as {@code Supplier} (the {@code manager} parameter).
      * Can be used to fix missed graph links or
@@ -577,7 +581,7 @@ public class OntGraphUtils {
                     m.imports()
                             .filter(i -> uri.equals(i.getID().getImportsIRI()))
                             .findFirst()
-                            .ifPresent(i -> ((UnionGraph) m.getGraph()).removeGraph(i.getGraph()));
+                            .ifPresent(i -> ((UnionGraph) m.getGraph()).removeSubGraph(i.getGraph()));
                 })
                 .filter(m -> m.imports().map(OntModel::getID).map(OntID::getImportsIRI).noneMatch(uri::equals))
                 .forEach(m -> m.addImport(ont));
@@ -598,15 +602,82 @@ public class OntGraphUtils {
     }
 
     /**
-     * Creates a new {@code UnionGraph} with the given base {@code Graph}
-     * and the same structure and settings as in the specified {@code UnionGraph}.
+     * Wraps the specified graph as {@link UnionGraph} if it is not yet.
      *
-     * @param base  {@link Graph} new base, not {@code null}
-     * @param union {@link UnionGraph} to inherit settings and hierarchy, not {@code null}
+     * @param graph {@link Graph}, not {@code null}
      * @return {@link UnionGraph}
      */
-    public static UnionGraph withBase(Graph base, UnionGraph union) {
-        return new UnionGraph(base, union.getUnderlying(), union.getEventManager(), union.isDistinct());
+    public static UnionGraph asUnionGraph(Graph graph) {
+        return graph instanceof UnionGraph ? (UnionGraph) graph : new UnionGraphImpl(graph, true);
     }
 
+    /**
+     * Makes a concurrent version of the given {@code Graph} by wrapping it as {@link ReadWriteLockingGraph}.
+     * If the input is an {@code UnionGraph},
+     * it makes an {@code UnionGraph} where only the base (primary) contains the specified R/W lock.
+     * The result graph has the same structure as specified.
+     *
+     * @param graph {@link Graph}, not {@code null}
+     * @param lock  {@link ReadWriteLock}, not {@code null}
+     * @return {@link Graph} with {@link ReadWriteLock}
+     */
+    public static Graph asConcurrent(Graph graph, ReadWriteLock lock) {
+        if (!(graph instanceof UnionGraph)) {
+            Graph nonConcurrent = graph instanceof ReadWriteLockingGraph ? ((ReadWriteLockingGraph) graph).get() : graph;
+            return new ReadWriteLockingGraph(nonConcurrent, lock);
+        }
+        boolean distinct = ((UnionGraph) graph).isDistinct();
+        Graph base = Graphs.getPrimary(graph);
+        Graph concurrentBase = new ReadWriteLockingGraph(
+                base instanceof ReadWriteLockingGraph ? ((ReadWriteLockingGraph) base).get() : graph,
+                lock);
+        return Graphs.makeOntUnion(
+                concurrentBase,
+                Graphs.dataGraphs(graph).collect(Collectors.toSet()),
+                it -> new UnionGraphImpl(it, distinct)
+        );
+    }
+
+    /**
+     * Removes concurrency from the given graph.
+     * This operation is opposite to the {@link #asConcurrent(Graph, ReadWriteLock)} method:
+     * if the input is an {@code UnionGraph}
+     * it makes an {@code UnionGraph} with the same structure as specified but without R/W lock.
+     *
+     * @param graph {@link Graph}
+     * @return {@link Graph}
+     */
+    public static Graph asNonConcurrent(Graph graph) {
+        if (!(graph instanceof UnionGraph)) {
+            return graph instanceof ReadWriteLockingGraph ? ((ReadWriteLockingGraph) graph).get() : graph;
+        }
+        boolean distinct = ((UnionGraph) graph).isDistinct();
+        return Graphs.makeOntUnionFrom(graph, it -> {
+            Graph g = it instanceof ReadWriteLockingGraph ? ((ReadWriteLockingGraph) it).get() : it;
+            return new UnionGraphImpl(g, distinct);
+        });
+    }
+
+    /**
+     * Gets the "name" of the base graph: uri, blank-node-id as string or null string if there is no ontology at all.
+     * The version IRI info is also included if it is present in the graph for the found ontology node.
+     *
+     * @param graph {@link Graph}
+     * @return String (uri or blank-node label) or {@code null}
+     */
+    public static String getOntologyGraphPrintName(Graph graph) {
+        if (graph.isClosed()) {
+            return "(closed)";
+        }
+        Optional<Node> id = Graphs.ontologyNode(Graphs.getPrimary(graph));
+        if (id.isEmpty()) {
+            return "UnnamedOntology";
+        }
+        Set<String> versions = Iterators.takeAsSet(graph.find(id.get(), OWL.versionIRI.asNode(), Node.ANY)
+                .mapWith(Triple::getObject).mapWith(Node::toString), 2);
+        if (versions.size() != 1) {
+            return String.format("<%s>", id.get());
+        }
+        return String.format("<%s>::<%s>", id.get(), versions.iterator().next());
+    }
 }

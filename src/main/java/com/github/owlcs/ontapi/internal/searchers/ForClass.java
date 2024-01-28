@@ -26,7 +26,7 @@ import java.util.Set;
  */
 public interface ForClass extends ForTopEntity {
 
-    Set<Class<? extends OntClass.CardinalityRestrictionCE<?, ?>>> OBJECT_CARDINALITY_TYPES =
+    Set<Class<? extends OntClass.CardinalityRestriction<?, ?>>> OBJECT_CARDINALITY_TYPES =
             Set.of(OntClass.ObjectMaxCardinality.class, OntClass.ObjectMinCardinality.class, OntClass.ObjectCardinality.class);
 
     @Override

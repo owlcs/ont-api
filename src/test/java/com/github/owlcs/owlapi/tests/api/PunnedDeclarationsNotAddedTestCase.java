@@ -15,10 +15,10 @@
 package com.github.owlcs.owlapi.tests.api;
 
 import com.github.owlcs.ontapi.OntApiException;
+import com.github.owlcs.ontapi.TestOntPersonalities;
 import com.github.owlcs.owlapi.OWLManager;
 import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 import com.github.sszuev.jena.ontapi.OntJenaException;
-import com.github.sszuev.jena.ontapi.common.OntPersonalities;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
@@ -100,7 +100,7 @@ public class PunnedDeclarationsNotAddedTestCase extends TestBase {
         OWLOntologyLoaderConfiguration conf = ((com.github.owlcs.ontapi.config.OntLoaderConfiguration) m
                 .getOntologyLoaderConfiguration())
                 .setAllowReadDeclarations(false)
-                .setPersonality(OntPersonalities.ONT_PERSONALITY_STRICT);
+                .setPersonality(TestOntPersonalities.ONT_PERSONALITY_DL);
         m.setOntologyLoaderConfiguration(conf);
 
         OWLOntology o = m.createOntology(IRI.getNextDocumentIRI(URI_BASE));

@@ -61,7 +61,7 @@ public class RecursiveTransform extends TransformationModel {
      * @param startWithSubject if true starts search subjects first, otherwise - objects.
      */
     public RecursiveTransform(Graph graph, boolean replace, boolean startWithSubject) {
-        super(graph, OntVocabulary.Factory.DUMMY);
+        super(graph, OntVocabulary.Factory.EMPTY_VOCABULARY);
         this.replace = replace;
         this.subject = startWithSubject;
     }

@@ -39,6 +39,7 @@ import com.github.owlcs.ontapi.transforms.OWLRecursiveTransform;
 import com.github.owlcs.ontapi.transforms.Transform;
 import com.github.sszuev.jena.ontapi.OntModelFactory;
 import com.github.sszuev.jena.ontapi.UnionGraph;
+import com.github.sszuev.jena.ontapi.impl.UnionGraphImpl;
 import com.github.sszuev.jena.ontapi.model.OntModel;
 import com.github.sszuev.jena.ontapi.vocabulary.OWL;
 import com.github.sszuev.jena.ontapi.vocabulary.RDF;
@@ -729,7 +730,7 @@ public class LoadFactoryManagerTest {
 
     @Test
     public void testControlUnionGraphs() throws OWLOntologyCreationException {
-        class MyUnion extends UnionGraph {
+        class MyUnion extends UnionGraphImpl {
             MyUnion(Graph base) {
                 super(base);
             }

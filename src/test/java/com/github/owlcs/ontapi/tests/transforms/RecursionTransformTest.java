@@ -18,8 +18,8 @@ import com.github.owlcs.ontapi.OntFormat;
 import com.github.owlcs.ontapi.testutils.OWLIOUtils;
 import com.github.owlcs.ontapi.transforms.OWLRecursiveTransform;
 import com.github.owlcs.ontapi.transforms.TransformationModel;
-import com.github.sszuev.jena.ontapi.GraphListenerBase;
 import com.github.sszuev.jena.ontapi.OntModelFactory;
+import com.github.sszuev.jena.ontapi.impl.GraphListenerBase;
 import com.github.sszuev.jena.ontapi.model.OntModel;
 import com.github.sszuev.jena.ontapi.utils.Graphs;
 import org.apache.jena.graph.Graph;
@@ -73,13 +73,13 @@ public class RecursionTransformTest {
         Graph g = m.getGraph();
         TransformationModel t = new OWLRecursiveTransform(g);
         TestListener l = new TestListener();
-        Graphs.getBase(g).getEventManager().register(l);
+        Graphs.getPrimary(g).getEventManager().register(l);
         t.perform();
         Assertions.assertEquals(data.addCount, l.add.size(), "Wrong add triples count");
         Assertions.assertEquals(data.deleteCount, l.delete.size(), "Wrong delete triples count");
     }
 
-    private static class TestData {
+    public static class TestData {
         private final Path file;
         private final OntFormat format;
         private final int deleteCount, addCount;
@@ -106,12 +106,12 @@ public class RecursionTransformTest {
         private final Set<Triple> delete = new HashSet<>();
 
         @Override
-        protected void addEvent(Triple t) {
+        protected void addTripleEvent(Graph g, Triple t) {
             add.add(t);
         }
 
         @Override
-        protected void deleteEvent(Triple t) {
+        protected void deleteTripleEvent(Graph g, Triple t) {
             delete.add(t);
         }
     }

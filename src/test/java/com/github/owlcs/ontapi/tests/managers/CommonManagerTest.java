@@ -21,6 +21,7 @@ import com.github.owlcs.ontapi.Ontology;
 import com.github.owlcs.ontapi.OntologyManager;
 import com.github.owlcs.ontapi.OntologyManagerImpl;
 import com.github.owlcs.ontapi.OntologyModelImpl;
+import com.github.owlcs.ontapi.TestOntPersonalities;
 import com.github.owlcs.ontapi.config.OntLoaderConfiguration;
 import com.github.owlcs.ontapi.internal.AxiomTranslator;
 import com.github.owlcs.ontapi.internal.ONTObject;
@@ -32,7 +33,6 @@ import com.github.owlcs.ontapi.transforms.GraphTransformers;
 import com.github.sszuev.graphs.ReadWriteLockingGraph;
 import com.github.sszuev.jena.ontapi.OntModelFactory;
 import com.github.sszuev.jena.ontapi.UnionGraph;
-import com.github.sszuev.jena.ontapi.common.OntPersonalities;
 import com.github.sszuev.jena.ontapi.model.OntClass;
 import com.github.sszuev.jena.ontapi.model.OntEntity;
 import com.github.sszuev.jena.ontapi.model.OntModel;
@@ -216,13 +216,13 @@ public class CommonManagerTest {
         OntologyManager m1 = OntManagers.createManager();
         OntologyManager m2 = OntManagers.createManager();
         OntLoaderConfiguration conf1 = m1.getOntologyLoaderConfiguration();
-        conf1.setPersonality(OntPersonalities.ONT_PERSONALITY_LAX);
+        conf1.setPersonality(TestOntPersonalities.ONT_PERSONALITY_FULL);
         OntLoaderConfiguration conf2 = m2.getOntologyLoaderConfiguration();
-        conf2.setPersonality(OntPersonalities.ONT_PERSONALITY_STRICT);
+        conf2.setPersonality(TestOntPersonalities.ONT_PERSONALITY_DL);
         Assertions.assertEquals(conf1, conf2);
         Assertions.assertEquals(conf1.getPersonality(), conf2.getPersonality());
-        m1.setOntologyLoaderConfiguration(conf1.setPersonality(OntPersonalities.ONT_PERSONALITY_LAX));
-        m2.setOntologyLoaderConfiguration(conf1.setPersonality(OntPersonalities.ONT_PERSONALITY_STRICT));
+        m1.setOntologyLoaderConfiguration(conf1.setPersonality(TestOntPersonalities.ONT_PERSONALITY_FULL));
+        m2.setOntologyLoaderConfiguration(conf1.setPersonality(TestOntPersonalities.ONT_PERSONALITY_DL));
         Assertions.assertNotEquals(m1.getOntologyLoaderConfiguration().getPersonality(),
                 m2.getOntologyLoaderConfiguration().getPersonality());
 
@@ -276,9 +276,9 @@ public class CommonManagerTest {
     }
 
     private void checkConcurrentOntologyLock(OWLOntology o, ReadWriteLock managerLock) {
-        Assertions.assertTrue(o instanceof OntologyModelImpl.Concurrent);
+        Assertions.assertInstanceOf(OntologyModelImpl.Concurrent.class, o);
         Assertions.assertEquals(managerLock, ((OntologyModelImpl.Concurrent) o).getLock());
-        Assertions.assertTrue(((Ontology) o).asGraphModel().getBaseGraph() instanceof ReadWriteLockingGraph);
+        Assertions.assertInstanceOf(ReadWriteLockingGraph.class, ((Ontology) o).asGraphModel().getBaseGraph());
     }
 
     @ParameterizedTest
@@ -461,22 +461,18 @@ public class CommonManagerTest {
         LOGGER.debug("Test {}", m);
         Assertions.assertNotNull(m);
         if (isConcurrent) {
-            Assertions.assertTrue(m.getBaseGraph() instanceof ReadWriteLockingGraph);
+            Assertions.assertInstanceOf(ReadWriteLockingGraph.class, m.getBaseGraph());
             Assertions.assertTrue(Graphs.isGraphMem(((ReadWriteLockingGraph) m.getBaseGraph()).get()));
         } else {
             Assertions.assertTrue(Graphs.isGraphMem(m.getBaseGraph()));
         }
-        Assertions.assertTrue(m.getGraph() instanceof UnionGraph);
+        Assertions.assertInstanceOf(UnionGraph.class, m.getGraph());
         Assertions.assertEquals(m.getID().imports().count(), m.imports().count());
         UnionGraph u = (UnionGraph) m.getGraph();
-        u.getUnderlying().listGraphs().forEachRemaining(g -> {
-            if (g instanceof UnionGraph) {
-                Assertions.assertTrue(Graphs.isGraphMem(((UnionGraph) g).getBaseGraph()));
-            } else {
-                Assertions.assertTrue(Graphs.isGraphMem(g));
-            }
+        u.subGraphs().forEach(g -> {
+            Assertions.assertInstanceOf(UnionGraph.class, g);
+            Assertions.assertTrue(Graphs.isGraphMem(((UnionGraph) g).getBaseGraph()));
         });
-        u.listBaseGraphs().forEachRemaining(g -> Assertions.assertFalse(g instanceof UnionGraph));
     }
 
     @Test

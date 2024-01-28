@@ -27,6 +27,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.GraphUtil;
+import org.apache.jena.graph.Node;
 import org.apache.jena.graph.impl.WrappedGraph;
 import org.apache.jena.shared.PrefixMapping;
 import org.semanticweb.owlapi.io.IRIDocumentSource;
@@ -157,7 +158,7 @@ public class OntologyManagerImpl
     protected final OntologyCollection<OntInfo> content;
 
     /**
-     * Constructs a ready to use manager instance.
+     * Constructs the ready-to-use manager instance.
      * Parameter {@code ontologyFactory} is required, since without it a manager is useless.
      *
      * @param dataFactory     {@link DataFactory} - a factory to provide OWL Axioms and other OWL objects,
@@ -248,7 +249,7 @@ public class OntologyManagerImpl
     }
 
     /**
-     * Returns a Read Write Lock associated with this manager.
+     * Returns a Read-Write Lock associated with this manager.
      *
      * @return {@link ReadWriteLock}
      */
@@ -695,7 +696,7 @@ public class OntologyManagerImpl
     public Ontology addOntology(@Nonnull Graph graph, @Nonnull OntLoaderConfiguration conf) {
         writeLock.lock();
         try {
-            ID id = OntGraphUtils.getOntologyID(graph);
+            ID id = OntGraphUtils.getOrCreateOntologyID(graph);
             Map<ID, Graph> graphs = OntGraphUtils.toGraphMap(graph);
             DocumentSourceMapping mapping = i -> graphs.entrySet()
                     .stream()
@@ -793,7 +794,8 @@ public class OntologyManagerImpl
     }
 
     /**
-     * the difference: in case there are many ontologies with the same IRI it chooses the first match on version or ontology iri, not any.
+     * the difference: in case there are many ontologies with the same IRI,
+     * it chooses the first match on the version or ontology iri, not any.
      *
      * @param iri {@link IRI}
      * @return {@link Ontology}
@@ -815,8 +817,8 @@ public class OntologyManagerImpl
     }
 
     /**
-     * the difference: in case there are many ontologies with the same ID it chooses the first on the iri ignoring version,
-     * while original method chooses any.
+     * the difference: in case there are many ontologies with the same ID,
+     * it chooses the first on the iri ignoring a version, while the original method chooses any.
      *
      * @param id {@link OWLOntologyID}
      * @return {@link Ontology}
@@ -970,7 +972,7 @@ public class OntologyManagerImpl
      * Original method's comment:
      * No such ontology has been loaded through an import declaration, but it might have been loaded manually.
      * Using the IRI to retrieve it will either find the ontology or return null.
-     * Last possibility is an import by document IRI; if the ontology is not found by IRI, check by document IRI.
+     * The last possibility is an import by document IRI; if the ontology is not found by IRI, check by document IRI.
      *
      * @param declaration {@link OWLImportsDeclaration}
      * @return {@link Ontology} or {@code null}
@@ -1015,7 +1017,7 @@ public class OntologyManagerImpl
      * @param ontology {@link OWLOntology}, not null
      * @return {@link IRI}, not null
      * @throws UnknownOWLOntologyException id ontology not found
-     * @throws OntApiException             if document not found
+     * @throws OntApiException             if the document isn't found
      */
     @Nonnull
     @Override
@@ -1603,7 +1605,7 @@ public class OntologyManagerImpl
     protected Ontology load(@Nullable IRI iri,
                             OWLOntologyDocumentSource source,
                             OWLOntologyLoaderConfiguration conf) throws OWLOntologyCreationException {
-        listeners.fireStartedLoadingEvent(ID.create(iri), source.getDocumentIRI());
+        listeners.fireStartedLoadingEvent(ID.create(iri), Objects.requireNonNull(source, "Null source").getDocumentIRI());
         Exception ex = null;
         OWLOntologyID id = new ID();
         try {
@@ -1765,7 +1767,7 @@ public class OntologyManagerImpl
      * But the behaviour of these storers is unpredictable and has very poor documentation.
      * Analysing the code shows, that some of the {@link OWLStorer}s
      * (e.g. {@code TurtleStorer}) take into account the specified prefixes,
-     * but the others (such as {@code FunctionalSyntaxStorer}, {@code LatexStorer}, etc) do not.
+     * but the others (such as {@code FunctionalSyntaxStorer}, {@code LatexStorer}, etc.) do not.
      * Instead, the latter handle prefixes for a given ontology from its manager
      * (using the {@link #getOntologyFormat(OWLOntology)} method),
      * that may not even coincide with this manager (see the first notice).
@@ -1848,13 +1850,24 @@ public class OntologyManagerImpl
             ModelConfig conf = info.getModelConfig();
             BaseModel m = getAdapter().asBaseModel(info.get());
             m.setConfig(conf);
-            UnionGraph baseGraph = m.getBase().getGraph();
+            UnionGraph baseGraph = m.getBase().getUnionGraph();
             Stream<UnionGraph> imports = Graphs.getImports(baseGraph).stream()
-                    .map(s -> this.content.values().map(OntInfo::get).map(BaseModel.class::cast)
-                            .map(BaseModel::getBase).map(InternalModel::getGraph)
-                            .filter(g -> Objects.equals(s, Graphs.getOntologyIRI(g))).findFirst().orElse(null))
+                    .map(s -> this.content.values()
+                            .map(OntInfo::get)
+                            .map(BaseModel.class::cast)
+                            .map(BaseModel::getBase)
+                            .map(InternalModel::getUnionGraph)
+                            .filter(g -> Graphs.ontologyNode(g.getBaseGraph())
+                                    .filter(Node::isURI)
+                                    .map(Node::getURI)
+                                    .filter(s::equals)
+                                    .isPresent()
+                            )
+                            .findFirst()
+                            .orElse(null)
+                    )
                     .filter(Objects::nonNull);
-            imports.forEach(baseGraph::addGraph);
+            imports.forEach(baseGraph::addSubGraph);
             InternalModel baseModel = conf.createInternalModel(baseGraph);
             m.setBase(baseModel);
         });
@@ -1871,7 +1884,7 @@ public class OntologyManagerImpl
     }
 
     /**
-     * Listeners holder.
+     * Listener's holder.
      * Was added is just for simplification code.
      * Any working with listeners should be placed here.
      */
@@ -1984,7 +1997,7 @@ public class OntologyManagerImpl
                 // are used in case of the ontology has imports in a format syntax which is not supported by Jena.
                 // This may be considered as a bug or inappropriate usage - right now not sure.
                 // But in these circumstances, the message does not seem informative but rather annoying.
-                // That's why the logger level has been decreased from warn to debug.
+                // That's why the logger level has been decreased from "warn" to "debug".
                 LOGGER.debug("[{} => {}] Runtime Warning: Parsers should load imported ontologies using the " +
                         "makeImportLoadRequest method.", doc, id);
             }
@@ -2081,12 +2094,12 @@ public class OntologyManagerImpl
                 if (strategy == null) {
                     // This listener may have been removed during the broadcast
                     // of the changes, so when we attempt to retrieve it from
-                    // the map it isn't there (because we iterate over a copy).
+                    // the map, it isn't there (because we iterate over a copy).
                     continue;
                 }
                 try {
                     // Handle exceptions on a per-listener basis. If we have
-                    // badly behaving listeners, we don't want one listener
+                    // badly behaved listeners, we don't want one listener
                     // to prevent the other listeners from receiving events.
                     strategy.broadcastChanges(listener, changes);
                 } catch (Exception e) {

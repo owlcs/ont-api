@@ -15,7 +15,6 @@
 package com.github.owlcs.ontapi.config;
 
 import com.github.owlcs.ontapi.Ontology;
-import com.github.sszuev.jena.ontapi.common.ObjectFactory;
 import com.github.sszuev.jena.ontapi.model.OntModel;
 
 /**
@@ -59,18 +58,18 @@ public interface CacheSettings {
     int CACHE_CONTENT = 16;
     /**
      * A constant value signifying that all model's caches are enabled.
-     * It is default value.
-     * Note that all these constants do not relate to nodes and objects caches.
+     * It is the default value.
+     * Note that all these constants do not relate to nodes and objects' caches.
      */
     int CACHE_ALL = CACHE_ITERATOR | CACHE_CONTENT | CACHE_COMPONENT;
 
     /**
-     * Returns the maximum size of nodes cache,
+     * Returns the maximum size of nodes' cache,
      * which is used as optimization while reading OWLObjects from a graph
      * (see {@link com.github.owlcs.ontapi.internal.SearchModel}).
      * The system default size is {@code 50_000}.
      * <p>
-     * Each {@link ObjectFactory object factory}
+     * Each {@link com.github.sszuev.jena.ontapi.common.EnhNodeFactory object factory}
      * has its own nodes cache with the same size, but, as a rule, only a few factories have many nodes in their cache.
      * Average {@link org.apache.jena.graph.Node Node} (uri and blank) size is about 160 bytes (internal string ~ 150byte),
      * Experiments show that for the limit = 100_000, the total number of cached nodes is not more than 190_000
@@ -97,7 +96,7 @@ public interface CacheSettings {
      * which is used as optimization while reading OWLObjects from a graph
      * (see {@link com.github.owlcs.ontapi.internal.CacheObjectFactory}).
      * The system default size is {@code 2048}.
-     * This is magic number from OWL-API impl, which has also similar caches.
+     * This is a magic number from OWL-API impl, which has also similar caches.
      *
      * @return int
      * @see OntSettings#ONT_API_LOAD_CONF_CACHE_OBJECTS
@@ -107,7 +106,7 @@ public interface CacheSettings {
 
     /**
      * Returns the model content cache level.
-     * Currently, there are following possible levels:
+     * Currently, there are the following possible levels:
      * <ul>
      * <li>{@link #CACHE_ITERATOR} - use cache-optimization to speed up iteration over
      * the content (axioms/ontology annotations) and components (entities/anonymous individuals) found in a graph</li>
@@ -132,8 +131,8 @@ public interface CacheSettings {
      * An internal model content cache speedups axiom listing and controls add/remove components behaviour.
      * If it is turned off,
      * then the direct graph traversal is used for retrieving axioms and ontology header (annotations).
-     * Warning: in that case the adding and removing axioms is disabled in the model level.
-     * For this there are two reasons:
+     * Warning: in that case, the adding and removing axioms is disabled in the model level.
+     * For this, there are two reasons:
      * <ul>
      * <li>OWL-API allows some uncertainty in axiom's definition,
      * the same data amount can be represented as an axiom in various ways
@@ -156,7 +155,7 @@ public interface CacheSettings {
      * the expression {@code AxiomParserProvider.get(A).writeAxiom(A, m)} can be used.
      * <p>
      * Also, please note: the cache ensures no duplicates in any {@code Stream}, returned by axioms-listing methods.
-     * When cache is disabled, this restriction is removed.
+     * When the cache is disabled, this restriction is removed.
      * For example, the couple of triples {@code x owl:differentFrom y . y owl:differentFrom x}
      * will produce two identical (by {@code equals(Object)} and {@code hashCode()}) axioms.
      *
@@ -192,7 +191,7 @@ public interface CacheSettings {
     }
 
     /**
-     * Answers {@code true} if the nodes cache is enabled.
+     * Answers {@code true} if the nodes' cache is enabled.
      * This cache is located in the search model, that is used as optimization while read operations.
      * The search model contains several other minor optimizations, so
      * if the method returns {@code true} all of them are enabled, and opposite:

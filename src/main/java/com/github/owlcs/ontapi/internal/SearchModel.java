@@ -16,12 +16,14 @@ package com.github.owlcs.ontapi.internal;
 
 import com.github.owlcs.ontapi.OntApiException;
 import com.github.sszuev.jena.ontapi.OntJenaException;
-import com.github.sszuev.jena.ontapi.common.BaseFactoryImpl;
-import com.github.sszuev.jena.ontapi.common.ObjectFactory;
+import com.github.sszuev.jena.ontapi.UnionGraph;
+import com.github.sszuev.jena.ontapi.common.BaseEnhNodeFactoryImpl;
+import com.github.sszuev.jena.ontapi.common.EnhNodeFactory;
+import com.github.sszuev.jena.ontapi.common.OntEnhNodeFactories;
+import com.github.sszuev.jena.ontapi.common.OntObjectPersonalityBuilder;
 import com.github.sszuev.jena.ontapi.common.OntPersonality;
-import com.github.sszuev.jena.ontapi.common.PersonalityBuilder;
 import com.github.sszuev.jena.ontapi.impl.OntGraphModelImpl;
-import com.github.sszuev.jena.ontapi.impl.objects.OntObjectImpl;
+import com.github.sszuev.jena.ontapi.impl.UnionGraphImpl;
 import com.github.sszuev.jena.ontapi.model.OntModel;
 import com.github.sszuev.jena.ontapi.model.OntObject;
 import com.github.sszuev.jena.ontapi.model.OntSWRL;
@@ -35,6 +37,7 @@ import org.apache.jena.graph.Node;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.reasoner.InfGraph;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.apache.jena.util.iterator.NullIterator;
 import org.slf4j.Logger;
@@ -47,9 +50,9 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * Model with optimizations including nodes cache.
- * It is used in various operations of collecting axioms, each of them must be isolated by R/W lock,
- * which guarantees that underlying graph is not changed.
+ * Model with optimizations including nodes' cache.
+ * It is used in various operations of collecting axioms; each of them must be isolated by R/W lock,
+ * which guarantees that the underlying graph is not changed.
  * <p>
  * Created by @ssz on 16.02.2019.
  *
@@ -59,7 +62,7 @@ import java.util.stream.Stream;
 public abstract class SearchModel extends OntGraphModelImpl implements HasObjectFactory, HasConfig {
     private static final Logger LOGGER = LoggerFactory.getLogger(SearchModel.class);
 
-    // to control searching process
+    // to control a searching process
     protected final InternalConfig conf;
     // the original personality.
     protected final OntPersonality personality;
@@ -78,9 +81,15 @@ public abstract class SearchModel extends OntGraphModelImpl implements HasObject
                           OntPersonality personality,
                           InternalConfig conf,
                           boolean withCache) {
-        super(graph, withCache ? cachedPersonality(personality, conf) : personality);
+        super(makeSearchModelGraph(graph), withCache ? cachedPersonality(personality, conf) : personality);
         this.conf = Objects.requireNonNull(conf);
         this.personality = personality;
+    }
+
+    protected static Graph makeSearchModelGraph(Graph graph) {
+        Objects.requireNonNull(graph);
+        return graph instanceof UnionGraph ? graph :
+                new UnionGraphImpl(graph instanceof InfGraph ? ((InfGraph) graph).getRawGraph() : graph, false);
     }
 
     static <X> X handleFetchNodeAsException(OntJenaException error,
@@ -92,12 +101,12 @@ public abstract class SearchModel extends OntGraphModelImpl implements HasObject
             throw new OntApiException(error);
         }
         LOGGER.warn("Can't wrap node <{}> as {}: found a problem inside <{}>: '{}'",
-                node, OntObjectImpl.viewAsString(type), m.getID(), error.getMessage());
+                node, OntEnhNodeFactories.viewAsString(type), m.getID(), error.getMessage());
         return null;
     }
 
     /**
-     * Creates a {@link OntPersonality} with nodes cache inside.
+     * Creates a {@link OntPersonality} with nodes' cache inside.
      * Each cached {@link Node} can be either URI or blank,
      * and never literal, since size of literals is unpredictable.
      *
@@ -110,7 +119,7 @@ public abstract class SearchModel extends OntGraphModelImpl implements HasObject
             throw new IllegalArgumentException("Negative cache size is specified");
         }
         int size = conf.getLoadNodesCacheSize();
-        PersonalityBuilder res = PersonalityBuilder.from(from);
+        OntObjectPersonalityBuilder res = OntObjectPersonalityBuilder.from(from);
         from.types(OntObject.class)
                 // do not cache SWRL.DArg (and, therefore, SWRL.Arg) since an instance of this type
                 // can be Literal with unpredictable length
@@ -133,7 +142,7 @@ public abstract class SearchModel extends OntGraphModelImpl implements HasObject
         // and, also, because these objects may differ from those retrieved from the full model,
         // (for example sub model may contain declaration {@code <a> a owl:Class},
         // while in the local graph there is '<a> a rdfs:Datatype' - i.e. a punning for the same entity <a>).
-        // A shared cache for this case will lead to wrong result,
+        // A shared cache for this case will lead to a wrong result,
         // and a separated cache will not give a performance gain
         return new SearchModel(getBaseGraph(), personality, conf, false) {
 
@@ -192,30 +201,30 @@ public abstract class SearchModel extends OntGraphModelImpl implements HasObject
     }
 
     @Override
-    public <N extends RDFNode> N fetchNodeAs(Node node, Class<N> type) {
+    public <N extends RDFNode> N safeFindNodeAs(Node node, Class<N> type) {
         try {
-            return super.fetchNodeAs(node, type);
+            return super.safeFindNodeAs(node, type);
         } catch (OntJenaException e) {
             return handleFetchNodeAsException(e, node, type, this, conf);
         }
     }
 
     /**
-     * A {@link ObjectFactory} impl with nodes cache.
+     * A {@link EnhNodeFactory} impl with nodes' cache.
      */
-    public static class CachedFactory extends BaseFactoryImpl {
-        private final ObjectFactory from;
+    public static class CachedFactory extends BaseEnhNodeFactoryImpl {
+        private final EnhNodeFactory from;
         private final Class<? extends OntObject> type;
         private final InternalCache<Node, Boolean> canWrapCache;
 
-        public CachedFactory(Class<? extends OntObject> type, ObjectFactory from, int limit, boolean parallel) {
+        public CachedFactory(Class<? extends OntObject> type, EnhNodeFactory from, int limit, boolean parallel) {
             this.type = Objects.requireNonNull(type);
             this.from = Objects.requireNonNull(from);
             this.canWrapCache = InternalCache.createBounded(parallel, limit);
         }
 
         private static CachedFactory create(Class<? extends OntObject> type,
-                                            ObjectFactory from,
+                                            EnhNodeFactory from,
                                             int limit) {
 
             // Do not use caffeine due to danger of LiveLock
@@ -225,7 +234,7 @@ public abstract class SearchModel extends OntGraphModelImpl implements HasObject
                     false);
         }
 
-        static void cache(PersonalityBuilder res,
+        static void cache(OntObjectPersonalityBuilder res,
                           OntPersonality from,
                           Class<? extends OntObject> type,
                           int limit) {
@@ -239,7 +248,9 @@ public abstract class SearchModel extends OntGraphModelImpl implements HasObject
 
         @Override
         public boolean canWrap(Node node, EnhGraph eg) {
-            if (node.isLiteral()) return from.canWrap(node, eg);
+            if (node.isLiteral()) {
+                return from.canWrap(node, eg);
+            }
             return canWrapCache.get(node, n -> from.canWrap(n, eg));
         }
 
@@ -250,7 +261,7 @@ public abstract class SearchModel extends OntGraphModelImpl implements HasObject
 
         @Override
         public String toString() {
-            return String.format("CachedFactory[%s]", OntObjectImpl.viewAsString(type));
+            return String.format("CachedFactory[%s]", OntEnhNodeFactories.viewAsString(type));
         }
     }
 }

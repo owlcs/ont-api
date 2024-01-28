@@ -15,9 +15,11 @@
 package com.github.owlcs.ontapi.tests.transforms;
 
 import com.github.owlcs.ontapi.OntFormat;
+import com.github.owlcs.ontapi.OntGraphUtils;
 import com.github.owlcs.ontapi.OntManagers;
 import com.github.owlcs.ontapi.Ontology;
 import com.github.owlcs.ontapi.OntologyManager;
+import com.github.owlcs.ontapi.TestOntPersonalities;
 import com.github.owlcs.ontapi.testutils.OWLIOUtils;
 import com.github.owlcs.ontapi.testutils.SpinModels;
 import com.github.owlcs.ontapi.transforms.GraphTransformers;
@@ -29,11 +31,10 @@ import com.github.owlcs.ontapi.transforms.TransformException;
 import com.github.owlcs.ontapi.transforms.TransformationModel;
 import com.github.sszuev.jena.ontapi.OntModelFactory;
 import com.github.sszuev.jena.ontapi.UnionGraph;
-import com.github.sszuev.jena.ontapi.common.OntPersonalities;
+import com.github.sszuev.jena.ontapi.impl.UnionGraphImpl;
 import com.github.sszuev.jena.ontapi.model.OntClass;
 import com.github.sszuev.jena.ontapi.model.OntEntity;
 import com.github.sszuev.jena.ontapi.model.OntModel;
-import com.github.sszuev.jena.ontapi.utils.Graphs;
 import com.github.sszuev.jena.ontapi.utils.Iterators;
 import com.github.sszuev.jena.ontapi.vocabulary.OWL;
 import com.github.sszuev.jena.ontapi.vocabulary.RDF;
@@ -91,7 +92,7 @@ public class GraphTransformersTest {
         // Setup spin manager:
         GraphTransformers transformers = m.getOntologyConfigurator().getGraphTransformers()
                 .setFilter(g -> {
-                    String uri = Graphs.getOntologyIRI(g);
+                    String uri = OntGraphUtils.getOntologyIRIOrNull(g);
                     return uri == null || Arrays.stream(SpinModels.values()).map(SpinModels::uri).noneMatch(uri::equals);
                 });
         m.getOntologyConfigurator().setGraphTransformers(transformers)
@@ -142,7 +143,7 @@ public class GraphTransformersTest {
     public void testSPSignature() throws Exception {
         // global transforms:
         GraphTransformers.get().addLast(g -> {
-            LOGGER.debug("Finish transformation ({}).", Graphs.getName(g));
+            LOGGER.debug("Finish transformation ({}).", OntGraphUtils.getOntologyGraphPrintName(g));
             return Stream.empty();
         });
 
@@ -151,7 +152,7 @@ public class GraphTransformersTest {
 
         OntModel jenaSP = OntModelFactory.createModel(
                 GraphTransformers.convert(OWLIOUtils.loadResourceAsModel("/etc/sp.ttl", Lang.TURTLE).getGraph()),
-                OntPersonalities.ONT_PERSONALITY_LAX);
+                TestOntPersonalities.ONT_PERSONALITY_FULL);
         OWLOntology owlSP = load(manager, "/etc/sp.ttl");
         LOGGER.debug("SP(Jena): ");
         OWLIOUtils.print(jenaSP);
@@ -165,8 +166,8 @@ public class GraphTransformersTest {
         // Example: spin:violationDetail is ObjectProperty and spin:labelTemplate is DataProperty due to rdfs:range.
         // But OWL-API treats them as AnnotationProperty only.
         // spin:Modules is treated as NamedIndividual by OWL-API and as Class by ONT-API.
-        UnionGraph spinGraph = new UnionGraph(OWLIOUtils.loadResourceAsModel("/etc/spin.ttl", Lang.TURTLE).getGraph());
-        spinGraph.addGraph(jenaSP.getBaseGraph());
+        UnionGraph spinGraph = new UnionGraphImpl(OWLIOUtils.loadResourceAsModel("/etc/spin.ttl", Lang.TURTLE).getGraph());
+        spinGraph.addSubGraph(jenaSP.getBaseGraph());
         OntModel jenaSPIN = OntModelFactory.createModel(GraphTransformers.convert(spinGraph));
         OWLOntology owlSPIN = load(manager, "/etc/spin.ttl");
         LOGGER.debug("SPIN(Jena): ");
@@ -181,8 +182,8 @@ public class GraphTransformersTest {
         LOGGER.debug("Origin SPIN signature:");
         owlSPIN.signature().forEach(e -> LOGGER.debug(String.format("%s(%s)", e, e.getEntityType())));
 
-        UnionGraph splGraph = new UnionGraph(OWLIOUtils.loadResourceAsModel("/etc/spl.spin.ttl", Lang.TURTLE).getGraph());
-        splGraph.addGraph(jenaSPIN.getBaseGraph());
+        UnionGraph splGraph = new UnionGraphImpl(OWLIOUtils.loadResourceAsModel("/etc/spl.spin.ttl", Lang.TURTLE).getGraph());
+        splGraph.addSubGraph(jenaSPIN.getBaseGraph());
         OntModel jenaSPL = OntModelFactory.createModel(GraphTransformers.convert(splGraph));
         LOGGER.debug("SPL-SPIN(Jena): ");
         OWLIOUtils.print(jenaSPL);
@@ -195,7 +196,7 @@ public class GraphTransformersTest {
         IRI iri = IRI.create("http://www.w3.org/2003/11/swrl");
         IRI file = IRI.create(OWLIOUtils.getResourceURI("/ontapi/swrl.owl.rdf"));
         OntologyManager m = OntManagers.createManager();
-        m.getOntologyConfigurator().setPersonality(OntPersonalities.ONT_PERSONALITY_LAX);
+        m.getOntologyConfigurator().setPersonality(TestOntPersonalities.ONT_PERSONALITY_FULL);
         Ontology o = m.loadOntology(file);
         Assertions.assertTrue(m.contains(iri));
 
@@ -286,7 +287,7 @@ public class GraphTransformersTest {
                 .addFirst(new Transform() {
                     @Override
                     public Stream<Triple> apply(Graph g) {
-                        String n = Graphs.getName(g);
+                        String n = OntGraphUtils.getOntologyGraphPrintName(g);
                         LOGGER.debug("Test {} on {}", id(), n);
                         Assertions.assertTrue(processed.add(n), "Already processed: " + n);
                         return Stream.empty();
@@ -301,7 +302,7 @@ public class GraphTransformersTest {
 
         iris.stream().limit(2).map(IRI::create).forEach(iri -> {
             LOGGER.debug("Create {}", iri);
-            processed.add(Graphs.getName(m.createOntology(iri).asGraphModel().getGraph()));
+            processed.add(OntGraphUtils.getOntologyGraphPrintName(m.createOntology(iri).asGraphModel().getGraph()));
         });
 
         OntModel c = OntModelFactory.createModel();

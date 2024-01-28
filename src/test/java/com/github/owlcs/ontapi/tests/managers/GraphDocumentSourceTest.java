@@ -198,8 +198,8 @@ public class GraphDocumentSourceTest {
         Assertions.assertEquals(1, o.asGraphModel().ontObjects(OntIndividual.class)
                 .peek(x -> LOGGER.debug("Individual: {}", x)).count());
 
-        Assertions.assertTrue(o.asGraphModel().getBaseGraph() instanceof Union);
-        Assertions.assertTrue(o.asGraphModel().getGraph() instanceof UnionGraph);
+        Assertions.assertInstanceOf(Union.class, o.asGraphModel().getBaseGraph());
+        Assertions.assertInstanceOf(UnionGraph.class, o.asGraphModel().getGraph());
 
         // serialization should fail:
         try (ObjectOutputStream stream = new ObjectOutputStream(new ByteArrayOutputStream())) {

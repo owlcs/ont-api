@@ -19,7 +19,7 @@ import com.github.owlcs.ontapi.internal.HasObjectFactory;
 import com.github.owlcs.ontapi.internal.ModelObjectFactory;
 import com.github.owlcs.ontapi.internal.ONTObject;
 import com.github.owlcs.ontapi.owlapi.objects.LiteralImpl;
-import com.github.sszuev.jena.ontapi.impl.PersonalityModel;
+import com.github.sszuev.jena.ontapi.common.OntEnhGraph;
 import com.github.sszuev.jena.ontapi.model.OntDataRange;
 import com.github.sszuev.jena.ontapi.model.OntModel;
 import javax.annotation.Nonnull;
@@ -92,7 +92,7 @@ public class ONTLiteralImpl extends LiteralImpl
      * @see OntModel#getDatatype(Literal)
      */
     public OntDataRange.Named getDatatypeResource() {
-        return PersonalityModel.asPersonalityModel(getModel())
+        return OntEnhGraph.asPersonalityModel(getModel())
                 .getNodeAs(NodeFactory.createURI(getDatatypeURI()), OntDataRange.Named.class);
     }
 

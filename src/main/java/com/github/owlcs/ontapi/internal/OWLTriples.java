@@ -14,7 +14,7 @@
 
 package com.github.owlcs.ontapi.internal;
 
-import com.github.sszuev.jena.ontapi.GraphListenerBase;
+import com.github.sszuev.jena.ontapi.impl.GraphListenerBase;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.graph.impl.CollectionGraph;
@@ -76,12 +76,12 @@ public class OWLTriples<V extends OWLObject> extends ONTWrapperImpl<V> {
         protected final Set<Triple> triples = new HashSet<>();
 
         @Override
-        protected void addEvent(Triple t) {
+        protected void addTripleEvent(Graph g, Triple t) {
             triples.add(t);
         }
 
         @Override
-        protected void deleteEvent(Triple t) {
+        protected void deleteTripleEvent(Graph g, Triple t) {
             LOGGER.warn("Suspicious deleting: {}", t);
             triples.remove(t);
         }

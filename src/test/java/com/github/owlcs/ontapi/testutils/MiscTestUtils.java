@@ -78,11 +78,6 @@ public class MiscTestUtils {
         return manager.createOntology(id);
     }
 
-    public static String getURI(Model model) {
-        if (model == null) return null;
-        return Graphs.getOntologyIRI(Graphs.getBase(model.getGraph()));
-    }
-
     public static void compareAxioms(Stream<? extends OWLAxiom> expected, Stream<? extends OWLAxiom> actual) {
         compareAxioms(toMap(expected), toMap(actual));
     }
@@ -143,12 +138,13 @@ public class MiscTestUtils {
     }
 
     public static PunningsMode getMode(OntPersonality profile) {
+        OntPersonality.Punnings p = profile.getPunnings();
         PunningsMode mode = null;
-        if (OntPersonalities.ONT_PERSONALITY_STRICT.equals(profile)) {
+        if (OntPersonalities.OWL_DL2_PUNNINGS.equals(p)) {
             mode = PunningsMode.DL2;
-        } else if (OntPersonalities.ONT_PERSONALITY_MEDIUM.equals(profile)) {
+        } else if (OntPersonalities.OWL_DL_WEAK_PUNNINGS.equals(p)) {
             mode = PunningsMode.DL_WEAK;
-        } else if (OntPersonalities.ONT_PERSONALITY_LAX.equals(profile)) {
+        } else if (OntPersonalities.OWL_NO_PUNNINGS.equals(p)) {
             mode = PunningsMode.FULL;
         } else {
             Assertions.fail("Unsupported personality profile " + profile);
@@ -226,12 +222,12 @@ public class MiscTestUtils {
     /**
      * Recursively lists all models that are associated with the given model in the form of a flat stream.
      * In normal situation, each of the models must have {@code owl:imports} statement in the overlying graph.
-     * In this case the returned stream must correspond the result of the {@link Graphs#baseGraphs(Graph)} method.
+     * In this case the returned stream must correspond the result of the {@link Graphs#dataGraphs(Graph)} method.
      *
      * @param m {@link OntModel}, not {@code null}
      * @return {@code Stream} of models, cannot be empty: must contain at least the input (root) model
      * @throws StackOverflowError in case the given model has a recursion in the hierarchy
-     * @see Graphs#baseGraphs(Graph)
+     * @see Graphs#dataGraphs(Graph)
      * @see OntID#getImportsIRI()
      */
     public static Stream<OntModel> importsClosure(OntModel m) {

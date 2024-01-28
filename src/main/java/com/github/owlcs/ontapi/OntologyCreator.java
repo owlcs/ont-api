@@ -16,8 +16,9 @@ package com.github.owlcs.ontapi;
 
 import com.github.owlcs.ontapi.config.OntLoaderConfiguration;
 import com.github.sszuev.jena.ontapi.UnionGraph;
-import org.apache.jena.graph.Factory;
+import com.github.sszuev.jena.ontapi.impl.UnionGraphImpl;
 import org.apache.jena.graph.Graph;
+import org.apache.jena.graph.GraphMemFactory;
 
 import java.util.Objects;
 
@@ -69,26 +70,23 @@ public interface OntologyCreator {
      * @since 1.3.0
      */
     default Graph createGraph() {
-        return Factory.createGraphMem();
+        return GraphMemFactory.createDefaultGraph();
     }
 
     /**
      * Wraps the specified {@code graph} as an {@link UnionGraph Union Graph},
      * that maintains an ontology {@code owl:imports} hierarchical structure.
-     * <p>
-     * By default, the second parameter {@code config} is ignored.
-     * The purpose of this parameter is to provide a possibility of choosing different impls
-     * in accordance with a config settings.
      *
-     * @param graph {@link Graph} to set as a base (root), not {@code null}
-     * @param config  {@link OntLoaderConfiguration} the settings to control creation of the hierarchy container graph
+     * @param graph  {@link Graph} to set as a base (root), not {@code null}
+     * @param config {@link OntLoaderConfiguration} the settings to control creation of the hierarchy container graph
      * @return {@link UnionGraph}, a graph instance containing the {@code graph} as a base graph,
      * which is responsible for a structure hierarchy;
      * @see OntologyCreator#createGraph()
      * @since 1.4.2
      */
     default UnionGraph createUnionGraph(Graph graph, OntLoaderConfiguration config) {
-        return new UnionGraph(Objects.requireNonNull(graph));
+        // TODO: parameter 'distinct' must be configurable
+        return new UnionGraphImpl(Objects.requireNonNull(graph), true);
     }
 
 }

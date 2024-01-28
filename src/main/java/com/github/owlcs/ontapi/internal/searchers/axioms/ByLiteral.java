@@ -39,7 +39,7 @@ public class ByLiteral extends ByPrimitive<OWLLiteral> {
         // https://github.com/owlcs/owlapi/issues/783
         if (XSD.nonNegativeInteger.getURI().equals(object.getDatatypeURI())) {
             // cardinality restrictions
-            res = res.filterDrop(s -> s.getSubject().canAs(OntClass.CardinalityRestrictionCE.class));
+            res = res.filterDrop(s -> s.getSubject().canAs(OntClass.CardinalityRestriction.class));
         } else if (StdModels.TRUE.equals(object)) {
             // HasSelf
             res = res.filterDrop(s -> s.getSubject().canAs(OntClass.HasSelf.class));

@@ -129,8 +129,8 @@ import java.util.stream.Stream;
 /**
  * A base {@link OntGraphModelImpl}-extension
  * that provides reading {@link OWLObject OWL Objects} from the encapsulated graph.
- * This impl is also responsible for the collecting and store different caches
- * and conducts read operations from these caches.
+ * This impl is also responsible for collecting and store different caches
+ * and conducting read operations from these caches.
  * <p>
  * Created by @ssz on 25.05.2020.
  */
@@ -154,7 +154,7 @@ abstract class InternalReadModel extends OntGraphModelImpl implements ListAxioms
      * It is used while collecting axioms, may be reset to release memory.
      * Any change in the base graph must reset this cache.
      * Designed as a {@link java.lang.ref.SoftReference}
-     * since it is mostly need only to optimize reading operations and may contain huge amount of objects.
+     * since it is mostly needed only to optimize reading operations and may contain huge number of objects.
      *
      * @see InternalConfig#useLoadObjectsCache()
      * @see CacheObjectFactory
@@ -164,7 +164,7 @@ abstract class InternalReadModel extends OntGraphModelImpl implements ListAxioms
      * A model for axiom/object's search optimizations, containing {@link Node node}s cache.
      * Any change in the base graph must also reset this cache.
      * Designed as a {@link java.lang.ref.SoftReference}
-     * since it is mostly need only to optimize reading operations and may contain huge amount of objects.
+     * since it is mostly needed only to optimize reading operations and may contain huge number of objects.
      *
      * @see InternalConfig#useLoadNodesCache()
      * @see SearchModel
@@ -253,7 +253,7 @@ abstract class InternalReadModel extends OntGraphModelImpl implements ListAxioms
     }
 
     /**
-     * Returns the model's {@link InternalConfig} snapshot instance, which is immutable object.
+     * Returns the model's {@link InternalConfig} snapshot instance, which is an immutable object.
      *
      * @return {@link InternalConfig.Snapshot}
      */
@@ -352,9 +352,9 @@ abstract class InternalReadModel extends OntGraphModelImpl implements ListAxioms
     }
 
     @Override
-    public <N extends RDFNode> N fetchNodeAs(Node node, Class<N> type) {
+    public <N extends RDFNode> N safeFindNodeAs(Node node, Class<N> type) {
         try {
-            return super.fetchNodeAs(node, type);
+            return super.safeFindNodeAs(node, type);
         } catch (OntJenaException e) {
             return SearchModel.handleFetchNodeAsException(e, node, type, this, getConfig());
         }
@@ -362,7 +362,8 @@ abstract class InternalReadModel extends OntGraphModelImpl implements ListAxioms
 
     /**
      * Jena model method.
-     * Since in ONT-API we use another kind of lock this method is disabled (i.e. R/W Lock inside manager).
+     * Since in ONT-API we use another kind of lock,
+     * this method is disabled (i.e. R/W Lock inside manager).
      *
      * @see com.github.sszuev.graphs.ReadWriteLockingGraph
      */
@@ -531,7 +532,7 @@ abstract class InternalReadModel extends OntGraphModelImpl implements ListAxioms
         // A direct graph reading returns uniformed axioms,
         // and a just added axiom may be absent in that list,
         // since there a lot of ways how to write the same amount of information via axioms.
-        // This differs from OWL-API expectations, so need to perform traversing over whole cache
+        // This differs from OWL-API expectations, so we need to perform traversing over the whole cache
         // to get an axiom in the exactly same form as it has been specified manually:
         if (!useAxiomsSearchOptimization(config)) {
             return ListAxioms.super.listOWLDeclarationAxioms(entity);
@@ -733,7 +734,7 @@ abstract class InternalReadModel extends OntGraphModelImpl implements ListAxioms
     }
 
     /**
-     * Answers {@code true} if the graph optimization for referencing axioms functionality is allowed and makes sense.
+     * Answers {@code true} if the graph optimization for referencing axiom functionality is allowed and makes sense.
      *
      * @param type   {@link OWLComponentType}
      * @param config {@link InternalConfig}
@@ -772,7 +773,7 @@ abstract class InternalReadModel extends OntGraphModelImpl implements ListAxioms
                 // but it may be not true in case of special complexity (e.g. with owl:AllDifferent)
                 threshold = 3000;
             }
-            // for IRI graph optimization is always faster
+            // for IRI graph optimization, it is always faster
             // for literals and anonymous individuals too
             return getOWLAxiomCount() >= threshold;
         }
@@ -993,7 +994,7 @@ abstract class InternalReadModel extends OntGraphModelImpl implements ListAxioms
         if (searcher != null && useObjectsSearchOptimization(conf)) {
             return searcher.listONTObjects(model, factory, conf);
         }
-        // if content cache is loaded then its parsing is faster than graph-optimization (at least for classes)
+        // if content cache is loaded, then its parsing is faster than graph-optimization (at least for classes)
         return selectContentObjects(type).flatMap(x -> type.select(x, model, factory)).iterator();
     }
 
@@ -1027,7 +1028,7 @@ abstract class InternalReadModel extends OntGraphModelImpl implements ListAxioms
      */
     protected boolean useObjectsSearchOptimization(InternalConfig config) {
         // Use the graph-way (direct searchers) instead of the content (axioms) parsing
-        // in case the content-cache is disabled OR it is empty (i.e. nothing has been loaded yet).
+        // in case the content-cache is disabled, OR it is empty (i.e. nothing has been loaded yet).
         // Otherwise, use content loading & parsing: it is faster in general and, usually,
         // if you need components then you need also the whole content, so it is better to load it at once.
         return !config.useContentCache() || contentCaches().noneMatch(ObjectMap::isLoaded);

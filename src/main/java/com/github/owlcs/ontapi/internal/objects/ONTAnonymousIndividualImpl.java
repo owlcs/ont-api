@@ -19,7 +19,7 @@ import com.github.owlcs.ontapi.internal.HasObjectFactory;
 import com.github.owlcs.ontapi.internal.ModelObjectFactory;
 import com.github.owlcs.ontapi.internal.ONTObject;
 import com.github.owlcs.ontapi.owlapi.objects.AnonymousIndividualImpl;
-import com.github.sszuev.jena.ontapi.impl.PersonalityModel;
+import com.github.sszuev.jena.ontapi.common.OntEnhGraph;
 import com.github.sszuev.jena.ontapi.model.OntIndividual;
 import com.github.sszuev.jena.ontapi.model.OntModel;
 import javax.annotation.Nonnull;
@@ -55,7 +55,7 @@ public class ONTAnonymousIndividualImpl extends AnonymousIndividualImpl
 
     @Override
     public OntIndividual.Anonymous asRDFNode() {
-        return PersonalityModel.asPersonalityModel(getModel()).getNodeAs(asNode(), OntIndividual.Anonymous.class);
+        return OntEnhGraph.asPersonalityModel(getModel()).getNodeAs(asNode(), OntIndividual.Anonymous.class);
     }
 
     @Override

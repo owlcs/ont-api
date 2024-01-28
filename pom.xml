@@ -41,6 +41,8 @@
         <version.caffeine>3.1.8</version.caffeine>
         <!--https://jitpack.io/#sszuev/concurrent-rdf-graph-->
         <version.concurrent-rdf-graph>1.0.0</version.concurrent-rdf-graph>
+        <!--https://jitpack.io/#sszuev/jena-owl2-->
+        <version.jena-owl2>0.2-SNAPSHOT</version.jena-owl2>
         <!--https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-->
         <version.junit>5.10.1</version.junit>
         <!--https://mvnrepository.com/artifact/org.mockito/mockito-core-->
@@ -168,6 +170,11 @@
             <groupId>com.github.sszuev</groupId>
             <artifactId>concurrent-rdf-graph</artifactId>
             <version>${version.concurrent-rdf-graph}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.sszuev</groupId>
+            <artifactId>jena-owl2</artifactId>
+            <version>${version.jena-owl2}</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>

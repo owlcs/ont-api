@@ -17,9 +17,9 @@ package com.github.owlcs.ontapi.tests.managers;
 import com.github.owlcs.ontapi.OntApiException;
 import com.github.owlcs.ontapi.OntManagers;
 import com.github.owlcs.ontapi.OntologyManager;
+import com.github.owlcs.ontapi.TestOntPersonalities;
 import com.github.owlcs.ontapi.config.OntConfig;
 import com.github.owlcs.ontapi.config.OntSettings;
-import com.github.sszuev.jena.ontapi.common.OntPersonalities;
 import com.github.sszuev.jena.ontapi.vocabulary.OWL;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -45,11 +45,11 @@ public class CommonConfigTest {
         assertEqualsConfigurator(c, m1);
         assertEqualsConfigurator(c, m2);
 
-        c.setPersonality(OntPersonalities.ONT_PERSONALITY_STRICT).setFollowRedirects(false);
+        c.setPersonality(TestOntPersonalities.ONT_PERSONALITY_DL).setFollowRedirects(false);
         assertEqualsConfigurator(c, m1);
         assertEqualsConfigurator(c, m2);
 
-        c.setPersonality(OntPersonalities.ONT_PERSONALITY_LAX).setIgnoreAxiomsReadErrors(true);
+        c.setPersonality(TestOntPersonalities.ONT_PERSONALITY_FULL).setIgnoreAxiomsReadErrors(true);
         assertEqualsConfigurator(c, m1);
         assertEqualsConfigurator(c, m2);
     }

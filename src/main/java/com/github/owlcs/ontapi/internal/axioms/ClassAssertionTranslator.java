@@ -87,9 +87,9 @@ public class ClassAssertionTranslator extends AbstractSimpleTranslator<OWLClassA
 
     @Override
     public ExtendedIterator<OntStatement> listStatements(OntModel model, AxiomsSettings config) {
-        Set<Node> forbidden = getSystemResources(model);
+        Set<String> forbidden = getSystemResources(model);
         return model.getBaseGraph().find(Node.ANY, RDF.Nodes.type, Node.ANY)
-                .filterDrop(t -> forbidden.contains(t.getObject()))
+                .filterDrop(t -> t.getObject().isURI() && forbidden.contains(t.getObject().getURI()))
                 .mapWith(model::asStatement)
                 .filterKeep(this::filter);
     }

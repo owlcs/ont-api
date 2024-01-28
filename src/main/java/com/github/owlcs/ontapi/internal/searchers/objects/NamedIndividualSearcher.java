@@ -22,8 +22,8 @@ import com.github.owlcs.ontapi.internal.ONTObject;
 import com.github.owlcs.ontapi.internal.ONTObjectFactory;
 import com.github.owlcs.ontapi.internal.OWLComponentType;
 import com.github.owlcs.ontapi.internal.ObjectsSearcher;
+import com.github.sszuev.jena.ontapi.common.OntEnhGraph;
 import com.github.sszuev.jena.ontapi.impl.OntGraphModelImpl;
-import com.github.sszuev.jena.ontapi.impl.PersonalityModel;
 import com.github.sszuev.jena.ontapi.model.OntClass;
 import com.github.sszuev.jena.ontapi.model.OntIndividual;
 import com.github.sszuev.jena.ontapi.model.OntModel;
@@ -104,8 +104,8 @@ public class NamedIndividualSearcher extends EntitySearcher<OWLNamedIndividual> 
      */
     protected ExtendedIterator<String> listIndividuals(OntModel model) {
         Set<Triple> seen = new HashSet<>();
-        PersonalityModel p = asPersonalityModel(model);
-        Set<Node> system = getSystemResources(model);
+        OntEnhGraph p = asPersonalityModel(model);
+        Set<String> system = getSystemResources(model);
         return model.getBaseGraph().find(Node.ANY, RDF.Nodes.type, Node.ANY).mapWith(t -> {
             if (!t.getSubject().isURI()) {
                 return null;
@@ -114,7 +114,7 @@ public class NamedIndividualSearcher extends EntitySearcher<OWLNamedIndividual> 
             if (OWL.NamedIndividual.asNode().equals(type)) {
                 return seen.remove(t) ? null : model.asStatement(t);
             }
-            if (system.contains(type)) {
+            if (type.isURI() && system.contains(type.getURI())) {
                 return null;
             }
             if (seen.remove(t)) {

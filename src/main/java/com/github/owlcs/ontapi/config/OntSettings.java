@@ -23,7 +23,9 @@ import com.github.owlcs.ontapi.transforms.RDFSTransform;
 import com.github.owlcs.ontapi.transforms.SWRLTransform;
 import com.github.owlcs.ontapi.transforms.Transform;
 import com.github.owlcs.ontapi.transforms.TransformationModel;
+import com.github.sszuev.jena.ontapi.common.OntConfigs;
 import com.github.sszuev.jena.ontapi.common.OntPersonalities;
+import com.github.sszuev.jena.ontapi.common.OntPersonality;
 import com.github.sszuev.jena.ontapi.common.PunningsMode;
 import com.github.sszuev.jena.ontapi.vocabulary.OWL;
 import com.github.sszuev.jena.ontapi.vocabulary.RDF;
@@ -113,16 +115,34 @@ public enum OntSettings {
     OWL_API_WRITE_CONF_INDENT_SIZE(4),
 
     ONT_API_LOAD_CONF_PERSONALITY_MODE(PunningsMode.DL_WEAK) {
+        private final OntPersonality FULL = OntPersonalities.OWL2_ONT_PERSONALITY()
+                .setBuiltins(OntPersonalities.OWL2_FULL_BUILTINS)
+                .setReserved(OntPersonalities.OWL2_RESERVED)
+                .setConfig(OntConfigs.OWL2_CONFIG)
+                .setPunnings(OntPersonalities.OWL_NO_PUNNINGS)
+                .build();
+        private final OntPersonality DL_WEAK = OntPersonalities.OWL2_ONT_PERSONALITY()
+                .setBuiltins(OntPersonalities.OWL2_FULL_BUILTINS)
+                .setReserved(OntPersonalities.OWL2_RESERVED)
+                .setConfig(OntConfigs.OWL2_CONFIG)
+                .setPunnings(OntPersonalities.OWL_DL_WEAK_PUNNINGS)
+                .build();
+        private final OntPersonality DL2 = OntPersonalities.OWL2_ONT_PERSONALITY()
+                .setBuiltins(OntPersonalities.OWL2_FULL_BUILTINS)
+                .setReserved(OntPersonalities.OWL2_RESERVED)
+                .setConfig(OntConfigs.OWL2_CONFIG)
+                .setPunnings(OntPersonalities.OWL_DL2_PUNNINGS)
+                .build();
         @Override
-        public Object getDefaultValue() { // note: the return object is not Serializable
+        public OntPersonality getDefaultValue() { // note: the return object is not Serializable
             PunningsMode mode = getPersonalityMode();
             switch (mode) {
                 case FULL:
-                    return OntPersonalities.ONT_PERSONALITY_LAX;
+                    return FULL;
                 case DL_WEAK:
-                    return OntPersonalities.ONT_PERSONALITY_MEDIUM;
+                    return DL_WEAK;
                 case DL2:
-                    return OntPersonalities.ONT_PERSONALITY_STRICT;
+                    return DL2;
                 default:
                     throw new OntApiException.Unsupported("Unsupported personality mode " + mode);
             }

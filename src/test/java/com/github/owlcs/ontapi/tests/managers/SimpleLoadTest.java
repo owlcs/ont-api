@@ -17,10 +17,10 @@ package com.github.owlcs.ontapi.tests.managers;
 import com.github.owlcs.ontapi.OntManagers;
 import com.github.owlcs.ontapi.Ontology;
 import com.github.owlcs.ontapi.OntologyManager;
+import com.github.owlcs.ontapi.TestOntPersonalities;
 import com.github.owlcs.ontapi.config.OntLoaderConfiguration;
 import com.github.owlcs.ontapi.testutils.MiscTestUtils;
 import com.github.owlcs.ontapi.testutils.OWLIOUtils;
-import com.github.sszuev.jena.ontapi.common.OntPersonalities;
 import com.github.sszuev.jena.ontapi.common.PunningsMode;
 import com.github.sszuev.jena.ontapi.model.OntEntity;
 import com.github.sszuev.jena.ontapi.model.OntModel;
@@ -64,7 +64,7 @@ public class SimpleLoadTest {
         String fileName = "/ontapi/foaf.rdf";
         OntologyManager manager = OntManagers.createManager();
         OntLoaderConfiguration conf = manager.getOntologyLoaderConfiguration()
-                .setPersonality(OntPersonalities.ONT_PERSONALITY_STRICT);
+                .setPersonality(TestOntPersonalities.ONT_PERSONALITY_DL);
         manager.setOntologyLoaderConfiguration(conf);
 
         IRI fileIRI = IRI.create(OWLIOUtils.getResourceURI(fileName));
