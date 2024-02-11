@@ -15,7 +15,10 @@
 package com.github.owlcs.ontapi.config;
 
 import com.github.owlcs.ontapi.OntApiException;
+import com.github.owlcs.ontapi.ReflectionUtils;
 import com.github.owlcs.ontapi.transforms.GraphTransformers;
+import com.github.owlcs.ontapi.transforms.TransformationModel;
+import com.github.sszuev.jena.ontapi.OntSpecification;
 import com.github.sszuev.jena.ontapi.common.OntPersonality;
 import javax.annotation.Nonnull;
 import org.semanticweb.owlapi.model.IRI;
@@ -27,15 +30,18 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * This is an extended {@link OWLOntologyLoaderConfiguration} with ONT-API specific settings.
@@ -56,10 +62,14 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration imple
     private static final Logger LOGGER = LoggerFactory.getLogger(OntLoaderConfiguration.class);
     private static final long serialVersionUID = 1599596390911768315L;
 
+    // hods config data (simple serializable primitives)
     protected final Map<OntSettings, Object> data;
+    // holds dynamic data (complex objects OntSpecification, GraphTransformers, probably non-serializable)
+    protected final Map<OntSettings, Object> store;
 
     protected OntLoaderConfiguration() {
         this.data = new EnumMap<>(OntSettings.class);
+        this.store = new HashMap<>();
     }
 
     public OntLoaderConfiguration(OWLOntologyLoaderConfiguration from) {
@@ -113,6 +123,7 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration imple
 
     protected void copyONTSettings(OntLoaderConfiguration conf) {
         this.data.putAll(conf.data);
+        this.store.putAll(conf.store);
     }
 
     @SuppressWarnings("unchecked")
@@ -141,7 +152,7 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration imple
      * {@inheritDoc}
      *
      * @param b if {@code false} all graph transformations will be disabled
-     * @return {@link OntLoaderConfiguration}, a copied (new) or this instance in case no changes is made
+     * @return {@link OntLoaderConfiguration}, a copied (new) or this instance in case no changes are made
      */
     @Override
     public OntLoaderConfiguration setPerformTransformation(boolean b) {
@@ -154,19 +165,29 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration imple
      */
     @Override
     public GraphTransformers getGraphTransformers() {
-        return get(OntSettings.ONT_API_LOAD_CONF_TRANSFORMERS);
+        GraphTransformers res = (GraphTransformers) store.get(OntSettings.ONT_API_LOAD_CONF_TRANSFORMERS);
+        if (res != null) {
+            return res;
+        }
+        List<Class<? extends TransformationModel>> types = get(OntSettings.ONT_API_LOAD_CONF_TRANSFORMERS);
+        res = OntConfig.loadGraphTransformers(types);
+        store.put(OntSettings.ONT_API_LOAD_CONF_TRANSFORMERS, res);
+        return res;
     }
 
     /**
      * An ONT-API config setter.
      * {@inheritDoc}
      *
-     * @param t {@link GraphTransformers} new graph transformers store
-     * @return {@link OntLoaderConfiguration}, a copied (new) or this instance in case no changes is made
+     * @param transformers {@link GraphTransformers} new graph transformers store
+     * @return {@link OntLoaderConfiguration}, a copied (new) or this instance in case no changes are made
      */
     @Override
-    public OntLoaderConfiguration setGraphTransformers(GraphTransformers t) {
-        return set(OntSettings.ONT_API_LOAD_CONF_TRANSFORMERS, t);
+    public OntLoaderConfiguration setGraphTransformers(GraphTransformers transformers) {
+        List<Class<?>> types = transformers.serializableTypes().collect(Collectors.toList());
+        OntLoaderConfiguration res = set(OntSettings.ONT_API_LOAD_CONF_TRANSFORMERS, types);
+        res.store.put(OntSettings.ONT_API_LOAD_CONF_TRANSFORMERS, transformers);
+        return res;
     }
 
     /**
@@ -179,15 +200,51 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration imple
     }
 
     /**
+     * An ONT-API config getter.
+     * {@inheritDoc}
+     *
+     * @see OntConfig#getSpecification()
+     */
+    @SuppressWarnings("DuplicatedCode")
+    @Override
+    public OntSpecification getSpecification() {
+        OntSpecification res = (OntSpecification) store.get(OntSettings.ONT_API_LOAD_CONF_SPECIFICATION);
+        if (res != null) {
+            return res;
+        }
+        String path = get(OntSettings.ONT_API_LOAD_CONF_SPECIFICATION);
+        res = ReflectionUtils.getDeclaredField(Objects.requireNonNull(path));
+        store.put(OntSettings.ONT_API_LOAD_CONF_SPECIFICATION, res);
+        return res;
+    }
+
+    /**
      * An ONT-API config setter.
      * {@inheritDoc}
      *
-     * @param p {@link OntPersonality} new personality
-     * @return {@link OntLoaderConfiguration}, a copied (new) or this instance in case no changes is made
+     * @param personality {@link OntPersonality} new personality
+     * @return {@link OntLoaderConfiguration}, a copied (new) or this instance in case no changes are made
      */
     @Override
-    public OntLoaderConfiguration setPersonality(OntPersonality p) {
-        return set(OntSettings.ONT_API_LOAD_CONF_PERSONALITY_MODE, p);
+    public OntLoaderConfiguration setPersonality(OntPersonality personality) {
+        return set(OntSettings.ONT_API_LOAD_CONF_PERSONALITY_MODE, personality);
+    }
+
+    /**
+     * An ONT-API config setter.
+     * {@inheritDoc}
+     *
+     * @param specification     {@link OntSpecification}, not {@code null}
+     * @param constantFieldPath {@link String} a path to constant for serialization,
+     *                          e.g. {@code "com.github.sszuev.jena.ontapi.OntSpecification#OWL2_DL_MEM"};
+     *                          if {@code null} no attempt to serialize this field
+     * @return {@link OntLoaderConfiguration}, a copied (new) or this instance in case no changes are made
+     * @see OntConfig#setSpecification(OntSpecification, String)
+     */
+    @Override
+    public OntLoaderConfiguration setSpecification(OntSpecification specification, String constantFieldPath) {
+        store.put(OntSettings.ONT_API_LOAD_CONF_SPECIFICATION, specification);
+        return set(OntSettings.ONT_API_LOAD_CONF_SPECIFICATION, constantFieldPath);
     }
 
     /**
@@ -213,7 +270,7 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration imple
      * {@inheritDoc}
      *
      * @param size int, non-negative integer
-     * @return {@link OntLoaderConfiguration}, a copied (new) or this instance in case no changes is made
+     * @return {@link OntLoaderConfiguration}, a copied (new) or this instance in case no changes are made
      */
     @Override
     public OntLoaderConfiguration setLoadNodesCacheSize(int size) {
@@ -234,7 +291,7 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration imple
      * {@inheritDoc}
      *
      * @param size int, non-negative integer
-     * @return {@link OntLoaderConfiguration}, a copied (new) or this instance in case no changes is made
+     * @return {@link OntLoaderConfiguration}, a copied (new) or this instance in case no changes are made
      */
     @Override
     public OntLoaderConfiguration setLoadObjectsCacheSize(int size) {
@@ -255,7 +312,7 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration imple
      * {@inheritDoc}
      *
      * @param level, int, non-negative integer
-     * @return {@link OntLoaderConfiguration}, a copied (new) or this instance in case no changes is made
+     * @return {@link OntLoaderConfiguration}, a copied (new) or this instance in case no changes are made
      */
     @Override
     public OntLoaderConfiguration setModelCacheLevel(int level) {
@@ -285,7 +342,7 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration imple
      * {@inheritDoc}
      *
      * @param schemes the collection of {@link Scheme}s
-     * @return {@link OntLoaderConfiguration}, a copied (new) or this instance in case no changes is made
+     * @return {@link OntLoaderConfiguration}, a copied (new) or this instance in case no changes are made
      */
     @Override
     public OntLoaderConfiguration setSupportedSchemes(List<Scheme> schemes) {
@@ -297,7 +354,7 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration imple
      * An ONT-API config setter.
      * {@inheritDoc}
      *
-     * @return {@link OntLoaderConfiguration}, a copied (new) or this instance in case no changes is made
+     * @return {@link OntLoaderConfiguration}, a copied (new) or this instance in case no changes are made
      * @see OntConfig#disableWebAccess()
      * @since 1.3.0
      */
@@ -320,7 +377,7 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration imple
      * {@inheritDoc}
      *
      * @param b if {@code false} only plain annotation assertions axioms expected
-     * @return {@link OntLoaderConfiguration}, a copied (new) or this instance in case no changes is made
+     * @return {@link OntLoaderConfiguration}, a copied (new) or this instance in case no changes are made
      */
     @Override
     public OntLoaderConfiguration setAllowBulkAnnotationAssertions(boolean b) {
@@ -341,7 +398,7 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration imple
      * {@inheritDoc}
      *
      * @param b {@code true} to skip declarations while reading graph
-     * @return {@link OntLoaderConfiguration}, a copied (new) or this instance in case no changes is made
+     * @return {@link OntLoaderConfiguration}, a copied (new) or this instance in case no changes are made
      */
     @Override
     public OntLoaderConfiguration setAllowReadDeclarations(boolean b) {
@@ -363,7 +420,7 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration imple
      *
      * @param b if {@code false} all overlapping annotation axioms
      *          will be skipped in favour of data or/and object property axioms
-     * @return {@link OntLoaderConfiguration}, a copied (new) or this instance in case no changes is made
+     * @return {@link OntLoaderConfiguration}, a copied (new) or this instance in case no changes are made
      */
     @Override
     public OntLoaderConfiguration setIgnoreAnnotationAxiomOverlaps(boolean b) {
@@ -384,7 +441,7 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration imple
      * {@inheritDoc}
      *
      * @param b {@code true} to use pure OWL-API parsers to load
-     * @return {@link OntLoaderConfiguration}, a copied (new) or this instance in case no changes is made
+     * @return {@link OntLoaderConfiguration}, a copied (new) or this instance in case no changes are made
      */
     @Override
     public OntLoaderConfiguration setUseOWLParsersToLoad(boolean b) {
@@ -415,7 +472,7 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration imple
      *
      * @param b {@code true} to ignore errors while reading axioms of some type from a graph,
      *          {@code false} to trow exception
-     * @return {@link OntLoaderConfiguration}, a copied (new) or this instance in case no changes is made
+     * @return {@link OntLoaderConfiguration}, a copied (new) or this instance in case no changes are made
      */
     @Override
     public OntLoaderConfiguration setIgnoreAxiomsReadErrors(boolean b) {
@@ -427,7 +484,7 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration imple
      * {@inheritDoc}
      *
      * @param b {@code true} to use {@code ONTObject}s as output
-     * @return {@link OntLoaderConfiguration}, a copied (new) or this instance in case no changes is made
+     * @return {@link OntLoaderConfiguration}, a copied (new) or this instance in case no changes are made
      */
     @Override
     public OntLoaderConfiguration setReadONTObjects(boolean b) {
@@ -452,7 +509,7 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration imple
      * {@inheritDoc}
      *
      * @param b boolean {@code true} to enable 'ont.api.load.conf.split.axiom.annotations' setting
-     * @return {@link OntLoaderConfiguration}, a copied (new) or this instance in case no changes is made
+     * @return {@link OntLoaderConfiguration}, a copied (new) or this instance in case no changes are made
      */
     @Override
     public OntLoaderConfiguration setSplitAxiomAnnotations(boolean b) {
@@ -473,7 +530,7 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration imple
      * {@inheritDoc}
      *
      * @param b {@code true} to enable reading and writing annotation axioms
-     * @return {@link OntLoaderConfiguration}, a copied (new) or this instance in case no changes is made
+     * @return {@link OntLoaderConfiguration}, a copied (new) or this instance in case no changes are made
      */
     @Override
     public OntLoaderConfiguration setLoadAnnotationAxioms(boolean b) {
@@ -891,8 +948,13 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration imple
         return Objects.hash(asMap());
     }
 
+    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+        in.defaultReadObject();
+    }
+
     private void writeObject(ObjectOutputStream out) throws IOException {
         out.writeObject(OntConfig.serializableOnly(data));
+        out.writeObject(OntConfig.serializableOnly(store));
     }
 
 }

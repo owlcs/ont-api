@@ -44,10 +44,10 @@ import java.util.stream.Stream;
  * The base interface for any graph transformer implementations.
  * A Graph Transform is a general mechanism to perform any transformations on a graph
  * before it becomes available through the main system interfaces
- * (i.e. through {@link OntologyManager Ontology Manager}).
+ * (i.e., through {@link OntologyManager Ontology Manager}).
  * It is for restoring missed OWL declarations, removing RDFS garbage,
  * creating OWL ontology id and some other actions
- * to be sure that graph contains an OWL ontology,
+ * to be sure that the graph contains an OWL ontology,
  * that is ready up to process by other ONT-API subsystems.
  *
  * @see Transform

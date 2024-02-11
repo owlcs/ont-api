@@ -15,6 +15,7 @@
 package com.github.owlcs.ontapi.config;
 
 import com.github.owlcs.ontapi.transforms.GraphTransformers;
+import com.github.sszuev.jena.ontapi.OntSpecification;
 import com.github.sszuev.jena.ontapi.common.OntPersonality;
 
 import java.util.Collections;
@@ -34,21 +35,33 @@ interface LoadControl<R> extends LoadSettings {
     /**
      * Sets {@code OntPersonality} model configuration object.
      *
-     * @param p {@link OntPersonality}, not {@code null}
+     * @param personality {@link OntPersonality}, not {@code null}
      * @return {@link R} (this or copied instance)
      * @see LoadSettings#getPersonality()
      */
-    R setPersonality(OntPersonality p);
+    R setPersonality(OntPersonality personality);
+
+    /**
+     * Sets {@code OntSpecification} model configuration object.
+     *
+     * @param specification     {@link OntSpecification}, not {@code null}
+     * @param constantFieldPath {@link String} a path to constant for serialization,
+     *                          e.g. {@code "com.github.sszuev.jena.ontapi.OntSpecification#OWL2_DL_MEM"};
+     *                          if {@code null} no attempt to serialize this field
+     * @return {@link R} (this or copied instance)
+     * @see LoadSettings#getSpecification()
+     */
+    R setSpecification(OntSpecification specification, String constantFieldPath);
 
     /**
      * Sets {@code GraphTransformers.Store} collection.
      *
-     * @param t {@link GraphTransformers}, not {@code null}
+     * @param transformers {@link GraphTransformers}, not {@code null}
      * @return {@link R} (this or copied instance)
      * @see LoadSettings#getGraphTransformers()
      * @see LoadSettings#isPerformTransformation()
      */
-    R setGraphTransformers(GraphTransformers t);
+    R setGraphTransformers(GraphTransformers transformers);
 
     /**
      * Disables or enables the Graph Transformation mechanism depending on the given flag.

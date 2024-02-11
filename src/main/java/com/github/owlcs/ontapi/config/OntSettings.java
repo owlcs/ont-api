@@ -15,14 +15,11 @@
 package com.github.owlcs.ontapi.config;
 
 import com.github.owlcs.ontapi.OntApiException;
-import com.github.owlcs.ontapi.transforms.GraphTransformers;
 import com.github.owlcs.ontapi.transforms.OWLCommonTransform;
 import com.github.owlcs.ontapi.transforms.OWLDeclarationTransform;
 import com.github.owlcs.ontapi.transforms.OWLIDTransform;
 import com.github.owlcs.ontapi.transforms.RDFSTransform;
 import com.github.owlcs.ontapi.transforms.SWRLTransform;
-import com.github.owlcs.ontapi.transforms.Transform;
-import com.github.owlcs.ontapi.transforms.TransformationModel;
 import com.github.sszuev.jena.ontapi.common.OntConfigs;
 import com.github.sszuev.jena.ontapi.common.OntPersonalities;
 import com.github.sszuev.jena.ontapi.common.OntPersonality;
@@ -114,6 +111,8 @@ public enum OntSettings {
     OWL_API_WRITE_CONF_BANNERS_ENABLED(true),
     OWL_API_WRITE_CONF_INDENT_SIZE(4),
 
+    ONT_API_LOAD_CONF_SPECIFICATION("com.github.sszuev.jena.ontapi.OntSpecification#OWL2_DL_MEM"),
+
     ONT_API_LOAD_CONF_PERSONALITY_MODE(PunningsMode.DL_WEAK) {
         private final OntPersonality FULL = OntPersonalities.OWL2_ONT_PERSONALITY()
                 .setBuiltins(OntPersonalities.OWL2_FULL_BUILTINS)
@@ -133,6 +132,7 @@ public enum OntSettings {
                 .setConfig(OntConfigs.OWL2_CONFIG)
                 .setPunnings(OntPersonalities.OWL_DL2_PUNNINGS)
                 .build();
+
         @Override
         public OntPersonality getDefaultValue() { // note: the return object is not Serializable
             PunningsMode mode = getPersonalityMode();
@@ -160,25 +160,8 @@ public enum OntSettings {
             , RDFSTransform.class
             , OWLCommonTransform.class
             , OWLDeclarationTransform.class
-            , SWRLTransform.class) {
-        @Override
-        public Object getDefaultValue() {
-            GraphTransformers res = new GraphTransformers();
-            for (Class<? extends TransformationModel> c : getTransformTypes()) {
-                res = res.addLast(Transform.Factory.create(c));
-            }
-            return res;
-        }
-
-        @SuppressWarnings("unchecked")
-        List<Class<? extends TransformationModel>> getTransformTypes() {
-            List<?> res = PROPERTIES.getListProperty(key);
-            if (res == null) {
-                res = (List<?>) secondary;
-            }
-            return (List<Class<? extends TransformationModel>>) res;
-        }
-    };
+            , SWRLTransform.class),
+    ;
 
     public static final ExtendedProperties PROPERTIES = loadProperties();
 

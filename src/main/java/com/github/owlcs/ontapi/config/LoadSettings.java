@@ -21,6 +21,7 @@ import com.github.owlcs.ontapi.OntologyFactory;
 import com.github.owlcs.ontapi.OntologyManager;
 import com.github.owlcs.ontapi.transforms.GraphFilter;
 import com.github.owlcs.ontapi.transforms.GraphTransformers;
+import com.github.sszuev.jena.ontapi.OntSpecification;
 import com.github.sszuev.jena.ontapi.common.OntPersonality;
 import com.github.sszuev.jena.ontapi.model.OntModel;
 import org.apache.jena.graph.Graph;
@@ -56,11 +57,20 @@ public interface LoadSettings {
     OntPersonality getPersonality();
 
     /**
+     * Gets {@link OntSpecification} configuration object.
+     *
+     * @return {@link OntSpecification}
+     * @see LoadControl#setSpecification(OntSpecification, String)
+     * @see OntSettings#ONT_API_LOAD_CONF_SPECIFICATION
+     */
+    OntSpecification getSpecification();
+
+    /**
      * Gets {@link GraphTransformers Transformers Store}.
      * <p>
      * Transformers Store is a collection of actions that are performed on {@code Graph} before
      * it enters into the main system.
-     * One of the goals of this mechanism is data transformation in accordance with OWL2 specification.
+     * One of the goals of this mechanism is a data transformation in accordance with OWL2 specification.
      * Any {@link org.apache.jena.graph.Graph RDF Graph} can be presented by the system
      * in the form of {@link OntModel RDF Model}
      * or {@link Ontology Axiomatic Model}, but without a proper transformation
@@ -70,7 +80,7 @@ public interface LoadSettings {
      * It is recommended to do this in case there is confidence that the data is OWL2,
      * since transformations may take significant processor time.
      * With the method {@link GraphTransformers#setFilter(GraphFilter)}
-     * a whole graph family may be skipped from transformation process.
+     * a whole graph family may be skipped from the transformation process.
      * And there is one more facility to selectively turn off transformations:
      * the method {@link OntGraphDocumentSource#withTransforms()},
      * which is used while passing externally loaded graph into the manager
@@ -87,11 +97,11 @@ public interface LoadSettings {
      * Answers {@code true} if the mechanism of graph transformers is enabled, which is {@code true} by default.
      * If it is enabled, the process of any document RDF source will begin with the graph transformers,
      * otherwise a raw graph will be loaded as it is.
-     * In last case, the final ontology may not contain OWL2 data (with except of Ontology ID).
+     * In the last case, the final ontology may not contain OWL2 data (with except of Ontology ID).
      * If you pretty sure that you are loading OWL2 ontology,
      * it might make sense to disable transformers using
      * the method {@link LoadControl#setPerformTransformation(boolean)},
-     * since graph transformers requires an additional processor time.
+     * since graph transformers require an additional processor time.
      * For more info see the description for the {@link #getGraphTransformers()} method.
      *
      * @return boolean, ({@code true} by default)
@@ -101,10 +111,10 @@ public interface LoadSettings {
     boolean isPerformTransformation();
 
     /**
-     * Answers {@code true} if the processing imports is enabled.
+     * Answers {@code true} if the imports' processing is enabled.
      * In this case the document source loading entails {@code owl:imports} processing
      * and subsequent loading all related to them sources.
-     * If the processing imports is disabled,
+     * If the imports' processing is disabled,
      * then no additional work is performed and one document source is matched with one ontology.
      * Note: there is also possible to prohibit the processing of one IRI
      * (see {@link OntConfig#addIgnoredImport(IRI)} and {@link OntLoaderConfiguration#addIgnoredImport(IRI)})
@@ -125,13 +135,13 @@ public interface LoadSettings {
      * <p>
      * The method is used by the {@link OntologyFactory Ontology Factory} default implementation
      * to choose the preferable way to load.
-     * If this parameter is set to {@code false} then ONT-API (i.e. Apache Jena) loading mechanisms
+     * If this parameter is set to {@code false} then ONT-API (i.e., Apache Jena) loading mechanisms
      * are used in case the document format is supported both by Jena and OWL-API
      * (like Turtle, RDF/XML, etc. See {@link OntFormat}).
      * Otherwise, loading is always performed using only the native OWL-API Parsers,
      * which, actually, do not read RDF graph fully, but rather assemble it axiom by axiom.
      * Remember, the OWL-API loading mechanisms (as well as OWL-API default impl) are OWL-centric.
-     * As a result, in fact, they work buggy in many cases (e.g. when data is not produced by OWL-API itself).
+     * As a result, in fact, they work buggy in many cases (e.g., when data is not produced by OWL-API itself).
      * A data {@code Graph} may not present correct OWL2, but be rather RDFS, or whatever else.
      * For example, <a href="http://spinrdf.org/spin">SPIN</a> ontology contains a lot of SPARQL queries
      * in a special spin form, that is using custom {@code rdf:List}s
@@ -142,7 +152,7 @@ public interface LoadSettings {
      * but with, maybe, several controlled changes caused by the transformers (see {@link #getGraphTransformers()}).
      * <b>So please do not change the default value without a good reason</b>
      *
-     * @return boolean, ({@code false} by default}
+     * @return boolean, ({@code false} by default)
      * @see LoadControl#setUseOWLParsersToLoad(boolean)
      * @see OntSettings#ONT_API_LOAD_CONF_USE_OWL_PARSERS_TO_LOAD
      */

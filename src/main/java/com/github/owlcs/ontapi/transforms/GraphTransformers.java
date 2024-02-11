@@ -263,6 +263,17 @@ public class GraphTransformers implements Serializable {
     }
 
     /**
+     * Lists types of default {@link Transform}'s.
+     *
+     * @return a {@code Stream} of {@link Transform}s
+     */
+    public Stream<Class<? extends TransformationModel>> serializableTypes() {
+        return set.values().stream()
+                .filter(it -> it instanceof Transform.Factory.DefaultMaker)
+                .map(it -> ((Transform.Factory.DefaultMaker) it).impl);
+    }
+
+    /**
      * Creates a copy of this {@link GraphTransformers Store} with a new filter.
      *
      * @param f {@link GraphFilter}, not {@code null}

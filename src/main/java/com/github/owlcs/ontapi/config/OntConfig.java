@@ -16,7 +16,11 @@ package com.github.owlcs.ontapi.config;
 
 import com.github.owlcs.ontapi.NoOpReadWriteLock;
 import com.github.owlcs.ontapi.OntApiException;
+import com.github.owlcs.ontapi.ReflectionUtils;
 import com.github.owlcs.ontapi.transforms.GraphTransformers;
+import com.github.owlcs.ontapi.transforms.Transform;
+import com.github.owlcs.ontapi.transforms.TransformationModel;
+import com.github.sszuev.jena.ontapi.OntSpecification;
 import com.github.sszuev.jena.ontapi.common.OntPersonality;
 import javax.annotation.Nonnull;
 import org.semanticweb.owlapi.model.IRI;
@@ -29,6 +33,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.lang.reflect.Field;
@@ -37,11 +42,13 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.locks.ReadWriteLock;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -56,7 +63,7 @@ import java.util.stream.Stream;
  * <li>{@link #getLoadObjectsCacheSize()} and {@link #setLoadObjectsCacheSize(int)} (<b>since 1.4.0</b>)</li>
  * <li>{@link #setModelCacheLevel(int, boolean)} (<b>since 1.4.2</b>), {@link #setModelCacheLevel(int)} (<b>since 1.4.0</b>)</li>
  * <li>{@link #useContentCache()}, {@link #useComponentCache()}, {@link #useIteratorCache()} (<b>since 1.4.2</b>)</li>
- * <li>{@link #getPersonality()} and {@link #setPersonality(OntPersonality)}</li>
+ * <li>{@link #getSpecification()} and {@link #setSpecification(OntSpecification, String)}</li>
  * <li>{@link #getGraphTransformers()} amd {@link #setGraphTransformers(GraphTransformers)}</li>
  * <li>{@link #isPerformTransformation()} and {@link #setPerformTransformation(boolean)}</li>
  * <li>{@link #isProcessImports()} and {@link #setProcessImports(boolean)} (<b>since 1.4.1</b>)</li>
@@ -83,8 +90,12 @@ public class OntConfig extends OntologyConfigurator
     private static final Logger LOGGER = LoggerFactory.getLogger(OntConfig.class);
     private static final long serialVersionUID = 656765031127374396L;
 
+    // hods config data (simple serializable primitives)
     protected final Map<OntSettings, Object> data;
-    protected final Set<OntSettings> forbidden;
+    // holds dynamic data (complex objects OntSpecification, GraphTransformers, probably non-serializable)
+    protected final Map<OntSettings, Object> store;
+    // holds settings which cannot be changed
+    protected final Set<OntSettings> locked;
     private transient OntLoaderConfiguration loader;
     private transient OntWriterConfiguration writer;
 
@@ -95,7 +106,8 @@ public class OntConfig extends OntologyConfigurator
      */
     public OntConfig() {
         this.data = new EnumMap<>(OntSettings.class);
-        this.forbidden = EnumSet.noneOf(OntSettings.class);
+        this.store = new HashMap<>();
+        this.locked = EnumSet.noneOf(OntSettings.class);
     }
 
     /**
@@ -180,6 +192,18 @@ public class OntConfig extends OntologyConfigurator
         return map;
     }
 
+    static GraphTransformers loadGraphTransformers(List<Class<? extends TransformationModel>> types) {
+        GraphTransformers res = new GraphTransformers();
+        for (Class<? extends TransformationModel> type : types) {
+            res = res.addLast(Transform.Factory.create(type));
+        }
+        return res;
+    }
+
+    static OntSpecification loadOntSpecification(String field) {
+        return ReflectionUtils.getDeclaredField(field);
+    }
+
     /**
      * Makes the given property-{@code keys} prohibited for modification.
      * An attempt to modify the value for a locked property will cause {@link OntApiException.ModificationDenied}.
@@ -189,7 +213,7 @@ public class OntConfig extends OntologyConfigurator
      * @since 2.1.0
      */
     public OntConfig lockProperty(OntSettings... keys) {
-        forbidden.addAll(Arrays.asList(keys));
+        locked.addAll(Arrays.asList(keys));
         return this;
     }
 
@@ -203,13 +227,10 @@ public class OntConfig extends OntologyConfigurator
     public OntConfig putAll(OntologyConfigurator from) {
         if (from == null) return this;
         if (from instanceof OntConfig) {
-            Map<OntSettings, Object> tmp;
-            if (from instanceof Concurrent) {
-                tmp = ((Concurrent) from).delegate.data;
-            } else {
-                tmp = ((OntConfig) from).data;
-            }
-            tmp.forEach(this::put);
+            Map<OntSettings, Object> config = ((OntConfig) from).data();
+            Map<OntSettings, Object> store = ((OntConfig) from).store();
+            config.forEach(this::put);
+            this.store().putAll(store);
             return this;
         }
         this.put(OntSettings.OWL_API_LOAD_CONF_IGNORED_IMPORTS, new ArrayList<>(ignoredImports(from)));
@@ -238,13 +259,21 @@ public class OntConfig extends OntologyConfigurator
         return this;
     }
 
+    protected Map<OntSettings, Object> data() {
+        return data;
+    }
+
+    protected Map<OntSettings, Object> store() {
+        return store;
+    }
+
     @SuppressWarnings("unchecked")
     protected <X> X get(OntSettings key) {
         return (X) data.computeIfAbsent(key, x -> key.getDefaultValue());
     }
 
     protected OntConfig put(OntSettings key, Object value) {
-        if (forbidden.contains(key)) {
+        if (locked.contains(key)) {
             throw new OntApiException.ModificationDenied("Changing property=" + key + " is forbidden.");
         }
         if (Objects.requireNonNull(value).equals(data.put(key, value))) {
@@ -260,6 +289,7 @@ public class OntConfig extends OntologyConfigurator
         return put(k, requirePositive(v, k));
     }
 
+    @SuppressWarnings("SameParameterValue")
     protected OntConfig putNonNegative(OntSettings k, int v) {
         return put(k, requireNonNegative(v, k));
     }
@@ -277,16 +307,53 @@ public class OntConfig extends OntologyConfigurator
     }
 
     /**
+     * An ONT-API manager's load config getter.
+     * {@inheritDoc}
+     *
+     * @return {@link OntSpecification}
+     * @see OntLoaderConfiguration#getSpecification()
+     */
+    @SuppressWarnings("DuplicatedCode")
+    @Override
+    public OntSpecification getSpecification() {
+        OntSpecification res = (OntSpecification) store().get(OntSettings.ONT_API_LOAD_CONF_SPECIFICATION);
+        if (res != null) {
+            return res;
+        }
+        String path = get(OntSettings.ONT_API_LOAD_CONF_SPECIFICATION);
+        res = ReflectionUtils.getDeclaredField(Objects.requireNonNull(path));
+        store().put(OntSettings.ONT_API_LOAD_CONF_SPECIFICATION, res);
+        return res;
+    }
+
+    /**
      * An ONT-API manager's load config setter.
      * {@inheritDoc}
      *
-     * @param p {@link OntPersonality} the personality
+     * @param personality {@link OntPersonality} the personality
      * @return this instance
      * @see OntLoaderConfiguration#setPersonality(OntPersonality)
      */
     @Override
-    public OntConfig setPersonality(OntPersonality p) {
-        return put(OntSettings.ONT_API_LOAD_CONF_PERSONALITY_MODE, p);
+    public OntConfig setPersonality(OntPersonality personality) {
+        return put(OntSettings.ONT_API_LOAD_CONF_PERSONALITY_MODE, personality);
+    }
+
+    /**
+     * An ONT-API manager's load config setter.
+     * {@inheritDoc}
+     *
+     * @param specification     {@link OntPersonality} the personality
+     * @param constantFieldPath {@link String} a path to constant for serialization,
+     *                          e.g. {@code "com.github.sszuev.jena.ontapi.OntSpecification#OWL2_DL_MEM"};
+     *                          if {@code null} no attempt to serialize this field
+     * @return this instance
+     * @see OntLoaderConfiguration#setSpecification(OntSpecification, String)
+     */
+    @Override
+    public OntConfig setSpecification(OntSpecification specification, String constantFieldPath) {
+        store().put(OntSettings.ONT_API_LOAD_CONF_SPECIFICATION, specification);
+        return put(OntSettings.ONT_API_LOAD_CONF_SPECIFICATION, constantFieldPath);
     }
 
     /**
@@ -295,20 +362,29 @@ public class OntConfig extends OntologyConfigurator
      */
     @Override
     public GraphTransformers getGraphTransformers() {
-        return get(OntSettings.ONT_API_LOAD_CONF_TRANSFORMERS);
+        GraphTransformers res = (GraphTransformers) store().get(OntSettings.ONT_API_LOAD_CONF_TRANSFORMERS);
+        if (res != null) {
+            return res;
+        }
+        List<Class<? extends TransformationModel>> types = get(OntSettings.ONT_API_LOAD_CONF_TRANSFORMERS);
+        res = loadGraphTransformers(types);
+        store().put(OntSettings.ONT_API_LOAD_CONF_TRANSFORMERS, res);
+        return res;
     }
 
     /**
      * An ONT-API manager's load config setter.
      * {@inheritDoc}
      *
-     * @param t {@link GraphTransformers}
+     * @param transformers {@link GraphTransformers}
      * @return this instance
      * @see OntLoaderConfiguration#setGraphTransformers(GraphTransformers)
      */
     @Override
-    public OntConfig setGraphTransformers(GraphTransformers t) {
-        return put(OntSettings.ONT_API_LOAD_CONF_TRANSFORMERS, t);
+    public OntConfig setGraphTransformers(GraphTransformers transformers) {
+        List<Class<?>> types = transformers.serializableTypes().collect(Collectors.toList());
+        this.store().put(OntSettings.ONT_API_LOAD_CONF_TRANSFORMERS, transformers);
+        return put(OntSettings.ONT_API_LOAD_CONF_TRANSFORMERS, types);
     }
 
     /**
@@ -1196,6 +1272,7 @@ public class OntConfig extends OntologyConfigurator
         for (OntSettings s : OntSettings.LOAD_CONFIG_KEYS) {
             res.data.put(s, get(s));
         }
+        res.store.putAll(store());
         return loader = res;
     }
 
@@ -1232,9 +1309,14 @@ public class OntConfig extends OntologyConfigurator
         return loadMap(this.data, OntSettings.values());
     }
 
+    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+        in.defaultReadObject();
+    }
+
     private void writeObject(ObjectOutputStream out) throws IOException {
         out.writeObject(serializableOnly(data));
-        out.writeObject(forbidden);
+        out.writeObject(locked);
+        out.writeObject(serializableOnly(store));
     }
 
     public enum DefaultScheme implements Scheme {
@@ -1288,6 +1370,16 @@ public class OntConfig extends OntologyConfigurator
             } finally {
                 lock.writeLock().unlock();
             }
+        }
+
+        @Override
+        protected Map<OntSettings, Object> data() {
+            return delegate.data();
+        }
+
+        @Override
+        protected Map<OntSettings, Object> store() {
+            return delegate.store();
         }
 
         @Override

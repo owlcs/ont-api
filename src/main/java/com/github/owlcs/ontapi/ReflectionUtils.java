@@ -18,6 +18,7 @@ import com.google.common.collect.LinkedListMultimap;
 import com.google.common.collect.ListMultimap;
 
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Proxy;
@@ -30,7 +31,7 @@ import java.util.stream.Collectors;
  * <p>
  * Created by @ssz on 11.09.2018.
  */
-class ReflectionUtils {
+public class ReflectionUtils {
 
     /**
      * Returns a proxy instance that implements {@code interfaceType} by dispatching method
@@ -100,6 +101,39 @@ class ReflectionUtils {
     }
 
     /**
+     * Access to field.
+     * E.g. {@code getDeclaredField("com.github.sszuev.jena.ontapi.OntSpecification#OWL2_DL_MEM")}.
+     *
+     * @param constantPath {@link String}, not {@code null}; format full-path-to-class#static-final-object-name
+     * @param <R>          generic class-type
+     * @return instance of {@code T}, not {@code null}
+     * @throws OntApiException in case no possible to create instance
+     */
+    public static <R> R getDeclaredField(String constantPath) throws OntApiException {
+        if (!constantPath.contains("#")) {
+            throw new IllegalArgumentException("Invalid constant path: <" +
+                    constantPath + ">; expected <full-path-to-class#static-final-object-name>");
+        }
+        String[] parts = constantPath.split("#");
+        String className = parts[0];
+        String fieldName = parts[1];
+        Class<?> factory = getClass(className);
+
+        Field field;
+        try {
+            field = factory.getDeclaredField(fieldName);
+        } catch (NoSuchFieldException e) {
+            throw new OntApiException("Can't access to field '" + fieldName + "'", e);
+        }
+        try {
+            //noinspection unchecked
+            return (R) field.get(null);
+        } catch (IllegalAccessException | ClassCastException e) {
+            throw new OntApiException("Can't get value of field '" + fieldName + "'", e);
+        }
+    }
+
+    /**
      * Finds class by path and base type.
      *
      * @param interfaceType {@link Class} the base type, not {@code null}
@@ -150,7 +184,7 @@ class ReflectionUtils {
      * @throws OntApiException if no class found
      * @see Class#forName(String)
      */
-    static Class<?> getClass(String name) throws OntApiException {
+    public static Class<?> getClass(String name) throws OntApiException {
         try {
             return Class.forName(name);
         } catch (ClassNotFoundException e) {
