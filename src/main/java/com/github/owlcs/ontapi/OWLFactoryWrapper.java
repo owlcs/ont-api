@@ -190,7 +190,7 @@ public class OWLFactoryWrapper implements OntologyFactory.Loader {
             public OntologyModelImpl createOntologyImpl(Graph graph,
                                                         OntologyManagerImpl manager,
                                                         OntLoaderConfiguration config) {
-                return new OntologyModelImpl(wrap(graph, config), createModelConfig(manager, config)) {
+                return new OntologyModelImpl(wrapAsUnion(graph, config), createModelConfig(manager, config)) {
 
                     @Override
                     protected OWLOntologyChangeVisitorEx<ChangeApplied> createChangeProcessor() {
@@ -199,18 +199,18 @@ public class OWLFactoryWrapper implements OntologyFactory.Loader {
                             @Override
                             public ChangeApplied visit(SetOntologyID change) {
                                 ChangeApplied res = super.visit(change);
-                                getBase().forceLoad();
+                                getInternalModel().forceLoad();
                                 return res;
                             }
 
                             @Override
                             public ChangeApplied visit(AddAxiom change) {
-                                return of(getBase().add(change.getAxiom()));
+                                return of(getInternalModel().add(change.getAxiom()));
                             }
 
                             @Override
                             public ChangeApplied visit(AddOntologyAnnotation change) {
-                                return of(getBase().add(change.getAnnotation()));
+                                return of(getInternalModel().add(change.getAnnotation()));
                             }
 
                             @Override
@@ -219,13 +219,13 @@ public class OWLFactoryWrapper implements OntologyFactory.Loader {
                                 // I observe this situation only when there are grammatical mistakes in the document,
                                 // so it cannot be loaded by Jena.
                                 LOGGER.warn("Suspicious: {}", change);
-                                return of(getBase().remove(change.getAxiom()));
+                                return of(getInternalModel().remove(change.getAxiom()));
                             }
 
                             @Override
                             public ChangeApplied visit(RemoveOntologyAnnotation change) {
                                 LOGGER.warn("Suspicious: {}", change);
-                                return of(getBase().remove(change.getAnnotation()));
+                                return of(getInternalModel().remove(change.getAnnotation()));
                             }
 
                             private ChangeApplied of(boolean res) {
@@ -237,8 +237,8 @@ public class OWLFactoryWrapper implements OntologyFactory.Loader {
             }
 
             @Override
-            public Graph createGraph() {
-                return base.createGraph();
+            public Graph createDataGraph() {
+                return base.createDataGraph();
             }
 
             @Override

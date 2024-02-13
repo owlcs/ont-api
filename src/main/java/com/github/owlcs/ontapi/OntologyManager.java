@@ -44,6 +44,7 @@ import org.semanticweb.owlapi.model.OWLOntologyStorageException;
 import org.semanticweb.owlapi.model.OWLOntologyWriterConfiguration;
 import org.semanticweb.owlapi.model.OWLStorerFactory;
 import org.semanticweb.owlapi.model.OntologyConfigurator;
+import org.semanticweb.owlapi.model.UnknownOWLOntologyException;
 import org.semanticweb.owlapi.model.parameters.OntologyCopy;
 
 import java.io.File;
@@ -501,7 +502,8 @@ public interface OntologyManager extends OWLOntologyManager {
      *
      * @param ontology     The ontology to be saved.
      * @param outputStream The output stream where the ontology will be saved to
-     * @throws OWLOntologyStorageException
+     * @throws OWLOntologyStorageException If the ontology could not be saved
+     * @throws UnknownOWLOntologyException If the specified ontology is not managed by this manager
      */
     @Override
     default void saveOntology(OWLOntology ontology, OutputStream outputStream) throws OWLOntologyStorageException {
@@ -516,7 +518,8 @@ public interface OntologyManager extends OWLOntologyManager {
      * @param ontology       The ontology to be saved.
      * @param ontologyFormat The output format in which to save the ontology
      * @param documentTarget The output target where the ontology will be saved to
-     * @throws OWLOntologyStorageException
+     * @throws OWLOntologyStorageException If the ontology could not be saved
+     * @throws UnknownOWLOntologyException If the specified ontology is not managed by this manager
      */
     @Override
     void saveOntology(OWLOntology ontology, OWLDocumentFormat ontologyFormat, OWLOntologyDocumentTarget documentTarget)

@@ -90,6 +90,8 @@ public class OntConfig extends OntologyConfigurator
     private static final Logger LOGGER = LoggerFactory.getLogger(OntConfig.class);
     private static final long serialVersionUID = 656765031127374396L;
 
+    static final String NULL_VALUE = "null";
+
     // hods config data (simple serializable primitives)
     protected final Map<OntSettings, Object> data;
     // holds dynamic data (complex objects OntSpecification, GraphTransformers, probably non-serializable)
@@ -298,18 +300,6 @@ public class OntConfig extends OntologyConfigurator
      * An ONT-API manager's load config getter.
      * {@inheritDoc}
      *
-     * @return {@link OntPersonality}
-     * @see OntLoaderConfiguration#getPersonality()
-     */
-    @Override
-    public OntPersonality getPersonality() {
-        return get(OntSettings.ONT_API_LOAD_CONF_PERSONALITY_MODE);
-    }
-
-    /**
-     * An ONT-API manager's load config getter.
-     * {@inheritDoc}
-     *
      * @return {@link OntSpecification}
      * @see OntLoaderConfiguration#getSpecification()
      */
@@ -321,22 +311,12 @@ public class OntConfig extends OntologyConfigurator
             return res;
         }
         String path = get(OntSettings.ONT_API_LOAD_CONF_SPECIFICATION);
+        if (NULL_VALUE.equals(Objects.requireNonNull(path))) {
+            throw new IllegalStateException("No specification in the config");
+        }
         res = ReflectionUtils.getDeclaredField(Objects.requireNonNull(path));
         store().put(OntSettings.ONT_API_LOAD_CONF_SPECIFICATION, res);
         return res;
-    }
-
-    /**
-     * An ONT-API manager's load config setter.
-     * {@inheritDoc}
-     *
-     * @param personality {@link OntPersonality} the personality
-     * @return this instance
-     * @see OntLoaderConfiguration#setPersonality(OntPersonality)
-     */
-    @Override
-    public OntConfig setPersonality(OntPersonality personality) {
-        return put(OntSettings.ONT_API_LOAD_CONF_PERSONALITY_MODE, personality);
     }
 
     /**
@@ -353,7 +333,7 @@ public class OntConfig extends OntologyConfigurator
     @Override
     public OntConfig setSpecification(OntSpecification specification, String constantFieldPath) {
         store().put(OntSettings.ONT_API_LOAD_CONF_SPECIFICATION, specification);
-        return put(OntSettings.ONT_API_LOAD_CONF_SPECIFICATION, constantFieldPath);
+        return put(OntSettings.ONT_API_LOAD_CONF_SPECIFICATION, constantFieldPath == null ? NULL_VALUE : constantFieldPath);
     }
 
     /**

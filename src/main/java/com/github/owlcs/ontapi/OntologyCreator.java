@@ -69,7 +69,7 @@ public interface OntologyCreator {
      * @see OntologyCreator#createUnionGraph(Graph, OntLoaderConfiguration)
      * @since 1.3.0
      */
-    default Graph createGraph() {
+    default Graph createDataGraph() {
         return GraphMemFactory.createDefaultGraph();
     }
 
@@ -81,7 +81,7 @@ public interface OntologyCreator {
      * @param config {@link OntLoaderConfiguration} the settings to control creation of the hierarchy container graph
      * @return {@link UnionGraph}, a graph instance containing the {@code graph} as a base graph,
      * which is responsible for a structure hierarchy;
-     * @see OntologyCreator#createGraph()
+     * @see OntologyCreator#createDataGraph()
      * @since 1.4.2
      */
     default UnionGraph createUnionGraph(Graph graph, OntLoaderConfiguration config) {

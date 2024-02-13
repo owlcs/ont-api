@@ -1800,7 +1800,7 @@ public class OntologyManagerImpl
     protected void writeUsingOWLStore(Ontology ont,
                                       OWLDocumentFormat doc,
                                       OWLOntologyDocumentTarget target) throws OWLOntologyStorageException {
-        getAdapter().asBaseModel(ont).getBase().clearCacheIfNeeded();
+        getAdapter().asBaseModel(ont).getInternalModel().clearCacheIfNeeded();
         try {
             for (OWLStorerFactory storer : getOntologyStorers()) {
                 OWLStorer writer = storer.createStorer();
@@ -1848,14 +1848,14 @@ public class OntologyManagerImpl
         this.iris = createIRICache();
         this.content.values().forEach(info -> {
             ModelConfig conf = info.getModelConfig();
-            BaseModel m = getAdapter().asBaseModel(info.get());
-            m.setConfig(conf);
-            UnionGraph baseGraph = m.getBase().getUnionGraph();
-            Stream<UnionGraph> imports = Graphs.getImports(baseGraph).stream()
+            BaseModel bm = getAdapter().asBaseModel(info.get());
+            bm.setConfig(conf);
+            UnionGraph union = bm.getInternalModel().getUnionGraph();
+            Stream<UnionGraph> imports = Graphs.getImports(union).stream()
                     .map(s -> this.content.values()
                             .map(OntInfo::get)
                             .map(BaseModel.class::cast)
-                            .map(BaseModel::getBase)
+                            .map(BaseModel::getInternalModel)
                             .map(InternalModel::getUnionGraph)
                             .filter(g -> Graphs.ontologyNode(g.getBaseGraph())
                                     .filter(Node::isURI)
@@ -1867,9 +1867,11 @@ public class OntologyManagerImpl
                             .orElse(null)
                     )
                     .filter(Objects::nonNull);
-            imports.forEach(baseGraph::addSubGraph);
-            InternalModel baseModel = conf.createInternalModel(baseGraph);
-            m.setBase(baseModel);
+            imports.forEach(union::addSubGraph);
+
+            InternalModel internalModel = BaseModel.createInternalModel(union, conf.getSpecification(), conf,
+                    getOWLDataFactory(), conf.getManagerCaches());
+            bm.setInternalModel(internalModel);
         });
     }
 

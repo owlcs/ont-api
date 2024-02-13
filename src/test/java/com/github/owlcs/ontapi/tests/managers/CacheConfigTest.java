@@ -80,7 +80,7 @@ public class CacheConfigTest {
     private static final Logger LOGGER = LoggerFactory.getLogger(CacheConfigTest.class);
 
     static InternalModelImpl getBase(Ontology o) {
-        return ((InternalModelImpl) ((BaseModel) o).getBase());
+        return ((InternalModelImpl) ((BaseModel) o).getInternalModel());
     }
 
     private static void testConfigureIRICacheSize(OntologyManager m) {
@@ -175,11 +175,11 @@ public class CacheConfigTest {
         Assertions.assertEquals(945, o.axioms().count());
 
         OntGraphModelImpl m1 = getBase(o).getSearchModel();
-        Assertions.assertTrue(m1 instanceof InternalModelImpl);
+        Assertions.assertInstanceOf(InternalModelImpl.class, m1);
 
         m.setOntologyLoaderConfiguration(m.getOntologyLoaderConfiguration().setLoadNodesCacheSize(10_000));
         OntGraphModelImpl m2 = getBase(o).getSearchModel();
-        Assertions.assertTrue(m2 instanceof SearchModel);
+        Assertions.assertInstanceOf(SearchModel.class, m2);
     }
 
     @Test
@@ -195,14 +195,14 @@ public class CacheConfigTest {
         Assertions.assertNotNull(o);
         Assertions.assertEquals(axioms, o.axioms().count());
         ONTObjectFactory of1 = getBase(o).getObjectFactory();
-        Assertions.assertTrue(of1 instanceof InternalObjectFactory);
+        Assertions.assertInstanceOf(InternalObjectFactory.class, of1);
         Assertions.assertFalse(of1 instanceof CacheObjectFactory);
 
         int size1 = 52;
         m.setOntologyLoaderConfiguration(conf.setLoadObjectsCacheSize(size1));
         Assertions.assertEquals(axioms, o.axioms().count());
         ONTObjectFactory of2 = getBase(o).getObjectFactory();
-        Assertions.assertTrue(of2 instanceof CacheObjectFactory);
+        Assertions.assertInstanceOf(CacheObjectFactory.class, of2);
         CacheObjectFactory cof1 = (CacheObjectFactory) of2;
 
         Assertions.assertEquals(size1, getInternalCache(cof1, OWLClass.class).size());
@@ -216,7 +216,7 @@ public class CacheConfigTest {
         m.setOntologyLoaderConfiguration(conf.setLoadObjectsCacheSize(size2));
         Assertions.assertEquals(axioms, o.axioms().count());
         ONTObjectFactory of3 = getBase(o).getObjectFactory();
-        Assertions.assertTrue(of3 instanceof CacheObjectFactory);
+        Assertions.assertInstanceOf(CacheObjectFactory.class, of3);
         CacheObjectFactory cof2 = (CacheObjectFactory) of3;
 
         Assertions.assertEquals(size2, getInternalCache(cof2, OWLClass.class).size());
@@ -295,7 +295,7 @@ public class CacheConfigTest {
         OntologyManager m1 = OntManagers.createManager();
         Ontology o1 = m1.loadOntologyFromOntologyDocument(src,
                 m1.getOntologyLoaderConfiguration().setModelCacheLevel(CacheSettings.CACHE_CONTENT, true));
-        InternalModelImpl im1 = (InternalModelImpl) adapter.asBaseModel(o1).getBase();
+        InternalModelImpl im1 = (InternalModelImpl) adapter.asBaseModel(o1).getInternalModel();
         InternalCache.Loading c1 = getInternalCache(im1, OWLTopObjectType.class);
         Assertions.assertNotNull(c1);
         Map map1 = (Map) c1.get(im1);
@@ -417,7 +417,7 @@ public class CacheConfigTest {
         OntologyManager m2 = OntManagers.createManager();
         Ontology o2 = m2.loadOntologyFromOntologyDocument(src,
                 m2.getOntologyLoaderConfiguration().setModelCacheLevel(CacheSettings.CACHE_COMPONENT, false));
-        InternalModelImpl im2 = (InternalModelImpl) adapter.asBaseModel(o2).getBase();
+        InternalModelImpl im2 = (InternalModelImpl) adapter.asBaseModel(o2).getInternalModel();
         InternalCache.Loading c2 = getInternalCache(im2, OWLComponentType.class);
         Assertions.assertNotNull(c2);
         Map map2 = (Map) c2.get(im2);

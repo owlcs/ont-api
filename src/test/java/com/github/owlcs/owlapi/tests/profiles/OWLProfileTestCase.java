@@ -14,7 +14,7 @@
 package com.github.owlcs.owlapi.tests.profiles;
 
 import com.github.owlcs.ontapi.OntologyManager;
-import com.github.owlcs.ontapi.TestOntPersonalities;
+import com.github.owlcs.ontapi.TestOntSpecifications;
 import com.github.owlcs.ontapi.testutils.OWLIOUtils;
 import com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory;
 import com.github.owlcs.owlapi.OWLManager;
@@ -191,7 +191,7 @@ public class OWLProfileTestCase extends TestBase {
         if (!OWLManager.DEBUG_USE_OWL) {
             // allow illegal punnings
             com.github.owlcs.ontapi.config.OntLoaderConfiguration conf = ((OntologyManager) m).getOntologyLoaderConfiguration()
-                    .setPersonality(TestOntPersonalities.ONT_PERSONALITY_FULL);
+                    .setSpecification(TestOntSpecifications.OWL2_FULL_NO_INF);
             m.setOntologyLoaderConfiguration(conf);
         }
         try {

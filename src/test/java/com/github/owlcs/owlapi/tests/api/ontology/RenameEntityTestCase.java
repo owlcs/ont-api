@@ -13,7 +13,7 @@
  */
 package com.github.owlcs.owlapi.tests.api.ontology;
 
-import com.github.owlcs.ontapi.TestOntPersonalities;
+import com.github.owlcs.ontapi.TestOntSpecifications;
 import com.github.owlcs.ontapi.testutils.OWLIOUtils;
 import com.github.owlcs.owlapi.OWLManager;
 import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
@@ -97,7 +97,7 @@ public class RenameEntityTestCase extends TestBase {
         // to allow DataProperty <-> ObjectProperty intersections
         com.github.owlcs.ontapi.config.OntLoaderConfiguration conf =
                 ((com.github.owlcs.ontapi.config.OntLoaderConfiguration) m.getOntologyLoaderConfiguration())
-                        .setPersonality(TestOntPersonalities.ONT_PERSONALITY_FULL);
+                        .setSpecification(TestOntSpecifications.OWL2_FULL_NO_INF);
         m.setOntologyLoaderConfiguration(conf);
     }
 

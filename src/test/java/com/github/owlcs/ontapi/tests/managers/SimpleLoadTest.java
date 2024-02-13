@@ -17,7 +17,7 @@ package com.github.owlcs.ontapi.tests.managers;
 import com.github.owlcs.ontapi.OntManagers;
 import com.github.owlcs.ontapi.Ontology;
 import com.github.owlcs.ontapi.OntologyManager;
-import com.github.owlcs.ontapi.TestOntPersonalities;
+import com.github.owlcs.ontapi.TestOntSpecifications;
 import com.github.owlcs.ontapi.config.OntLoaderConfiguration;
 import com.github.owlcs.ontapi.testutils.MiscTestUtils;
 import com.github.owlcs.ontapi.testutils.OWLIOUtils;
@@ -64,7 +64,7 @@ public class SimpleLoadTest {
         String fileName = "/ontapi/foaf.rdf";
         OntologyManager manager = OntManagers.createManager();
         OntLoaderConfiguration conf = manager.getOntologyLoaderConfiguration()
-                .setPersonality(TestOntPersonalities.ONT_PERSONALITY_DL);
+                .setSpecification(TestOntSpecifications.OWL2_DL_NO_INF);
         manager.setOntologyLoaderConfiguration(conf);
 
         IRI fileIRI = IRI.create(OWLIOUtils.getResourceURI(fileName));

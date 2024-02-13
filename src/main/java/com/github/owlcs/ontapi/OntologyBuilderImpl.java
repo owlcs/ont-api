@@ -38,7 +38,7 @@ public class OntologyBuilderImpl implements OntologyFactory.Builder {
     @Override
     public Ontology createOntology(ID id, OntologyManager manager, OntLoaderConfiguration config) {
         OntologyManagerImpl m = getAdapter().asIMPL(manager);
-        OntologyModelImpl res = createOntologyImpl(createGraph(), m, config);
+        OntologyModelImpl res = createOntologyImpl(createDataGraph(), m, config);
         res.setOntologyID(id);
         return withLock(res, m.getLock());
     }
@@ -52,7 +52,7 @@ public class OntologyBuilderImpl implements OntologyFactory.Builder {
     /**
      * Creates a {@link OntologyModelImpl Default Ontology Implementation} instance from the given components.
      *
-     * @param graph   {@link Graph} obtained from {@link #createGraph()}, must not be {@code null}
+     * @param graph   {@link Graph} obtained from {@link #createDataGraph()}, must not be {@code null}
      * @param manager {@link OntologyManagerImpl}, must not be {@code null}
      * @param config  {@link OntLoaderConfiguration}, the loading configuration, must not be {@code null}
      * @return a fresh {@link OntologyManagerImpl}
@@ -60,7 +60,7 @@ public class OntologyBuilderImpl implements OntologyFactory.Builder {
     public OntologyModelImpl createOntologyImpl(Graph graph,
                                                 OntologyManagerImpl manager,
                                                 OntLoaderConfiguration config) {
-        return new OntologyModelImpl(wrap(graph, config), createModelConfig(manager, config));
+        return new OntologyModelImpl(wrapAsUnion(graph, config), createModelConfig(manager, config));
     }
 
     /**
@@ -89,18 +89,18 @@ public class OntologyBuilderImpl implements OntologyFactory.Builder {
     }
 
     /**
-     * Creates an in-memory graph.
+     * Creates a data graph.
      *
      * @return Graph
      */
     @Override
-    public Graph createGraph() {
+    public Graph createDataGraph() {
         return OntModelFactory.createDefaultGraph();
     }
 
     /**
      * Wraps the given graph as {@link UnionGraph} if it is required.
-     * A graph is obtained from this builder with help of the method {@link #createGraph()},
+     * A graph is obtained from this builder with help of the method {@link #createDataGraph()},
      * or it is coming from {@link OntologyFactory.Loader Loader},
      * and in the last case it is already {@link UnionGraph} and the method returns the same instance as specified.
      *
@@ -108,7 +108,7 @@ public class OntologyBuilderImpl implements OntologyFactory.Builder {
      * @param config {@link OntLoaderConfiguration}
      * @return {@link UnionGraph}
      */
-    public UnionGraph wrap(Graph g, OntLoaderConfiguration config) {
+    public UnionGraph wrapAsUnion(Graph g, OntLoaderConfiguration config) {
         return g instanceof UnionGraph ? (UnionGraph) g : createUnionGraph(g, config);
     }
 }

@@ -22,7 +22,6 @@ import com.github.owlcs.ontapi.OntologyManager;
 import com.github.owlcs.ontapi.transforms.GraphFilter;
 import com.github.owlcs.ontapi.transforms.GraphTransformers;
 import com.github.sszuev.jena.ontapi.OntSpecification;
-import com.github.sszuev.jena.ontapi.common.OntPersonality;
 import com.github.sszuev.jena.ontapi.model.OntModel;
 import org.apache.jena.graph.Graph;
 import org.semanticweb.owlapi.model.IRI;
@@ -43,18 +42,6 @@ import java.util.Objects;
  * @since 1.4.0
  */
 public interface LoadSettings {
-
-    /**
-     * Gets {@link OntPersonality} configuration object, that is responsible for mapping between raw data (i.e.
-     * {@link org.apache.jena.graph.Graph RDF Graph}) to its enhanced view
-     * (see {@link OntModel RDF Model}).
-     * Note: {@code OntPersonality} is not {@link Serializable}, so, after restoring a default value is expected.
-     *
-     * @return {@link OntPersonality}
-     * @see LoadControl#setPersonality(OntPersonality)
-     * @see OntSettings#ONT_API_LOAD_CONF_PERSONALITY_MODE
-     */
-    OntPersonality getPersonality();
 
     /**
      * Gets {@link OntSpecification} configuration object.

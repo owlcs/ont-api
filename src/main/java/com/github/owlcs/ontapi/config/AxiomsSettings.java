@@ -114,7 +114,7 @@ public interface AxiomsSettings {
      * Please note: {@link OntPersonality.Punnings OntPersonality.Punnings}
      * is the general mechanism to control punnings.
      * It is accessible through the config methods
-     * {@link OntConfig#getPersonality()} and {@link OntLoaderConfiguration#getPersonality()}.
+     * {@link OntConfig#getSpecification()} and {@link OntLoaderConfiguration#getSpecification()}.
      * <p>
      * The default value of this option is {@code true}.
      *

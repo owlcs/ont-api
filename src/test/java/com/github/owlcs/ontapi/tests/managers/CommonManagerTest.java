@@ -21,7 +21,7 @@ import com.github.owlcs.ontapi.Ontology;
 import com.github.owlcs.ontapi.OntologyManager;
 import com.github.owlcs.ontapi.OntologyManagerImpl;
 import com.github.owlcs.ontapi.OntologyModelImpl;
-import com.github.owlcs.ontapi.TestOntPersonalities;
+import com.github.owlcs.ontapi.TestOntSpecifications;
 import com.github.owlcs.ontapi.config.OntLoaderConfiguration;
 import com.github.owlcs.ontapi.internal.AxiomTranslator;
 import com.github.owlcs.ontapi.internal.ONTObject;
@@ -216,15 +216,15 @@ public class CommonManagerTest {
         OntologyManager m1 = OntManagers.createManager();
         OntologyManager m2 = OntManagers.createManager();
         OntLoaderConfiguration conf1 = m1.getOntologyLoaderConfiguration();
-        conf1.setPersonality(TestOntPersonalities.ONT_PERSONALITY_FULL);
+        conf1.setSpecification(TestOntSpecifications.OWL2_FULL_NO_INF);
         OntLoaderConfiguration conf2 = m2.getOntologyLoaderConfiguration();
-        conf2.setPersonality(TestOntPersonalities.ONT_PERSONALITY_DL);
+        conf2.setSpecification(TestOntSpecifications.OWL2_DL_NO_INF);
         Assertions.assertEquals(conf1, conf2);
-        Assertions.assertEquals(conf1.getPersonality(), conf2.getPersonality());
-        m1.setOntologyLoaderConfiguration(conf1.setPersonality(TestOntPersonalities.ONT_PERSONALITY_FULL));
-        m2.setOntologyLoaderConfiguration(conf1.setPersonality(TestOntPersonalities.ONT_PERSONALITY_DL));
-        Assertions.assertNotEquals(m1.getOntologyLoaderConfiguration().getPersonality(),
-                m2.getOntologyLoaderConfiguration().getPersonality());
+        Assertions.assertEquals(conf1.getSpecification(), conf2.getSpecification());
+        m1.setOntologyLoaderConfiguration(conf1.setSpecification(TestOntSpecifications.OWL2_FULL_NO_INF));
+        m2.setOntologyLoaderConfiguration(conf1.setSpecification(TestOntSpecifications.OWL2_DL_NO_INF));
+        Assertions.assertNotEquals(m1.getOntologyLoaderConfiguration().getSpecification(),
+                m2.getOntologyLoaderConfiguration().getSpecification());
 
         boolean doTransformation = !conf1.isPerformTransformation();
         m1.getOntologyLoaderConfiguration().setPerformTransformation(doTransformation);

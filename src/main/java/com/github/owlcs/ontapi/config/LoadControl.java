@@ -16,7 +16,6 @@ package com.github.owlcs.ontapi.config;
 
 import com.github.owlcs.ontapi.transforms.GraphTransformers;
 import com.github.sszuev.jena.ontapi.OntSpecification;
-import com.github.sszuev.jena.ontapi.common.OntPersonality;
 
 import java.util.Collections;
 import java.util.List;
@@ -31,15 +30,6 @@ import java.util.List;
  * @since 1.4.0
  */
 interface LoadControl<R> extends LoadSettings {
-
-    /**
-     * Sets {@code OntPersonality} model configuration object.
-     *
-     * @param personality {@link OntPersonality}, not {@code null}
-     * @return {@link R} (this or copied instance)
-     * @see LoadSettings#getPersonality()
-     */
-    R setPersonality(OntPersonality personality);
 
     /**
      * Sets {@code OntSpecification} model configuration object.
@@ -116,5 +106,16 @@ interface LoadControl<R> extends LoadSettings {
      */
     default R disableWebAccess() {
         return setSupportedSchemes(Collections.singletonList((Scheme) () -> "file"));
+    }
+
+    /**
+     * Sets {@code OntSpecification} model configuration object.
+     *
+     * @param specification {@link OntSpecification}, not {@code null}
+     * @return {@link R} (this or copied instance)
+     * @see LoadSettings#getSpecification()
+     */
+    default R setSpecification(OntSpecification specification) {
+        return setSpecification(specification, null);
     }
 }

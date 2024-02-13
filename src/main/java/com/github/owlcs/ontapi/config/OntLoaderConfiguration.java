@@ -19,7 +19,6 @@ import com.github.owlcs.ontapi.ReflectionUtils;
 import com.github.owlcs.ontapi.transforms.GraphTransformers;
 import com.github.owlcs.ontapi.transforms.TransformationModel;
 import com.github.sszuev.jena.ontapi.OntSpecification;
-import com.github.sszuev.jena.ontapi.common.OntPersonality;
 import javax.annotation.Nonnull;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.MissingImportHandlingStrategy;
@@ -97,7 +96,9 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration imple
 
     protected OntLoaderConfiguration set(OntSettings key, Object v) {
         Objects.requireNonNull(v);
-        if (Objects.equals(get(key), v)) return this;
+        if (Objects.equals(get(key), v)) {
+            return this;
+        }
         OntLoaderConfiguration copy = new OntLoaderConfiguration(this);
         copy.data.put(key, v);
         return copy;
@@ -193,15 +194,6 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration imple
     /**
      * An ONT-API config getter.
      * {@inheritDoc}
-     */
-    @Override
-    public OntPersonality getPersonality() {
-        return get(OntSettings.ONT_API_LOAD_CONF_PERSONALITY_MODE);
-    }
-
-    /**
-     * An ONT-API config getter.
-     * {@inheritDoc}
      *
      * @see OntConfig#getSpecification()
      */
@@ -213,21 +205,12 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration imple
             return res;
         }
         String path = get(OntSettings.ONT_API_LOAD_CONF_SPECIFICATION);
+        if (OntConfig.NULL_VALUE.equals(Objects.requireNonNull(path))) {
+            throw new IllegalStateException("No specification in the config");
+        }
         res = ReflectionUtils.getDeclaredField(Objects.requireNonNull(path));
         store.put(OntSettings.ONT_API_LOAD_CONF_SPECIFICATION, res);
         return res;
-    }
-
-    /**
-     * An ONT-API config setter.
-     * {@inheritDoc}
-     *
-     * @param personality {@link OntPersonality} new personality
-     * @return {@link OntLoaderConfiguration}, a copied (new) or this instance in case no changes are made
-     */
-    @Override
-    public OntLoaderConfiguration setPersonality(OntPersonality personality) {
-        return set(OntSettings.ONT_API_LOAD_CONF_PERSONALITY_MODE, personality);
     }
 
     /**
@@ -243,8 +226,10 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration imple
      */
     @Override
     public OntLoaderConfiguration setSpecification(OntSpecification specification, String constantFieldPath) {
-        store.put(OntSettings.ONT_API_LOAD_CONF_SPECIFICATION, specification);
-        return set(OntSettings.ONT_API_LOAD_CONF_SPECIFICATION, constantFieldPath);
+        OntLoaderConfiguration res = set(OntSettings.ONT_API_LOAD_CONF_SPECIFICATION,
+                constantFieldPath == null ? OntConfig.NULL_VALUE : constantFieldPath);
+        res.store.put(OntSettings.ONT_API_LOAD_CONF_SPECIFICATION, specification);
+        return res;
     }
 
     /**

@@ -314,19 +314,19 @@ public class ImportsOntModelTest extends OntModelTestBase {
         Assertions.assertEquals(0, b.imports().count());
         Assertions.assertEquals(1, ((UnionGraph) (a.asGraphModel().getGraph())).subGraphs().count());
         Assertions.assertEquals(0, ((UnionGraph) (b.asGraphModel().getGraph())).subGraphs().count());
-        Assertions.assertEquals(1, ((UnionGraph) (ad.asBaseModel(a).getBase().getGraph())).subGraphs().count());
+        Assertions.assertEquals(1, ((UnionGraph) (ad.asBaseModel(a).getInternalModel().getGraph())).subGraphs().count());
         Assertions.assertEquals(Stream.of(a, b)
                         .map(ad::asBaseModel)
-                        .map(BaseModel::getBase)
+                        .map(BaseModel::getInternalModel)
                         .map(OntModel::getBaseGraph).collect(Collectors.toSet()),
-                Graphs.dataGraphs(ad.asBaseModel(a).getBase().getGraph()).collect(Collectors.toSet()));
+                Graphs.dataGraphs(ad.asBaseModel(a).getInternalModel().getGraph()).collect(Collectors.toSet()));
 
         m.applyChange(new RemoveImport(a, d.getOWLImportsDeclaration(iri_b)));
         Assertions.assertEquals(0, a.imports().count());
         Assertions.assertEquals(0, b.imports().count());
         Assertions.assertEquals(0, ((UnionGraph) (a.asGraphModel().getGraph())).subGraphs().count());
         Assertions.assertEquals(0, ((UnionGraph) (b.asGraphModel().getGraph())).subGraphs().count());
-        Assertions.assertEquals(0, ((UnionGraph) (ad.asBaseModel(a).getBase().getGraph())).subGraphs().count());
+        Assertions.assertEquals(0, ((UnionGraph) (ad.asBaseModel(a).getInternalModel().getGraph())).subGraphs().count());
 
     }
 

@@ -17,7 +17,7 @@ package com.github.owlcs.ontapi.tests.internal;
 import com.github.owlcs.ontapi.BaseModel;
 import com.github.owlcs.ontapi.OntFormat;
 import com.github.owlcs.ontapi.OntManagers;
-import com.github.owlcs.ontapi.TestOntPersonalities;
+import com.github.owlcs.ontapi.TestOntSpecifications;
 import com.github.owlcs.ontapi.internal.AxiomTranslator;
 import com.github.owlcs.ontapi.internal.InternalConfig;
 import com.github.owlcs.ontapi.internal.InternalModel;
@@ -266,7 +266,7 @@ public class InternalModelTest {
         Model init = OWLIOUtils.loadResourceAsModel(file, Objects.requireNonNull(format.getLang()));
         Graph graph = GraphTransformers.convert(init.getGraph());
         return BaseModel.createInternalModel(graph,
-                TestOntPersonalities.ONT_PERSONALITY_DL_WEAK,
+                TestOntSpecifications.OWL2_DL_WEAK_NO_INF,
                 InternalConfig.DEFAULT,
                 OntManagers.getDataFactory(),
                 null);

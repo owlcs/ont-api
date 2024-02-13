@@ -18,10 +18,8 @@ import com.github.owlcs.ontapi.config.OntLoaderConfiguration;
 import com.github.owlcs.ontapi.config.OntWriterConfiguration;
 import com.github.owlcs.ontapi.internal.InternalCache;
 import com.github.owlcs.ontapi.internal.InternalConfig;
-import com.github.owlcs.ontapi.internal.InternalModel;
 import com.github.owlcs.ontapi.internal.InternalModelImpl;
-import com.github.sszuev.jena.ontapi.common.OntPersonality;
-import org.apache.jena.graph.Graph;
+import com.github.sszuev.jena.ontapi.OntSpecification;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLOntologyLoaderConfiguration;
 import org.semanticweb.owlapi.model.OWLOntologyWriterConfiguration;
@@ -51,16 +49,6 @@ public class ModelConfig implements InternalConfig, Serializable {
 
     public ModelConfig(OntologyManagerImpl m) {
         this.manager = Objects.requireNonNull(m);
-    }
-
-    /**
-     * Creates an {@link InternalModel} instance.
-     *
-     * @param base {@link Graph}, not {@code null}
-     * @return {@link InternalModel}
-     */
-    public InternalModel createInternalModel(Graph base) {
-        return BaseModel.createInternalModel(base, getPersonality(), this, manager.getOWLDataFactory(), getManagerCaches());
     }
 
     /**
@@ -130,8 +118,8 @@ public class ModelConfig implements InternalConfig, Serializable {
         return Map.of(IRI.class, manager.iris.asCache());
     }
 
-    public OntPersonality getPersonality() {
-        return getLoaderConfig().getPersonality();
+    public OntSpecification getSpecification() {
+        return getLoaderConfig().getSpecification();
     }
 
     @Override

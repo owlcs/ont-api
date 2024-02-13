@@ -17,7 +17,7 @@ package com.github.owlcs.ontapi.tests.managers;
 import com.github.owlcs.ontapi.OntApiException;
 import com.github.owlcs.ontapi.OntManagers;
 import com.github.owlcs.ontapi.OntologyManager;
-import com.github.owlcs.ontapi.TestOntPersonalities;
+import com.github.owlcs.ontapi.TestOntSpecifications;
 import com.github.owlcs.ontapi.config.OntConfig;
 import com.github.owlcs.ontapi.config.OntSettings;
 import com.github.sszuev.jena.ontapi.vocabulary.OWL;
@@ -45,11 +45,11 @@ public class CommonConfigTest {
         assertEqualsConfigurator(c, m1);
         assertEqualsConfigurator(c, m2);
 
-        c.setPersonality(TestOntPersonalities.ONT_PERSONALITY_DL).setFollowRedirects(false);
+        c.setSpecification(TestOntSpecifications.OWL2_DL_NO_INF).setFollowRedirects(false);
         assertEqualsConfigurator(c, m1);
         assertEqualsConfigurator(c, m2);
 
-        c.setPersonality(TestOntPersonalities.ONT_PERSONALITY_FULL).setIgnoreAxiomsReadErrors(true);
+        c.setSpecification(TestOntSpecifications.OWL2_FULL_NO_INF).setIgnoreAxiomsReadErrors(true);
         assertEqualsConfigurator(c, m1);
         assertEqualsConfigurator(c, m2);
     }

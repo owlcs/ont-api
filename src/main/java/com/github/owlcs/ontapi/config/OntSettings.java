@@ -20,10 +20,6 @@ import com.github.owlcs.ontapi.transforms.OWLDeclarationTransform;
 import com.github.owlcs.ontapi.transforms.OWLIDTransform;
 import com.github.owlcs.ontapi.transforms.RDFSTransform;
 import com.github.owlcs.ontapi.transforms.SWRLTransform;
-import com.github.sszuev.jena.ontapi.common.OntConfigs;
-import com.github.sszuev.jena.ontapi.common.OntPersonalities;
-import com.github.sszuev.jena.ontapi.common.OntPersonality;
-import com.github.sszuev.jena.ontapi.common.PunningsMode;
 import com.github.sszuev.jena.ontapi.vocabulary.OWL;
 import com.github.sszuev.jena.ontapi.vocabulary.RDF;
 import com.github.sszuev.jena.ontapi.vocabulary.SWRL;
@@ -113,49 +109,6 @@ public enum OntSettings {
 
     ONT_API_LOAD_CONF_SPECIFICATION("com.github.sszuev.jena.ontapi.OntSpecification#OWL2_DL_MEM"),
 
-    ONT_API_LOAD_CONF_PERSONALITY_MODE(PunningsMode.DL_WEAK) {
-        private final OntPersonality FULL = OntPersonalities.OWL2_ONT_PERSONALITY()
-                .setBuiltins(OntPersonalities.OWL2_FULL_BUILTINS)
-                .setReserved(OntPersonalities.OWL2_RESERVED)
-                .setConfig(OntConfigs.OWL2_CONFIG)
-                .setPunnings(OntPersonalities.OWL_NO_PUNNINGS)
-                .build();
-        private final OntPersonality DL_WEAK = OntPersonalities.OWL2_ONT_PERSONALITY()
-                .setBuiltins(OntPersonalities.OWL2_FULL_BUILTINS)
-                .setReserved(OntPersonalities.OWL2_RESERVED)
-                .setConfig(OntConfigs.OWL2_CONFIG)
-                .setPunnings(OntPersonalities.OWL_DL_WEAK_PUNNINGS)
-                .build();
-        private final OntPersonality DL2 = OntPersonalities.OWL2_ONT_PERSONALITY()
-                .setBuiltins(OntPersonalities.OWL2_FULL_BUILTINS)
-                .setReserved(OntPersonalities.OWL2_RESERVED)
-                .setConfig(OntConfigs.OWL2_CONFIG)
-                .setPunnings(OntPersonalities.OWL_DL2_PUNNINGS)
-                .build();
-
-        @Override
-        public OntPersonality getDefaultValue() { // note: the return object is not Serializable
-            PunningsMode mode = getPersonalityMode();
-            switch (mode) {
-                case FULL:
-                    return FULL;
-                case DL_WEAK:
-                    return DL_WEAK;
-                case DL2:
-                    return DL2;
-                default:
-                    throw new OntApiException.Unsupported("Unsupported personality mode " + mode);
-            }
-        }
-
-        PunningsMode getPersonalityMode() {
-            PunningsMode res = (PunningsMode) PROPERTIES.getEnumProperty(key);
-            if (res == null) {
-                res = (PunningsMode) secondary;
-            }
-            return res;
-        }
-    },
     ONT_API_LOAD_CONF_TRANSFORMERS(OWLIDTransform.class
             , RDFSTransform.class
             , OWLCommonTransform.class
@@ -168,8 +121,8 @@ public enum OntSettings {
     static final OntSettings[] LOAD_CONFIG_KEYS = filter(OntSettings::isLoad);
     static final OntSettings[] WRITE_CONFIG_KEYS = filter(OntSettings::isWrite);
 
-    protected final Serializable secondary;
-    protected final String key;
+    private final Serializable secondary;
+    private final String key;
     private final boolean isONT;
     private final boolean isLoad;
     private final boolean isWrite;

@@ -18,12 +18,12 @@ import com.github.owlcs.ontapi.internal.InternalCache;
 import com.github.owlcs.ontapi.internal.InternalConfig;
 import com.github.owlcs.ontapi.internal.InternalModel;
 import com.github.owlcs.ontapi.internal.InternalModelImpl;
+import com.github.sszuev.jena.ontapi.OntSpecification;
 import com.github.sszuev.jena.ontapi.UnionGraph;
-import com.github.sszuev.jena.ontapi.common.OntPersonalities;
-import com.github.sszuev.jena.ontapi.common.OntPersonality;
 import com.github.sszuev.jena.ontapi.impl.UnionGraphImpl;
 import com.github.sszuev.jena.ontapi.model.OntModel;
 import org.apache.jena.graph.Graph;
+import org.apache.jena.reasoner.ReasonerFactory;
 import org.semanticweb.owlapi.model.OWLPrimitive;
 
 import java.util.Map;
@@ -46,7 +46,7 @@ public interface BaseModel {
      *
      * @return {@link InternalModel}
      */
-    InternalModel getBase();
+    InternalModel getInternalModel();
 
     /**
      * Sets new internals.
@@ -54,7 +54,7 @@ public interface BaseModel {
      *
      * @param m {@link InternalModel}, not {@code null}
      */
-    void setBase(InternalModel m);
+    void setInternalModel(InternalModel m);
 
     /**
      * Returns a model config instance, that is a collection of settings and, also,
@@ -81,7 +81,7 @@ public interface BaseModel {
      */
     static InternalModel createInternalModel(Graph graph) {
         return createInternalModel(graph,
-                OntPersonalities.OWL2_ONT_PERSONALITY().build(),
+                OntSpecification.OWL2_FULL_MEM,
                 InternalConfig.DEFAULT,
                 OntManagers.getDataFactory(),
                 null);
@@ -90,30 +90,32 @@ public interface BaseModel {
     /**
      * A primary factory method to create fresh {@link InternalModel}.
      *
-     * @param graph       {@link Graph}, not {@code null}, a base data-store
-     * @param personality {@link OntPersonality}, not {@code null}, to manage {@code OntObject}s
-     * @param config      {@link InternalConfig}, not {@code null}, to control behavior
-     * @param dataFactory {@link DataFactory}, not {@code null}, to produces {@code OWLObject}s
-     * @param caches      a {@code Map} with {@link OWLPrimitive} class-types as keys
-     *                    and manager-wide {@link InternalCache}s as values
-     *                    to enable data sharing between different ontologies
+     * @param graph         {@link Graph}, not {@code null}, a base data-store
+     * @param specification {@link OntSpecification}, not {@code null}
+     * @param config        {@link InternalConfig}, not {@code null}, to control behavior
+     * @param dataFactory   {@link DataFactory}, not {@code null}, to produces {@code OWLObject}s
+     * @param caches        a {@code Map} with {@link OWLPrimitive} class-types as keys
+     *                      and manager-wide {@link InternalCache}s as values
+     *                      to enable data sharing between different ontologies
      * @return {@link InternalModel}
      */
     static InternalModel createInternalModel(Graph graph,
-                                             OntPersonality personality,
+                                             OntSpecification specification,
                                              InternalConfig config,
                                              DataFactory dataFactory,
                                              Map<Class<? extends OWLPrimitive>, InternalCache<?, ?>> caches) {
         OntApiException.notNull(graph, "Null graph.");
+        OntApiException.notNull(config, "Null config.");
+        OntApiException.notNull(dataFactory, "Null data-factory");
         if (!(graph instanceof UnionGraph)) {
             // for deserialization
             graph = new UnionGraphImpl(graph, false);
         }
-        return new InternalModelImpl(graph,
-                OntApiException.notNull(personality, "Null personality."),
-                OntApiException.notNull(config, "Null config."),
-                OntApiException.notNull(dataFactory, "Null data-factory"),
-                caches);
+        ReasonerFactory reasonerFactory = OntApiException.notNull(specification, "Null specification.").getReasonerFactory();
+        if (reasonerFactory != null) {
+            graph = reasonerFactory.create(null).bind(graph);
+        }
+        return new InternalModelImpl(graph, specification.getPersonality(), config, dataFactory, caches);
     }
 
 }

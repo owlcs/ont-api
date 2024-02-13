@@ -540,7 +540,7 @@ public class OntologyLoaderImpl implements OntologyFactory.Loader {
                 .orElse(source);
         try {
             // jena:
-            Graph graph = builder.createGraph();
+            Graph graph = builder.createDataGraph();
             OntFormat format = OntGraphUtils.readGraph(graph, src, config);
             GraphInfo res = createGraphInfo(graph, format.newOWLFormat(), doc, true);
             if (LOGGER.isDebugEnabled()) {

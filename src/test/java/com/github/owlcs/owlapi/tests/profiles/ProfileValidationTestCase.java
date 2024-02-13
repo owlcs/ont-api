@@ -14,7 +14,7 @@
 package com.github.owlcs.owlapi.tests.profiles;
 
 import com.github.owlcs.ontapi.OWLAdapter;
-import com.github.owlcs.ontapi.TestOntPersonalities;
+import com.github.owlcs.ontapi.TestOntSpecifications;
 import com.github.owlcs.ontapi.testutils.OWLIOUtils;
 import com.github.owlcs.ontapi.transforms.Transform;
 import com.github.owlcs.owlapi.OWLManager;
@@ -157,7 +157,7 @@ public class ProfileValidationTestCase extends TestBase {
                         .setGraphTransformers(conf.getGraphTransformers()
                                 .addFirst(Transform.Factory.create(com.github.owlcs.ontapi.testutils.WrongRDFListTransform.class)))
                 .setSupportedSchemes(Stream.of(com.github.owlcs.ontapi.config.OntConfig.DefaultScheme.FILE).collect(Collectors.toList()))
-                        .setPersonality(TestOntPersonalities.ONT_PERSONALITY_FULL));
+                        .setSpecification(TestOntSpecifications.OWL2_FULL_NO_INF));
         return m;
     }
 

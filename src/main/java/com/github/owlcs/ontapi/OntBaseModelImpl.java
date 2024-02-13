@@ -131,16 +131,17 @@ public abstract class OntBaseModelImpl implements OWLOntology, BaseModel {
 
     protected OntBaseModelImpl(Graph graph, ModelConfig conf) {
         this.config = Objects.requireNonNull(conf);
-        this.base = conf.createInternalModel(Objects.requireNonNull(graph));
+        this.base = BaseModel.createInternalModel(graph, conf.getSpecification(), conf,
+                conf.getManager().getOWLDataFactory(), conf.getManagerCaches());
     }
 
     @Override
-    public InternalModel getBase() {
+    public InternalModel getInternalModel() {
         return base;
     }
 
     @Override
-    public void setBase(InternalModel m) {
+    public void setInternalModel(InternalModel m) {
         this.base = Objects.requireNonNull(m);
     }
 
@@ -1187,7 +1188,7 @@ public abstract class OntBaseModelImpl implements OWLOntology, BaseModel {
         Graph base = GraphMemFactory.createDefaultGraph();
         RDFDataMgr.read(base, in, DEFAULT_SERIALIZATION_FORMAT.getLang());
         // set temporary model with default personality, it will be reset inside manager while its #readObject
-        setBase(BaseModel.createInternalModel(base));
+        setInternalModel(BaseModel.createInternalModel(base));
     }
 
     /**
@@ -1241,7 +1242,7 @@ public abstract class OntBaseModelImpl implements OWLOntology, BaseModel {
             return false;
         }
         OntModel right = ((Ontology) obj).asGraphModel();
-        OntModel left = getBase();
+        OntModel left = getInternalModel();
         return left.id().filter(id -> right.id().filter(id::sameAs).isPresent()).isPresent();
     }
 }

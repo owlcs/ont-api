@@ -19,7 +19,7 @@ import com.github.owlcs.ontapi.OntGraphUtils;
 import com.github.owlcs.ontapi.OntManagers;
 import com.github.owlcs.ontapi.Ontology;
 import com.github.owlcs.ontapi.OntologyManager;
-import com.github.owlcs.ontapi.TestOntPersonalities;
+import com.github.owlcs.ontapi.TestOntSpecifications;
 import com.github.owlcs.ontapi.testutils.OWLIOUtils;
 import com.github.owlcs.ontapi.testutils.SpinModels;
 import com.github.owlcs.ontapi.transforms.GraphTransformers;
@@ -152,7 +152,7 @@ public class GraphTransformersTest {
 
         OntModel jenaSP = OntModelFactory.createModel(
                 GraphTransformers.convert(OWLIOUtils.loadResourceAsModel("/etc/sp.ttl", Lang.TURTLE).getGraph()),
-                TestOntPersonalities.ONT_PERSONALITY_FULL);
+                TestOntSpecifications.ONT_PERSONALITY_FULL);
         OWLOntology owlSP = load(manager, "/etc/sp.ttl");
         LOGGER.debug("SP(Jena): ");
         OWLIOUtils.print(jenaSP);
@@ -196,7 +196,7 @@ public class GraphTransformersTest {
         IRI iri = IRI.create("http://www.w3.org/2003/11/swrl");
         IRI file = IRI.create(OWLIOUtils.getResourceURI("/ontapi/swrl.owl.rdf"));
         OntologyManager m = OntManagers.createManager();
-        m.getOntologyConfigurator().setPersonality(TestOntPersonalities.ONT_PERSONALITY_FULL);
+        m.getOntologyConfigurator().setSpecification(TestOntSpecifications.OWL2_FULL_NO_INF);
         Ontology o = m.loadOntology(file);
         Assertions.assertTrue(m.contains(iri));
 
