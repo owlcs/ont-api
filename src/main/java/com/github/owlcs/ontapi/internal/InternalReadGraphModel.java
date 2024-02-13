@@ -134,8 +134,8 @@ import java.util.stream.Stream;
  * <p>
  * Created by @ssz on 25.05.2020.
  */
-abstract class InternalReadModel extends OntGraphModelImpl implements ListAxioms, HasObjectFactory, HasConfig {
-    static final Logger LOGGER = LoggerFactory.getLogger(InternalModel.class);
+abstract class InternalReadGraphModel extends OntGraphModelImpl implements ListAxioms, HasObjectFactory, HasConfig {
+    static final Logger LOGGER = LoggerFactory.getLogger(InternalGraphModel.class);
 
     /**
      * Ontology ID cache.
@@ -143,11 +143,11 @@ abstract class InternalReadModel extends OntGraphModelImpl implements ListAxioms
     protected volatile ID cachedID;
     /**
      * The configuration settings to control behaviour.
-     * As a container that contains an immutable snapshot, which should be reset on {@link InternalModelImpl#clearCache()}.
+     * As a container that contains an immutable snapshot, which should be reset on {@link InternalGraphModelImpl#clearCache()}.
      *
      * @see InternalConfig#snapshot()
      */
-    protected final InternalCache.Loading<InternalReadModel, InternalConfig> config;
+    protected final InternalCache.Loading<InternalReadGraphModel, InternalConfig> config;
     /**
      * An internal object factory,
      * that is responsible for mapping {@link OntObject ONT Jena Object}s to {@link OWLObject OWL-API object}s.
@@ -159,7 +159,7 @@ abstract class InternalReadModel extends OntGraphModelImpl implements ListAxioms
      * @see InternalConfig#useLoadObjectsCache()
      * @see CacheObjectFactory
      */
-    protected final InternalCache.Loading<InternalReadModel, ModelObjectFactory> objectFactory;
+    protected final InternalCache.Loading<InternalReadGraphModel, ModelObjectFactory> objectFactory;
     /**
      * A model for axiom/object's search optimizations, containing {@link Node node}s cache.
      * Any change in the base graph must also reset this cache.
@@ -169,7 +169,7 @@ abstract class InternalReadModel extends OntGraphModelImpl implements ListAxioms
      * @see InternalConfig#useLoadNodesCache()
      * @see SearchModel
      */
-    protected final InternalCache.Loading<InternalReadModel, OntGraphModelImpl> searchModel;
+    protected final InternalCache.Loading<InternalReadGraphModel, OntGraphModelImpl> searchModel;
     /**
      * The main cache, which contains all axioms and the ontology header.
      * It contains {@code 40} key-value pairs, {@code 39} for kinds of axioms and one for the ontology header.
@@ -177,7 +177,7 @@ abstract class InternalReadModel extends OntGraphModelImpl implements ListAxioms
      * @see OWLTopObjectType#all()
      * @see ObjectMap
      */
-    protected final InternalCache.Loading<InternalReadModel, Map<OWLTopObjectType, ObjectMap<? extends OWLObject>>> content;
+    protected final InternalCache.Loading<InternalReadGraphModel, Map<OWLTopObjectType, ObjectMap<? extends OWLObject>>> content;
     /**
      * OWL objects cache to work with OWL-API 'signature' methods.
      * Currently, it is calculated from the {@link #content}.
@@ -186,7 +186,7 @@ abstract class InternalReadModel extends OntGraphModelImpl implements ListAxioms
      * @see OWLComponentType#keys()
      * @see ObjectMap
      */
-    protected final InternalCache.Loading<InternalReadModel, Map<OWLComponentType, ObjectMap<OWLObject>>> components;
+    protected final InternalCache.Loading<InternalReadGraphModel, Map<OWLComponentType, ObjectMap<OWLObject>>> components;
 
     // Helpers to provide searching axioms by some objects (referencing by primitives).
     protected final ByObjectSearcher<OWLAxiom, OWLClass> byClass = new ByClass();
@@ -229,11 +229,11 @@ abstract class InternalReadModel extends OntGraphModelImpl implements ListAxioms
     protected final ObjectsSearcher<OWLAnnotationProperty> annotationPropertySearcher = new AnnotationPropertySearcher();
     protected final ObjectsSearcher<OWLDataProperty> dataPropertySearcher = new DataPropertySearcher();
 
-    InternalReadModel(Graph base,
-                      OntPersonality personality,
-                      InternalConfig config,
-                      DataFactory dataFactory,
-                      Map<Class<? extends OWLPrimitive>, InternalCache<?, ?>> fromManager) {
+    InternalReadGraphModel(Graph base,
+                           OntPersonality personality,
+                           InternalConfig config,
+                           DataFactory dataFactory,
+                           Map<Class<? extends OWLPrimitive>, InternalCache<?, ?>> fromManager) {
         super(base, personality);
         Objects.requireNonNull(dataFactory);
         Objects.requireNonNull(config);
@@ -304,7 +304,7 @@ abstract class InternalReadModel extends OntGraphModelImpl implements ListAxioms
      * The return model must be used only to collect OWL-API stuff:
      * {@link OWLAxiom OWL Axiom}s and {@link OWLObject OWL Objects}.
      * Retrieving jena {@link OntObject Ont Object}s and {@link OntStatement Ont Statements} must be performed
-     * through the main ({@link InternalReadModel this}) interface.
+     * through the main ({@link InternalReadGraphModel this}) interface.
      *
      * @return {@link OntGraphModelImpl} with search optimizations
      */
@@ -316,7 +316,7 @@ abstract class InternalReadModel extends OntGraphModelImpl implements ListAxioms
      * Derives a model to be used in read operations.
      * If the load nodes cache is enabled
      * the method returns a {@link SearchModel} - a facility to optimize read operations,
-     * otherwise this same {@link InternalReadModel} instance with no optimizations will be returned.
+     * otherwise this same {@link InternalReadGraphModel} instance with no optimizations will be returned.
      * A {@code SearchModel} contains a {@link Node}s cache inside and, therefore, may take up a lot of memory.
      *
      * @return {@link OntModel}
@@ -336,7 +336,7 @@ abstract class InternalReadModel extends OntGraphModelImpl implements ListAxioms
             @Override
             @Nonnull
             public ModelObjectFactory getObjectFactory() {
-                return InternalReadModel.this.getObjectFactory();
+                return InternalReadGraphModel.this.getObjectFactory();
             }
         };
     }
@@ -900,7 +900,7 @@ abstract class InternalReadModel extends OntGraphModelImpl implements ListAxioms
 
     @Override
     public String toString() {
-        return String.format("[%s]%s", InternalModel.class.getSimpleName(), getID());
+        return String.format("[%s]%s", InternalGraphModel.class.getSimpleName(), getID());
     }
 
     /**
@@ -967,7 +967,7 @@ abstract class InternalReadModel extends OntGraphModelImpl implements ListAxioms
      */
     protected ObjectMap<OWLObject> createComponentObjectMap(OWLComponentType type) {
         InternalConfig conf = getConfig();
-        Supplier<Iterator<ONTObject<OWLObject>>> loader = () -> InternalReadModel.this.listOWLObjects(type, conf);
+        Supplier<Iterator<ONTObject<OWLObject>>> loader = () -> InternalReadGraphModel.this.listOWLObjects(type, conf);
         if (!conf.useComponentCache()) {
             ObjectsSearcher<OWLObject> searcher = getEntitySearcher(type);
             if (searcher == null) {

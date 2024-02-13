@@ -19,7 +19,7 @@ import com.github.owlcs.ontapi.config.OntLoaderConfiguration;
 import com.github.owlcs.ontapi.config.OntWriterConfiguration;
 import com.github.owlcs.ontapi.internal.InternalCache;
 import com.github.owlcs.ontapi.internal.InternalConfig;
-import com.github.owlcs.ontapi.internal.InternalModel;
+import com.github.owlcs.ontapi.internal.InternalGraphModel;
 import com.github.sszuev.jena.ontapi.UnionGraph;
 import com.github.sszuev.jena.ontapi.model.OntModel;
 import com.github.sszuev.jena.ontapi.utils.Graphs;
@@ -1800,7 +1800,7 @@ public class OntologyManagerImpl
     protected void writeUsingOWLStore(Ontology ont,
                                       OWLDocumentFormat doc,
                                       OWLOntologyDocumentTarget target) throws OWLOntologyStorageException {
-        getAdapter().asBaseModel(ont).getInternalModel().clearCacheIfNeeded();
+        getAdapter().asBaseModel(ont).getGraphModel().clearCacheIfNeeded();
         try {
             for (OWLStorerFactory storer : getOntologyStorers()) {
                 OWLStorer writer = storer.createStorer();
@@ -1848,15 +1848,15 @@ public class OntologyManagerImpl
         this.iris = createIRICache();
         this.content.values().forEach(info -> {
             ModelConfig conf = info.getModelConfig();
-            BaseModel bm = getAdapter().asBaseModel(info.get());
+            OntBaseModel bm = getAdapter().asBaseModel(info.get());
             bm.setConfig(conf);
-            UnionGraph union = bm.getInternalModel().getUnionGraph();
+            UnionGraph union = bm.getGraphModel().getUnionGraph();
             Stream<UnionGraph> imports = Graphs.getImports(union).stream()
                     .map(s -> this.content.values()
                             .map(OntInfo::get)
-                            .map(BaseModel.class::cast)
-                            .map(BaseModel::getInternalModel)
-                            .map(InternalModel::getUnionGraph)
+                            .map(OntBaseModel.class::cast)
+                            .map(OntBaseModel::getGraphModel)
+                            .map(InternalGraphModel::getUnionGraph)
                             .filter(g -> Graphs.ontologyNode(g.getBaseGraph())
                                     .filter(Node::isURI)
                                     .map(Node::getURI)
@@ -1869,9 +1869,9 @@ public class OntologyManagerImpl
                     .filter(Objects::nonNull);
             imports.forEach(union::addSubGraph);
 
-            InternalModel internalModel = BaseModel.createInternalModel(union, conf.getSpecification(), conf,
+            InternalGraphModel internalModel = OntBaseModel.createInternalGraphModel(union, conf.getSpecification(), conf,
                     getOWLDataFactory(), conf.getManagerCaches());
-            bm.setInternalModel(internalModel);
+            bm.setGraphModel(internalModel);
         });
     }
 

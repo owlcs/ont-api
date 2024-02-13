@@ -14,7 +14,7 @@
 
 package com.github.owlcs.ontapi;
 
-import com.github.owlcs.ontapi.internal.InternalModel;
+import com.github.owlcs.ontapi.internal.InternalGraphModel;
 import com.github.owlcs.ontapi.owlapi.OWLObjectImpl;
 import com.github.sszuev.jena.ontapi.model.OntModel;
 import com.github.sszuev.jena.ontapi.utils.Graphs;
@@ -119,29 +119,29 @@ import java.util.stream.Stream;
  */
 @SuppressWarnings("WeakerAccess")
 @ParametersAreNonnullByDefault
-public abstract class OntBaseModelImpl implements OWLOntology, BaseModel {
+public abstract class OntBaseModelImpl implements OWLOntology, OntBaseModel {
     // binary format to provide serialization:
     public static final OntFormat DEFAULT_SERIALIZATION_FORMAT = OntFormat.RDF_THRIFT;
     private static final long serialVersionUID = 7605836729147058594L;
 
-    protected transient InternalModel base;
+    protected transient InternalGraphModel base;
     protected transient ModelConfig config;
 
     protected int hashCode;
 
     protected OntBaseModelImpl(Graph graph, ModelConfig conf) {
         this.config = Objects.requireNonNull(conf);
-        this.base = BaseModel.createInternalModel(graph, conf.getSpecification(), conf,
+        this.base = OntBaseModel.createInternalGraphModel(graph, conf.getSpecification(), conf,
                 conf.getManager().getOWLDataFactory(), conf.getManagerCaches());
     }
 
     @Override
-    public InternalModel getInternalModel() {
+    public InternalGraphModel getGraphModel() {
         return base;
     }
 
     @Override
-    public void setInternalModel(InternalModel m) {
+    public void setGraphModel(InternalGraphModel m) {
         this.base = Objects.requireNonNull(m);
     }
 
@@ -1188,7 +1188,7 @@ public abstract class OntBaseModelImpl implements OWLOntology, BaseModel {
         Graph base = GraphMemFactory.createDefaultGraph();
         RDFDataMgr.read(base, in, DEFAULT_SERIALIZATION_FORMAT.getLang());
         // set temporary model with default personality, it will be reset inside manager while its #readObject
-        setInternalModel(BaseModel.createInternalModel(base));
+        setGraphModel(OntBaseModel.createInternalGraphModel(base));
     }
 
     /**
@@ -1242,7 +1242,7 @@ public abstract class OntBaseModelImpl implements OWLOntology, BaseModel {
             return false;
         }
         OntModel right = ((Ontology) obj).asGraphModel();
-        OntModel left = getInternalModel();
+        OntModel left = getGraphModel();
         return left.id().filter(id -> right.id().filter(id::sameAs).isPresent()).isPresent();
     }
 }

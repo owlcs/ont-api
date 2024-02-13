@@ -78,7 +78,7 @@ import java.util.Set;
  * <p>
  * Created by @ssz on 26.10.2016.
  */
-public class InternalModelImpl extends InternalReadModel implements InternalModel {
+public class InternalGraphModelImpl extends InternalReadGraphModel implements InternalGraphModel {
 
     /**
      * The direct listener, it monitors changes that occur through the main (Jena) interface.
@@ -97,11 +97,11 @@ public class InternalModelImpl extends InternalReadModel implements InternalMode
      * @param fromManager {@code Map} or {@code null},
      *                    a possibility to share cache-data between different model instances
      */
-    public InternalModelImpl(Graph base,
-                             OntPersonality personality,
-                             InternalConfig config,
-                             DataFactory dataFactory,
-                             Map<Class<? extends OWLPrimitive>, InternalCache<?, ?>> fromManager) {
+    public InternalGraphModelImpl(Graph base,
+                                  OntPersonality personality,
+                                  InternalConfig config,
+                                  DataFactory dataFactory,
+                                  Map<Class<? extends OWLPrimitive>, InternalCache<?, ?>> fromManager) {
         super(base, personality, config, dataFactory, fromManager);
         this.directListener = createDirectListener();
         enableDirectListening();
@@ -306,12 +306,12 @@ public class InternalModelImpl extends InternalReadModel implements InternalMode
                         .filterKeep(x -> {
                             OWLObject obj = x.getOWLObject();
                             if (type != OWLTopObjectType.DECLARATION && container.equals(obj)) return false;
-                            if (InternalModelImpl.this.getContentCache(type).contains(obj)) {
+                            if (InternalGraphModelImpl.this.getContentCache(type).contains(obj)) {
                                 return true;
                             }
                             if (type == OWLTopObjectType.DECLARATION) {
                                 OWLEntity entity = ((OWLDeclarationAxiom) obj).getEntity();
-                                return InternalModelImpl.this.findUsedContentContainer(entity, obj).isPresent();
+                                return InternalGraphModelImpl.this.findUsedContentContainer(entity, obj).isPresent();
                             }
                             return false;
                         }))
@@ -358,12 +358,12 @@ public class InternalModelImpl extends InternalReadModel implements InternalMode
         u.addSubGraph(getGraph());
         class ObjectModel extends OntGraphModelImpl implements HasConfig, HasObjectFactory {
             public ObjectModel(Graph g) {
-                super(g, InternalModelImpl.this.getOntPersonality());
+                super(g, InternalGraphModelImpl.this.getOntPersonality());
             }
 
             @Override
             public OntID getID() {
-                return InternalModelImpl.this.getID().inModel(this).as(OntID.class);
+                return InternalGraphModelImpl.this.getID().inModel(this).as(OntID.class);
             }
 
             @Override
@@ -373,13 +373,13 @@ public class InternalModelImpl extends InternalReadModel implements InternalMode
 
             @Override
             public InternalConfig getConfig() {
-                return InternalModelImpl.this.getConfig();
+                return InternalGraphModelImpl.this.getConfig();
             }
 
             @Override
             @Nonnull
             public ModelObjectFactory getObjectFactory() {
-                return new InternalObjectFactory(InternalModelImpl.this.getDataFactory(), () -> ObjectModel.this);
+                return new InternalObjectFactory(InternalGraphModelImpl.this.getDataFactory(), () -> ObjectModel.this);
             }
         }
         return new ObjectModel(u);
@@ -401,7 +401,7 @@ public class InternalModelImpl extends InternalReadModel implements InternalMode
      * @return {@link Model}
      */
     @Override
-    public InternalModelImpl removeAll() {
+    public InternalGraphModelImpl removeAll() {
         clearCache();
         super.removeAll();
         return this;

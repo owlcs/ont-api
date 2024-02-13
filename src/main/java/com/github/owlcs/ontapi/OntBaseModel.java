@@ -16,8 +16,8 @@ package com.github.owlcs.ontapi;
 
 import com.github.owlcs.ontapi.internal.InternalCache;
 import com.github.owlcs.ontapi.internal.InternalConfig;
-import com.github.owlcs.ontapi.internal.InternalModel;
-import com.github.owlcs.ontapi.internal.InternalModelImpl;
+import com.github.owlcs.ontapi.internal.InternalGraphModel;
+import com.github.owlcs.ontapi.internal.InternalGraphModelImpl;
 import com.github.sszuev.jena.ontapi.OntSpecification;
 import com.github.sszuev.jena.ontapi.UnionGraph;
 import com.github.sszuev.jena.ontapi.impl.UnionGraphImpl;
@@ -30,31 +30,31 @@ import java.util.Map;
 
 /**
  * A technical interface-helper that serves as a bridge between {@link OntModel Jena RDF model} and
- * {@link org.semanticweb.owlapi.model.OWLOntology OWLAPI ontology} through the {@link InternalModel} on the one hand,
+ * {@link org.semanticweb.owlapi.model.OWLOntology OWLAPI ontology} through the {@link InternalGraphModel} on the one hand,
  * and between all these things and {@link org.semanticweb.owlapi.model.OWLOntologyManager OWLAPI manager}
  * through the {@link ModelConfig} on the other hand.
- * Also, it is a collection of factory-methods to produce various {@link InternalModel} instances.
+ * Also, it is a collection of factory-methods to produce various {@link InternalGraphModel} instances.
  * Note: this is an internal mechanism that can be changed at any time.
  * <p>
  * Created by @ssz on 07.04.2017.
  */
-public interface BaseModel {
+public interface OntBaseModel {
 
     /**
-     * Returns an encapsulated {@link InternalModel} instance -
+     * Returns an encapsulated {@link InternalGraphModel} instance -
      * the facility to work both with Jena and OWL-API objects simultaneously.
      *
-     * @return {@link InternalModel}
+     * @return {@link InternalGraphModel}
      */
-    InternalModel getInternalModel();
+    InternalGraphModel getGraphModel();
 
     /**
      * Sets new internals.
      * Not for public use: only Java Serialization mechanisms can explicitly call this method.
      *
-     * @param m {@link InternalModel}, not {@code null}
+     * @param m {@link InternalGraphModel}, not {@code null}
      */
-    void setInternalModel(InternalModel m);
+    void setGraphModel(InternalGraphModel m);
 
     /**
      * Returns a model config instance, that is a collection of settings and, also,
@@ -73,14 +73,14 @@ public interface BaseModel {
     void setConfig(ModelConfig conf);
 
     /**
-     * A factory method to create {@link InternalModel} instance with default settings.
+     * A factory method to create {@link InternalGraphModel} instance with default settings.
      * Can be used to provide a dummy instance for testing or debugging.
      *
      * @param graph {@link Graph}, not {@code null}
-     * @return {@link InternalModel}
+     * @return {@link InternalGraphModel}
      */
-    static InternalModel createInternalModel(Graph graph) {
-        return createInternalModel(graph,
+    static InternalGraphModel createInternalGraphModel(Graph graph) {
+        return createInternalGraphModel(graph,
                 OntSpecification.OWL2_FULL_MEM,
                 InternalConfig.DEFAULT,
                 OntManagers.getDataFactory(),
@@ -88,7 +88,7 @@ public interface BaseModel {
     }
 
     /**
-     * A primary factory method to create fresh {@link InternalModel}.
+     * A primary factory method to create fresh {@link InternalGraphModel}.
      *
      * @param graph         {@link Graph}, not {@code null}, a base data-store
      * @param specification {@link OntSpecification}, not {@code null}
@@ -97,13 +97,13 @@ public interface BaseModel {
      * @param caches        a {@code Map} with {@link OWLPrimitive} class-types as keys
      *                      and manager-wide {@link InternalCache}s as values
      *                      to enable data sharing between different ontologies
-     * @return {@link InternalModel}
+     * @return {@link InternalGraphModel}
      */
-    static InternalModel createInternalModel(Graph graph,
-                                             OntSpecification specification,
-                                             InternalConfig config,
-                                             DataFactory dataFactory,
-                                             Map<Class<? extends OWLPrimitive>, InternalCache<?, ?>> caches) {
+    static InternalGraphModel createInternalGraphModel(Graph graph,
+                                                       OntSpecification specification,
+                                                       InternalConfig config,
+                                                       DataFactory dataFactory,
+                                                       Map<Class<? extends OWLPrimitive>, InternalCache<?, ?>> caches) {
         OntApiException.notNull(graph, "Null graph.");
         OntApiException.notNull(config, "Null config.");
         OntApiException.notNull(dataFactory, "Null data-factory");
@@ -115,7 +115,7 @@ public interface BaseModel {
         if (reasonerFactory != null) {
             graph = reasonerFactory.create(null).bind(graph);
         }
-        return new InternalModelImpl(graph, specification.getPersonality(), config, dataFactory, caches);
+        return new InternalGraphModelImpl(graph, specification.getPersonality(), config, dataFactory, caches);
     }
 
 }

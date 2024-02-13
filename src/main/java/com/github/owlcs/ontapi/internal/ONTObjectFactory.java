@@ -67,7 +67,7 @@ import java.util.Map;
  * An Internal Object Factory, which is responsible for mapping
  * {@link OntObject} =&gt; {@link OWLObject} and
  * for creating {@link ONTObject ONTObject}s.
- * Used by the {@link InternalModel} while read objects from the graph.
+ * Used by the {@link InternalGraphModel} while read objects from the graph.
  * It is a functional analogue of {@code uk.ac.manchester.cs.owl.owlapi.OWLDataFactoryInternals}.
  * <p>
  * Created by @ssz on 14.03.2018.

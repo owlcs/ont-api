@@ -48,7 +48,7 @@ import java.util.stream.Stream;
  * <p>
  * Created by @ssz on 24.05.2020.
  */
-public interface InternalModel extends OntModel, OntEnhGraph, HasOntologyID, ListAxioms {
+public interface InternalGraphModel extends OntModel, OntEnhGraph, HasOntologyID, ListAxioms {
 
     /**
      * Answers the {@link UnionGraph} which this Model is presenting.
@@ -86,7 +86,7 @@ public interface InternalModel extends OntModel, OntEnhGraph, HasOntologyID, Lis
      * Gets all ontology header annotations.
      *
      * @return a {@code Stream} of {@link OWLAnnotation}
-     * @see InternalModel#listOWLAxioms()
+     * @see InternalGraphModel#listOWLAxioms()
      */
     Stream<OWLAnnotation> listOWLAnnotations();
 

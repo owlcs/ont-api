@@ -37,7 +37,7 @@ import java.util.stream.Stream;
 /**
  * The base abstract class that intended to perform Axiom Graph Translator (operator {@code T}) in both directions:
  * for reading and writing.
- * It is designed to work with any {@link OntModel}, but it is optimized to use {@link InternalModel}.
+ * It is designed to work with any {@link OntModel}, but it is optimized to use {@link InternalGraphModel}.
  * See the specification about operator {@code T} and about annotations translation (operator 'TANN'):
  * <a href="https://www.w3.org/TR/owl2-mapping-to-rdf/#Mapping_from_the_Structural_Specification_to_RDF_Graphs">2.1 Translation of Axioms without Annotations</a>,
  * <a href="https://www.w3.org/TR/owl2-mapping-to-rdf/#Axioms_that_are_Translated_to_Multiple_Triples">2.3.2 Axioms that are Translated to Multiple Triples</a>.

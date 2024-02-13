@@ -14,13 +14,13 @@
 
 package com.github.owlcs.ontapi.tests.internal;
 
-import com.github.owlcs.ontapi.BaseModel;
+import com.github.owlcs.ontapi.OntBaseModel;
 import com.github.owlcs.ontapi.OntFormat;
 import com.github.owlcs.ontapi.OntManagers;
 import com.github.owlcs.ontapi.TestOntSpecifications;
 import com.github.owlcs.ontapi.internal.AxiomTranslator;
 import com.github.owlcs.ontapi.internal.InternalConfig;
-import com.github.owlcs.ontapi.internal.InternalModel;
+import com.github.owlcs.ontapi.internal.InternalGraphModel;
 import com.github.owlcs.ontapi.internal.ONTObject;
 import com.github.owlcs.ontapi.testutils.MiscTestUtils;
 import com.github.owlcs.ontapi.testutils.OWLIOUtils;
@@ -72,8 +72,8 @@ import java.util.stream.Stream;
  * <p>
  * Created by @ssz on 27.11.2016.
  */
-public class InternalModelTest {
-    private static final Logger LOGGER = LoggerFactory.getLogger(InternalModelTest.class);
+public class InternalGraphModelTest {
+    private static final Logger LOGGER = LoggerFactory.getLogger(InternalGraphModelTest.class);
 
     @Test
     public void testSimpleAxiomTranslator() {
@@ -114,7 +114,7 @@ public class InternalModelTest {
     public void testOntologyAnnotations() {
         OWLDataFactory factory = OntManagers.getDataFactory();
 
-        InternalModel model = BaseModel.createInternalModel(OWLIOUtils.loadResourceAsModel("/ontapi/pizza.ttl", Lang.TURTLE).getGraph());
+        InternalGraphModel model = OntBaseModel.createInternalGraphModel(OWLIOUtils.loadResourceAsModel("/ontapi/pizza.ttl", Lang.TURTLE).getGraph());
 
         Set<OWLAnnotation> annotations = model.listOWLAnnotations().collect(Collectors.toSet());
         annotations.forEach(x -> LOGGER.debug("{}", x));
@@ -162,7 +162,7 @@ public class InternalModelTest {
         OWLDataFactory factory = OntManagers.getDataFactory();
 
         OWLOntology owl = loadOWLOntology(file);
-        InternalModel jena = loadInternalModel(file, format);
+        InternalGraphModel jena = loadInternalModel(file, format);
         debugPrint(jena, owl);
 
         test(OWLClass.class, jena.listOWLClasses(), owl.classesInSignature());
@@ -224,7 +224,7 @@ public class InternalModelTest {
 
     private void testEntities(String file, OntFormat format) {
         OWLOntology owl = loadOWLOntology(file);
-        InternalModel jena = loadInternalModel(file, format);
+        InternalGraphModel jena = loadInternalModel(file, format);
         debugPrint(jena, owl);
         test(OWLClass.class, jena.listOWLClasses(), owl.classesInSignature());
         test(OWLDatatype.class, jena.listOWLDatatypes(), owl.datatypesInSignature());
@@ -235,7 +235,7 @@ public class InternalModelTest {
         test(OWLDataProperty.class, jena.listOWLDataProperties(), owl.dataPropertiesInSignature());
     }
 
-    private void debugPrint(InternalModel jena, OWLOntology owl) {
+    private void debugPrint(InternalGraphModel jena, OWLOntology owl) {
         OWLIOUtils.print(owl);
         LOGGER.debug("==============================");
         OWLIOUtils.print(jena);
@@ -261,11 +261,11 @@ public class InternalModelTest {
         return OWLIOUtils.loadOWLOntology(manager, IRI.create(fileURI));
     }
 
-    private InternalModel loadInternalModel(String file, OntFormat format) {
+    private InternalGraphModel loadInternalModel(String file, OntFormat format) {
         LOGGER.debug("Load jena model from {}", file);
         Model init = OWLIOUtils.loadResourceAsModel(file, Objects.requireNonNull(format.getLang()));
         Graph graph = GraphTransformers.convert(init.getGraph());
-        return BaseModel.createInternalModel(graph,
+        return OntBaseModel.createInternalGraphModel(graph,
                 TestOntSpecifications.OWL2_DL_WEAK_NO_INF,
                 InternalConfig.DEFAULT,
                 OntManagers.getDataFactory(),

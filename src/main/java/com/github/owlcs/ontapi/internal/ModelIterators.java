@@ -26,7 +26,7 @@ import java.util.stream.Stream;
 
 /**
  * Helper; a collection of auxiliary methods to work with {@link ExtendedIterator}s and {@code Stream}s
- * in the context of {@link InternalModel}.
+ * in the context of {@link InternalGraphModel}.
  * <p>
  * In case of {@link InternalConfig#parallel()} is {@code true}
  * any stream\iterator providing by the model should have immutable base, in other words they cannot be try-lazy,

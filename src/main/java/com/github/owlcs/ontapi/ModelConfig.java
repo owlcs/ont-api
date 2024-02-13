@@ -18,7 +18,6 @@ import com.github.owlcs.ontapi.config.OntLoaderConfiguration;
 import com.github.owlcs.ontapi.config.OntWriterConfiguration;
 import com.github.owlcs.ontapi.internal.InternalCache;
 import com.github.owlcs.ontapi.internal.InternalConfig;
-import com.github.owlcs.ontapi.internal.InternalModelImpl;
 import com.github.sszuev.jena.ontapi.OntSpecification;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLOntologyLoaderConfiguration;
@@ -34,7 +33,6 @@ import java.util.stream.Stream;
 /**
  * An implementation of {@link InternalConfig} with a reference to a manager,
  * which is necessary to provide access to its settings (loader and writer configurations).
- * Also, it is a facility to create {@link InternalModelImpl} instance that gets this config and all its links implicitly.
  *
  * @see OWLOntologyLoaderConfiguration
  * @see OWLOntologyWriterConfiguration

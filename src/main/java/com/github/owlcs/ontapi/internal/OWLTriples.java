@@ -30,7 +30,7 @@ import java.util.stream.Stream;
 /**
  * An {@link ONTObject} implementation that holds triples in memory.
  * Used while adding the content container ({@code OWLAxiom} or {@code OWLAnnotation})
- * into the {@link InternalModel} cache.
+ * into the {@link InternalGraphModel} cache.
  *
  * @param <V> any subtype of {@link OWLObject}
  */

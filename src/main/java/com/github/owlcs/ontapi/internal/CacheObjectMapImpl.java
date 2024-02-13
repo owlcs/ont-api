@@ -37,7 +37,7 @@ import java.util.stream.Stream;
  * It is logically based on the {@link ONTObject} container,
  * that is a wrapper around classic {@link OWLObject OWL-API Object}
  * but with a possibility to get all associated {@link Triple Jena RDF Triple}s.
- * In the {@link InternalModel Internal Model}
+ * In the {@link InternalGraphModel Internal Model}
  * instances of this class are used as indivisible buckets per axiom/object type.
  * <p>
  * Created by @ssz on 09.03.2019.

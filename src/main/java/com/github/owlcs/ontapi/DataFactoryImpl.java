@@ -148,7 +148,7 @@ import static com.github.owlcs.ontapi.owlapi.InternalizedEntities.TRUE_LITERAL;
  * <li>Jena RDF-Graph is a primary essence in ONT-API, all information should be kept and remain in the very graph,
  *  and any literal string compression should be implemented on the graph-level (or even JVM level - it java 9 is used),
  *  if it is required, but not in this OWLDataFactory.</li>
- * <li>The cache is present in ONT-API model implementation (see {@link com.github.owlcs.ontapi.internal.InternalModel}),
+ * <li>The cache is present in ONT-API model implementation (see {@link com.github.owlcs.ontapi.internal.InternalGraphModel}),
  * the original global caches from the OWL-API-impl seems to be superfluous here.</li>
  * </ul>
  * <p>
