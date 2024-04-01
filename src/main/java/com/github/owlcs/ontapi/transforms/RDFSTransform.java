@@ -14,7 +14,7 @@
 
 package com.github.owlcs.ontapi.transforms;
 
-import com.github.sszuev.jena.ontapi.OntVocabulary;
+import com.github.sszuev.jena.ontapi.common.OntVocabulary;
 import com.github.sszuev.jena.ontapi.vocabulary.OWL;
 import com.github.sszuev.jena.ontapi.vocabulary.RDF;
 import org.apache.jena.graph.Graph;
@@ -55,7 +55,7 @@ public class RDFSTransform extends TransformationModel {
     protected final boolean useAnnotationPropertyInUnclearCase;
 
     public RDFSTransform(Graph graph) {
-        this(graph, OntVocabulary.Factory.OWL2_DC_SKOS_SWRL_VOCABULARY, true);
+        this(graph, OntVocabulary.OWL2_FULL.and(OntVocabulary.DC).and(OntVocabulary.SKOS).and(OntVocabulary.SWRL), true);
     }
 
     public RDFSTransform(Graph graph,

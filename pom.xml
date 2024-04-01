@@ -36,20 +36,20 @@
         <!--https://mvnrepository.com/artifact/net.sourceforge.owlapi/owlapi-api-->
         <version.owlapi>5.5.0</version.owlapi>
         <!--https://mvnrepository.com/artifact/org.slf4j/slf4j-api-->
-        <version.slf4j>2.0.11</version.slf4j>
+        <version.slf4j>2.0.12</version.slf4j>
         <!--https://mvnrepository.com/artifact/com.github.ben-manes.caffeine/caffeine-->
         <version.caffeine>3.1.8</version.caffeine>
         <!--https://jitpack.io/#sszuev/concurrent-rdf-graph-->
         <version.concurrent-rdf-graph>1.0.0</version.concurrent-rdf-graph>
         <!--https://jitpack.io/#sszuev/jena-owl2-->
-        <version.jena-owl2>0.2-SNAPSHOT</version.jena-owl2>
+        <version.jena-owl2>0.3.1-SNAPSHOT</version.jena-owl2>
         <!--https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-->
-        <version.junit>5.10.1</version.junit>
+        <version.junit>5.10.2</version.junit>
         <!--https://mvnrepository.com/artifact/org.mockito/mockito-core-->
-        <versio.mockito>5.10.0</versio.mockito>
+        <versio.mockito>5.11.0</versio.mockito>
 
         <!--https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-gpg-plugin-->
-        <version.maven-gpg-plugin>3.1.0</version.maven-gpg-plugin>
+        <version.maven-gpg-plugin>3.2.2</version.maven-gpg-plugin>
         <!--https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-source-plugin-->
         <version.maven-source-plugin>3.3.0</version.maven-source-plugin>
         <!--https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-javadoc-plugin-->
@@ -57,7 +57,7 @@
         <!--https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-jar-plugin-->
         <version.maven-jar-plugin>3.3.0</version.maven-jar-plugin>
         <!--https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-compiler-plugin-->
-        <version.maven-compiler-plugin>3.12.1</version.maven-compiler-plugin>
+        <version.maven-compiler-plugin>3.13.0</version.maven-compiler-plugin>
         <!--https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-surefire-plugin-->
         <version.maven-surefire-plugin>3.2.5</version.maven-surefire-plugin>
     </properties>

@@ -23,12 +23,13 @@ import com.github.sszuev.jena.ontapi.model.OntClass;
 import com.github.sszuev.jena.ontapi.model.OntModel;
 import com.github.sszuev.jena.ontapi.vocabulary.OWL;
 import com.github.sszuev.jena.ontapi.vocabulary.RDF;
-import org.apache.jena.graph.Factory;
 import org.apache.jena.graph.Graph;
+import org.apache.jena.graph.GraphMemFactory;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.shared.PrefixMapping;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.slf4j.Logger;
@@ -143,6 +144,7 @@ public class RWLockedGraphTest {
         return OWLIOUtils.loadResourceAsModel("/ontapi/pizza.ttl", Lang.TURTLE).getGraph();
     }
 
+    @Timeout(60 * 1000L)
     @Test
     public void testRaceModifyAndList() throws Exception {
         Graph g = loadPizza();
@@ -154,9 +156,10 @@ public class RWLockedGraphTest {
         LOGGER.debug("Duration: {}", Duration.between(s, e));
     }
 
+    @Timeout(60 * 1000L)
     @Test
     public void testConcurrentPrefixes() throws ExecutionException, InterruptedException {
-        PrefixMapping pm = new ReadWriteLockingGraph(Factory.createGraphMem(), new ReentrantReadWriteLock()).getPrefixMapping();
+        PrefixMapping pm = new ReadWriteLockingGraph(GraphMemFactory.createGraphMem(), new ReentrantReadWriteLock()).getPrefixMapping();
         ExecutorService service = Executors.newScheduledThreadPool(3);
         List<Future<?>> res = new ArrayList<>();
         for (int i = 0; i < THREADS_NUM_1; i++) {

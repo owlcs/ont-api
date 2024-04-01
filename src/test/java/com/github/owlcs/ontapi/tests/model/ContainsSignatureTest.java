@@ -17,7 +17,7 @@ package com.github.owlcs.ontapi.tests.model;
 import com.github.owlcs.ontapi.CommonOntologies;
 import com.github.owlcs.ontapi.OntManagers;
 import com.github.owlcs.ontapi.testutils.OWLEntityUtils;
-import com.github.sszuev.jena.ontapi.OntVocabulary;
+import com.github.sszuev.jena.ontapi.common.OntVocabulary;
 import com.github.sszuev.jena.ontapi.vocabulary.XSD;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.jena.rdf.model.Resource;
@@ -51,7 +51,8 @@ public class ContainsSignatureTest {
 
     protected static Map<String, Boolean> createTestEntities(OWLOntology o, Class<? extends OWLEntity> type) {
         Map<String, Boolean> res = collectEntities(o, type);
-        OntVocabulary.Factory.OWL2_DC_SKOS_SWRL_VOCABULARY.get(OWLEntityUtils.getResourceType(type)).stream().map(Resource::getURI)
+        OntVocabulary.OWL2_FULL.and(OntVocabulary.DC).and(OntVocabulary.SKOS).and(OntVocabulary.SWRL)
+                .get(OWLEntityUtils.getResourceType(type)).stream().map(Resource::getURI)
                 .forEach(s -> res.putIfAbsent(s, Boolean.FALSE));
         res.put("http://" + RandomStringUtils.randomAlphanumeric(4) + ".xxx", Boolean.FALSE);
         return res;

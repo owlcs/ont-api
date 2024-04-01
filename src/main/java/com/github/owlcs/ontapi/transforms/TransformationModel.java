@@ -17,8 +17,8 @@ package com.github.owlcs.ontapi.transforms;
 import com.github.owlcs.ontapi.OntGraphUtils;
 import com.github.owlcs.ontapi.OntologyManager;
 import com.github.owlcs.ontapi.UnionGraphConnector;
-import com.github.sszuev.jena.ontapi.OntVocabulary;
 import com.github.sszuev.jena.ontapi.UnionGraph;
+import com.github.sszuev.jena.ontapi.common.OntVocabulary;
 import com.github.sszuev.jena.ontapi.utils.Iterators;
 import com.github.sszuev.jena.ontapi.vocabulary.RDF;
 import org.apache.jena.graph.Graph;
@@ -68,7 +68,7 @@ public abstract class TransformationModel {
      * @param graph {@link Graph}, not {@code null}
      */
     public TransformationModel(Graph graph) {
-        this(graph, OntVocabulary.Factory.OWL2_DC_SKOS_SWRL_VOCABULARY);
+        this(graph, OntVocabulary.OWL2_FULL.and(OntVocabulary.DC).and(OntVocabulary.SKOS).and(OntVocabulary.SWRL));
     }
 
     /**

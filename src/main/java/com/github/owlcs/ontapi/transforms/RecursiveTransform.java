@@ -15,7 +15,7 @@
 package com.github.owlcs.ontapi.transforms;
 
 import com.github.owlcs.ontapi.transforms.vocabulary.ONTAPI;
-import com.github.sszuev.jena.ontapi.OntVocabulary;
+import com.github.sszuev.jena.ontapi.common.OntVocabulary;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
@@ -57,11 +57,11 @@ public class RecursiveTransform extends TransformationModel {
      * The main constructor.
      *
      * @param graph            the {@link Graph} to process
-     * @param replace          if true recursive b-nodes would be replaced with named nodes, otherwise they would be deleted
+     * @param replace          if true recursive b-nodes are replaced with named nodes, otherwise they would be deleted
      * @param startWithSubject if true starts search subjects first, otherwise - objects.
      */
     public RecursiveTransform(Graph graph, boolean replace, boolean startWithSubject) {
-        super(graph, OntVocabulary.Factory.EMPTY_VOCABULARY);
+        super(graph, OntVocabulary.EMPTY);
         this.replace = replace;
         this.subject = startWithSubject;
     }

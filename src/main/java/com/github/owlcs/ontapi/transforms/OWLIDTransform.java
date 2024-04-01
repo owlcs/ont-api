@@ -14,7 +14,7 @@
 
 package com.github.owlcs.ontapi.transforms;
 
-import com.github.sszuev.jena.ontapi.OntVocabulary;
+import com.github.sszuev.jena.ontapi.common.OntVocabulary;
 import com.github.sszuev.jena.ontapi.utils.Graphs;
 import com.github.sszuev.jena.ontapi.utils.Iterators;
 import com.github.sszuev.jena.ontapi.vocabulary.OWL;
@@ -37,7 +37,7 @@ import java.util.stream.Collectors;
 public class OWLIDTransform extends TransformationModel {
 
     public OWLIDTransform(Graph graph) {
-        super(graph, OntVocabulary.Factory.EMPTY_VOCABULARY);
+        super(graph, OntVocabulary.EMPTY);
     }
 
     @Override

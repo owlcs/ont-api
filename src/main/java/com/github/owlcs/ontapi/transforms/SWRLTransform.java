@@ -14,7 +14,7 @@
 
 package com.github.owlcs.ontapi.transforms;
 
-import com.github.sszuev.jena.ontapi.OntVocabulary;
+import com.github.sszuev.jena.ontapi.common.OntVocabulary;
 import com.github.sszuev.jena.ontapi.utils.Iterators;
 import com.github.sszuev.jena.ontapi.utils.StdModels;
 import com.github.sszuev.jena.ontapi.vocabulary.RDF;
@@ -47,7 +47,7 @@ public class SWRLTransform extends TransformationModel {
     protected final Set<Statement> unparsed = new HashSet<>();
 
     public SWRLTransform(Graph graph) {
-        super(graph, OntVocabulary.Factory.OWL2_DC_SKOS_SWRL_VOCABULARY);
+        super(graph, OntVocabulary.OWL2_FULL.and(OntVocabulary.DC).and(OntVocabulary.SKOS).and(OntVocabulary.SWRL));
     }
 
     @Override

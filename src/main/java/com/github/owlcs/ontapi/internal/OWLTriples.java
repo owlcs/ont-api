@@ -82,7 +82,9 @@ public class OWLTriples<V extends OWLObject> extends ONTWrapperImpl<V> {
 
         @Override
         protected void deleteTripleEvent(Graph g, Triple t) {
-            LOGGER.warn("Suspicious deleting: {}", t);
+            if (LOGGER.isWarnEnabled()) {
+                LOGGER.warn("Suspicious deleting: {}", t);
+            }
             triples.remove(t);
         }
 
