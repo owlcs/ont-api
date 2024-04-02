@@ -15,6 +15,8 @@ For more info about the library see the project [wiki](https://github.com/owlcs/
 
 - **[Apache Jena](https://github.com/apache/jena)** (**4.x.x**)
 - **[OWL-API](https://github.com/owlcs/owlapi)** (**5.x.x**)
+- **[concurrent-rdf-graph](https://github.com/sszuev/concurrent-rdf-graph)** (jitpack)
+- **[jena-owl2](https://github.com/sszuev/jena-owl2)** (jitpack)
 
 ## Requirements
 
@@ -30,24 +32,57 @@ For more info about the library see the project [wiki](https://github.com/owlcs/
 ```java
 import com.github.owlcs.ontapi.OntManagers;
 import com.github.owlcs.ontapi.Ontology;
-import vocabulary.com.github.sszuev.jena.ontapi.OWL;
-import org.apache.jena.rdf.model.Model;
+import com.github.owlcs.ontapi.OntologyManager;
+import com.github.sszuev.jena.ontapi.OntSpecification;
+import com.github.sszuev.jena.ontapi.model.OntModel;
+import com.github.sszuev.jena.ontapi.vocabulary.OWL;
+import org.apache.jena.query.QueryExecution;
+import org.apache.jena.query.QueryExecutionFactory;
+import org.apache.jena.query.QueryFactory;
+import org.apache.jena.query.ResultSet;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLDataFactory;
 
 public class Examples {
     public static void main(String... args) {
-        String iri = "http://example.com";
+        String iri = "https://github.com/owlcs/ont-api";
+
         OWLDataFactory df = OntManagers.getDataFactory();
+        OntologyManager om = OntManagers.createManager();
 
-        Ontology owl = OntManagers.createManager().createOntology(IRI.create(iri));
-        owl.addAxiom(df.getOWLDeclarationAxiom(df.getOWLClass(iri + "#Class1")));
+        // set ontology specification, see jena-owl2 for more details
+        om.getOntologyConfigurator().setSpecification(OntSpecification.OWL2_EL_MEM_RULES_INF);
 
-        Model jena = owl.asGraphModel();
+        // create OWLAPI impl
+        Ontology owlapi = om.createOntology(IRI.create(iri));
+        // add OWL class declaration
+        owlapi.addAxiom(df.getOWLDeclarationAxiom(df.getOWLClass(iri + "#Class1")));
+
+        // view as Jena impl
+        OntModel jena = owlapi.asGraphModel();
+        // add OWL class declaration
         jena.createResource(iri + "#Class2", OWL.Class);
 
-        owl.axioms().forEach(System.out::println);
+        // lists axioms (finds axioms from base graph, inferred by Jena Reasoner are not included)
+        owlapi.axioms().forEach(System.out::println);
+
+        // and print to stdout in turtle format
         jena.write(System.out, "ttl");
+
+        // play with InfModel representation
+        System.out.println(jena.asInferenceModel().validate().isValid());
+
+        // SPARQL (finds all statements including inferred ones)
+        try (QueryExecution exec = QueryExecutionFactory.create(
+                QueryFactory.create(
+                        "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n" +
+                                "SELECT ?s ?o WHERE { ?s a ?o }"
+                ), jena)) {
+            ResultSet res = exec.execSelect();
+            while (res.hasNext()) {
+                System.out.println(res.next());
+            }
+        }
     }
 }
 ```
