@@ -23,7 +23,6 @@ import org.apache.commons.io.IOUtils;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.riot.Lang;
-import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Assertions;
 import org.semanticweb.owlapi.formats.TurtleDocumentFormat;
 import org.semanticweb.owlapi.io.FileDocumentSource;
@@ -221,7 +220,7 @@ public class OWLIOUtils {
     public static Writer nullWriter(Runnable onClose) {
         return new Writer() {
             @Override
-            public void write(@NotNull char[] cbuf, int off, int len) {
+            public void write(char[] cbuf, int off, int len) {
             }
 
             @Override
