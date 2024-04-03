@@ -20,7 +20,7 @@
 
     <groupId>com.github.owlcs</groupId>
     <artifactId>ontapi</artifactId>
-    <version>3.5.0-SNAPSHOT</version>
+    <version>3.5.0</version>
 
     <name>${project.groupId}:${project.artifactId}</name>
     <description>ONT-API is an RDF-centric library to work with OWL</description>
@@ -57,7 +57,7 @@
         <!--https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-jar-plugin-->
         <version.maven-jar-plugin>3.3.0</version.maven-jar-plugin>
         <!--https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-compiler-plugin-->
-        <version.maven-compiler-plugin>3.13.0</version.maven-compiler-plugin>
+        <version.maven-compiler-plugin>3.12.1</version.maven-compiler-plugin>
         <!--https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-surefire-plugin-->
         <version.maven-surefire-plugin>3.2.5</version.maven-surefire-plugin>
     </properties>
