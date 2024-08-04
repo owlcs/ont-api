@@ -15,13 +15,13 @@
 package com.github.owlcs.ontapi;
 
 import com.github.owlcs.ontapi.internal.InternalGraphModel;
-import com.github.sszuev.jena.ontapi.UnionGraph;
-import com.github.sszuev.jena.ontapi.common.OntPersonality;
-import com.github.sszuev.jena.ontapi.impl.OntGraphModelImpl;
-import com.github.sszuev.jena.ontapi.model.OntModel;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import org.apache.jena.graph.Graph;
+import org.apache.jena.ontapi.UnionGraph;
+import org.apache.jena.ontapi.common.OntPersonality;
+import org.apache.jena.ontapi.impl.OntGraphModelImpl;
+import org.apache.jena.ontapi.model.OntModel;
 import org.semanticweb.owlapi.model.AddAxiom;
 import org.semanticweb.owlapi.model.AddImport;
 import org.semanticweb.owlapi.model.AddOntologyAnnotation;
@@ -38,6 +38,7 @@ import org.semanticweb.owlapi.model.RemoveOntologyAnnotation;
 import org.semanticweb.owlapi.model.SetOntologyID;
 import org.semanticweb.owlapi.model.parameters.ChangeApplied;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Optional;
@@ -58,6 +59,7 @@ import java.util.stream.Stream;
 @SuppressWarnings("WeakerAccess")
 public class OntologyModelImpl extends OntBaseModelImpl implements Ontology, OWLMutableOntology {
 
+    @Serial
     private static final long serialVersionUID = -2882895355499914294L;
     protected final OWLOntologyChangeVisitorEx<ChangeApplied> changer;
 
@@ -111,6 +113,7 @@ public class OntologyModelImpl extends OntBaseModelImpl implements Ontology, OWL
      */
     protected class ChangeProcessor implements OWLOntologyChangeVisitorEx<ChangeApplied>, HasAdapter, Serializable {
 
+        @Serial
         private static final long serialVersionUID = 1150135725506037485L;
 
         @Override
@@ -259,6 +262,7 @@ public class OntologyModelImpl extends OntBaseModelImpl implements Ontology, OWL
     @SuppressWarnings("WeakerAccess")
     public static class Concurrent extends OWLOntologyWrapper implements Ontology, OntBaseModel {
 
+        @Serial
         private static final long serialVersionUID = 5823394836022970162L;
 
         protected Concurrent(OntologyModelImpl delegate, ReadWriteLock lock) {

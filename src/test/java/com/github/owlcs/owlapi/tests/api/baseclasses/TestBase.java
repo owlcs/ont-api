@@ -142,7 +142,9 @@ public abstract class TestBase {
         if (!ont1.isAnonymous() && !ont2.isAnonymous()) {
             Assertions.assertEquals(ont1.getOntologyID(), ont2.getOntologyID(), "Ontologies supposed to be the same");
         }
-        Assertions.assertEquals(OWLAPIStreamUtils.asSet(ont1.annotations()), OWLAPIStreamUtils.asSet(ont2.annotations()));
+        Set<OWLAnnotation> expectedAnnotations = OWLAPIStreamUtils.asSet(ont1.annotations());
+        Set<OWLAnnotation> actualAnnotations = OWLAPIStreamUtils.asSet(ont2.annotations());
+        Assertions.assertEquals(expectedAnnotations, actualAnnotations);
         Set<OWLAxiom> axioms1;
         Set<OWLAxiom> axioms2;
         // This isn't great - we normalise axioms by changing the ids of
@@ -206,8 +208,7 @@ public abstract class TestBase {
         // remove axioms that differ only because of n-ary equivalence axioms
         // http://www.w3.org/TR/owl2-mapping-to-rdf/#Axioms_that_are_Translated_to_Multiple_Triples
         for (OWLAxiom ax : new ArrayList<>(axioms1)) {
-            if (ax instanceof OWLEquivalentClassesAxiom) {
-                OWLEquivalentClassesAxiom ax2 = (OWLEquivalentClassesAxiom) ax;
+            if (ax instanceof OWLEquivalentClassesAxiom ax2) {
                 if (ax2.classExpressions().count() > 2) {
                     Collection<OWLEquivalentClassesAxiom> pairs = ax2.splitToAnnotatedPairs();
                     if (removeIfContainsAll(axioms2, pairs, destination)) {
@@ -215,8 +216,7 @@ public abstract class TestBase {
                         axioms2.removeAll(pairs);
                     }
                 }
-            } else if (ax instanceof OWLEquivalentDataPropertiesAxiom) {
-                OWLEquivalentDataPropertiesAxiom ax2 = (OWLEquivalentDataPropertiesAxiom) ax;
+            } else if (ax instanceof OWLEquivalentDataPropertiesAxiom ax2) {
                 if (ax2.properties().count() > 2) {
                     Collection<OWLEquivalentDataPropertiesAxiom> pairs = ax2.splitToAnnotatedPairs();
                     if (removeIfContainsAll(axioms2, pairs, destination)) {
@@ -224,8 +224,7 @@ public abstract class TestBase {
                         axioms2.removeAll(pairs);
                     }
                 }
-            } else if (ax instanceof OWLEquivalentObjectPropertiesAxiom) {
-                OWLEquivalentObjectPropertiesAxiom ax2 = (OWLEquivalentObjectPropertiesAxiom) ax;
+            } else if (ax instanceof OWLEquivalentObjectPropertiesAxiom ax2) {
                 if (ax2.properties().count() > 2) {
                     Collection<OWLEquivalentObjectPropertiesAxiom> pairs = ax2.splitToAnnotatedPairs();
                     if (removeIfContainsAll(axioms2, pairs, destination)) {
@@ -277,7 +276,7 @@ public abstract class TestBase {
      * @return true if the axiom can be ignored
      */
     private static boolean isIgnorableAxiom(OWLAxiom ax, boolean parse) {
-        if (!(ax instanceof OWLDeclarationAxiom)) {
+        if (!(ax instanceof OWLDeclarationAxiom d)) {
             return false;
         }
         if (parse) {
@@ -285,7 +284,6 @@ public abstract class TestBase {
             return true;
         }
         // declarations of builtin and named individuals can be ignored
-        OWLDeclarationAxiom d = (OWLDeclarationAxiom) ax;
         return d.getEntity().isBuiltIn() || d.getEntity().isOWLNamedIndividual();
     }
 

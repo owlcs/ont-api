@@ -14,19 +14,19 @@
 
 package com.github.owlcs.ontapi.internal;
 
+import com.github.owlcs.ontapi.BlankNodeId;
 import com.github.owlcs.ontapi.OntApiException;
-import com.github.sszuev.jena.ontapi.model.OntAnnotationProperty;
-import com.github.sszuev.jena.ontapi.model.OntClass;
-import com.github.sszuev.jena.ontapi.model.OntDataProperty;
-import com.github.sszuev.jena.ontapi.model.OntDataRange;
-import com.github.sszuev.jena.ontapi.model.OntEntity;
-import com.github.sszuev.jena.ontapi.model.OntIndividual;
-import com.github.sszuev.jena.ontapi.model.OntModel;
-import com.github.sszuev.jena.ontapi.model.OntObjectProperty;
-import com.github.sszuev.jena.ontapi.model.OntSWRL;
-import org.apache.jena.graph.BlankNodeId;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.impl.LiteralLabel;
+import org.apache.jena.ontapi.model.OntAnnotationProperty;
+import org.apache.jena.ontapi.model.OntClass;
+import org.apache.jena.ontapi.model.OntDataProperty;
+import org.apache.jena.ontapi.model.OntDataRange;
+import org.apache.jena.ontapi.model.OntEntity;
+import org.apache.jena.ontapi.model.OntIndividual;
+import org.apache.jena.ontapi.model.OntModel;
+import org.apache.jena.ontapi.model.OntObjectProperty;
+import org.apache.jena.ontapi.model.OntSWRL;
 import org.apache.jena.rdf.model.Literal;
 import org.semanticweb.owlapi.model.OWLAnnotationProperty;
 import org.semanticweb.owlapi.model.OWLAnonymousIndividual;
@@ -90,7 +90,7 @@ public interface ModelObjectFactory extends ONTObjectFactory {
 
     @Override
     default ONTObject<OWLAnonymousIndividual> getIndividual(OntIndividual.Anonymous i) {
-        return getAnonymousIndividual(i.asNode().getBlankNodeId());
+        return getAnonymousIndividual(BlankNodeId.of(i.asNode()));
     }
 
     @Override
@@ -149,7 +149,7 @@ public interface ModelObjectFactory extends ONTObjectFactory {
      */
     default ONTObject<? extends OWLIndividual> getIndividual(Node node) {
         if (node.isBlank()) {
-            return getAnonymousIndividual(node.getBlankNodeId());
+            return getAnonymousIndividual(BlankNodeId.of(node));
         }
         return getNamedIndividual(node.getURI());
     }
@@ -163,28 +163,21 @@ public interface ModelObjectFactory extends ONTObjectFactory {
      * @see ONTObjectFactory#getEntity(OntEntity)
      */
     default ONTObject<? extends org.semanticweb.owlapi.model.OWLEntity> getEntity(String uri, OWLEntity type) {
-        switch (type) {
-            case CLASS:
-                return getClass(uri);
-            case DATATYPE:
-                return getDatatype(uri);
-            case INDIVIDUAL:
-                return getNamedIndividual(uri);
-            case OBJECT_PROPERTY:
-                return getObjectProperty(uri);
-            case DATA_PROPERTY:
-                return getDataProperty(uri);
-            case ANNOTATION_PROPERTY:
-                return getAnnotationProperty(uri);
-        }
-        throw new OntApiException.IllegalArgument("Unsupported type " + type);
+        return switch (type) {
+            case CLASS -> getClass(uri);
+            case DATATYPE -> getDatatype(uri);
+            case INDIVIDUAL -> getNamedIndividual(uri);
+            case OBJECT_PROPERTY -> getObjectProperty(uri);
+            case DATA_PROPERTY -> getDataProperty(uri);
+            case ANNOTATION_PROPERTY -> getAnnotationProperty(uri);
+        };
     }
 
     @Override
     default ONTObject<? extends SWRLIArgument> getSWRLArgument(OntSWRL.IArg arg) {
         if (arg.isAnon()) {
             // treat any b-node as anonymous individual (whatever)
-            return getSWRLArgument(arg.asNode().getBlankNodeId());
+            return getSWRLArgument(BlankNodeId.of(arg.asNode()));
         }
         if (arg.canAs(OntSWRL.Variable.class)) {
             return getSWRLVariable(arg.as(OntSWRL.Variable.class));

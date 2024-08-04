@@ -19,14 +19,14 @@ import com.github.owlcs.ontapi.internal.HasObjectFactory;
 import com.github.owlcs.ontapi.internal.ModelObjectFactory;
 import com.github.owlcs.ontapi.internal.ONTObject;
 import com.github.owlcs.ontapi.owlapi.objects.LiteralImpl;
-import com.github.sszuev.jena.ontapi.common.OntEnhGraph;
-import com.github.sszuev.jena.ontapi.model.OntDataRange;
-import com.github.sszuev.jena.ontapi.model.OntModel;
 import javax.annotation.Nonnull;
 import org.apache.jena.graph.FrontsTriple;
 import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.graph.impl.LiteralLabel;
+import org.apache.jena.ontapi.common.OntEnhGraph;
+import org.apache.jena.ontapi.model.OntDataRange;
+import org.apache.jena.ontapi.model.OntModel;
 import org.apache.jena.rdf.model.Literal;
 import org.semanticweb.owlapi.model.OWLDatatype;
 import org.semanticweb.owlapi.model.OWLLiteral;
@@ -36,6 +36,7 @@ import java.io.IOException;
 import java.io.NotSerializableException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.Serial;
 import java.util.Objects;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
@@ -151,10 +152,12 @@ public class ONTLiteralImpl extends LiteralImpl
         return false;
     }
 
+    @Serial
     private void writeObject(ObjectOutputStream out) throws IOException {
         throw new NotSerializableException("Suspicious method call. Serialization is unsupported for ONTLiteral.");
     }
 
+    @Serial
     private void readObject(ObjectInputStream in) throws Exception {
         throw new NotSerializableException("Suspicious method call. Deserialization is unsupported for ONTLiteral.");
     }

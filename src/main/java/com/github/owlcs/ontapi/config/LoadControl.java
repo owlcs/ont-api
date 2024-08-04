@@ -15,7 +15,7 @@
 package com.github.owlcs.ontapi.config;
 
 import com.github.owlcs.ontapi.transforms.GraphTransformers;
-import com.github.sszuev.jena.ontapi.OntSpecification;
+import org.apache.jena.ontapi.OntSpecification;
 
 import java.util.Collections;
 import java.util.List;
@@ -36,7 +36,7 @@ interface LoadControl<R> extends LoadSettings {
      *
      * @param specification     {@link OntSpecification}, not {@code null}
      * @param constantFieldPath {@link String} a path to constant for serialization,
-     *                          e.g. {@code "com.github.sszuev.jena.ontapi.OntSpecification#OWL2_DL_MEM"};
+     *                          e.g. {@code "org.apache.jena.ontapi.OntSpecification#OWL2_DL_MEM"};
      *                          if {@code null} no attempt to serialize this field
      * @return {@link R} (this or copied instance)
      * @see LoadSettings#getSpecification()

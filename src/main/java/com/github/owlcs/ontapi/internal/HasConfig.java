@@ -15,7 +15,7 @@
 package com.github.owlcs.ontapi.internal;
 
 import com.github.owlcs.ontapi.OntApiException;
-import com.github.sszuev.jena.ontapi.model.OntModel;
+import org.apache.jena.ontapi.model.OntModel;
 
 /**
  * An abstract {@link InternalConfig} holder.

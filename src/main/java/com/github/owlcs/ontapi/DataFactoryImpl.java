@@ -100,7 +100,6 @@ import com.github.owlcs.ontapi.owlapi.objects.swrl.LiteralArgumentImpl;
 import com.github.owlcs.ontapi.owlapi.objects.swrl.ObjectPropertyAtomImpl;
 import com.github.owlcs.ontapi.owlapi.objects.swrl.SameIndividualAtomImpl;
 import com.github.owlcs.ontapi.owlapi.objects.swrl.VariableImpl;
-import org.apache.jena.graph.BlankNodeId;
 import org.apache.jena.graph.impl.LiteralLabel;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.util.VersionInfo;
@@ -108,6 +107,7 @@ import org.semanticweb.owlapi.vocab.OWL2Datatype;
 import org.semanticweb.owlapi.vocab.OWLFacet;
 import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
 
+import java.io.Serial;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collection;
@@ -163,6 +163,7 @@ import static com.github.owlcs.ontapi.owlapi.InternalizedEntities.TRUE_LITERAL;
  */
 @SuppressWarnings("NullableProblems")
 public class DataFactoryImpl implements DataFactory {
+    @Serial
     private static final long serialVersionUID = -4032031232398404873L;
 
     private static final String LEXICAL_VALUE_CANNOT_BE_NULL = "lexicalValue cannot be null";
@@ -336,12 +337,12 @@ public class DataFactoryImpl implements DataFactory {
 
     @Override
     public OWLAnonymousIndividual getOWLAnonymousIndividual(String id) {
-        return getOWLAnonymousIndividual(BlankNodeId.create(notNull(id, ID_CANNOT_BE_NULL)));
+        return getOWLAnonymousIndividual(BlankNodeId.of(notNull(id, ID_CANNOT_BE_NULL)));
     }
 
     @Override
     public OWLAnonymousIndividual getOWLAnonymousIndividual() {
-        return getOWLAnonymousIndividual(BlankNodeId.create());
+        return getOWLAnonymousIndividual(BlankNodeId.of());
     }
 
     /**
@@ -353,7 +354,7 @@ public class DataFactoryImpl implements DataFactory {
      */
     @Override
     public OWLAnonymousIndividual getOWLAnonymousIndividual(BlankNodeId id) {
-        return new AnonymousIndividualImpl(notNull(id, ID_CANNOT_BE_NULL));
+        return new AnonymousIndividualImpl(notNull(id.label(), ID_CANNOT_BE_NULL));
     }
 
     @Override

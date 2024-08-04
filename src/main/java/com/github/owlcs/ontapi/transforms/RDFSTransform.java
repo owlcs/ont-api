@@ -14,18 +14,17 @@
 
 package com.github.owlcs.ontapi.transforms;
 
-import com.github.sszuev.jena.ontapi.common.OntVocabulary;
-import com.github.sszuev.jena.ontapi.vocabulary.OWL;
-import com.github.sszuev.jena.ontapi.vocabulary.RDF;
 import org.apache.jena.graph.Graph;
+import org.apache.jena.ontapi.common.OntVocabulary;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.Statement;
+import org.apache.jena.vocabulary.OWL;
+import org.apache.jena.vocabulary.RDF;
 import org.apache.jena.vocabulary.RDFS;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 /**
  * To perform preliminary fixing: transform the RDFS ontological graph to the OWL ontological graph.
@@ -93,7 +92,7 @@ public class RDFSTransform extends TransformationModel {
         // parse the rest resources again:
         List<Resource> rest2 = rest1.stream()
                 .map(this::processRDFProperty)
-                .filter(Objects::nonNull).collect(Collectors.toList());
+                .filter(Objects::nonNull).toList();
         if (useAnnotationPropertyInUnclearCase) {
             // declare all remaining resources as annotation properties:
             rest2.forEach(r -> declare(r, OWL.AnnotationProperty));

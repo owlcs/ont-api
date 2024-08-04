@@ -14,10 +14,10 @@
 
 package com.github.owlcs.ontapi.internal;
 
-import com.github.sszuev.jena.ontapi.impl.GraphListenerBase;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.graph.impl.CollectionGraph;
+import org.apache.jena.ontapi.impl.GraphListenerBase;
 import org.semanticweb.owlapi.model.OWLObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

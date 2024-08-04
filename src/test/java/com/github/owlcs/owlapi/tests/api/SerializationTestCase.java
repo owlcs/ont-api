@@ -15,8 +15,8 @@ package com.github.owlcs.owlapi.tests.api;
 
 import com.github.owlcs.ontapi.testutils.OWLIOUtils;
 import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
-import com.github.sszuev.jena.ontapi.common.OntPersonality;
-import com.github.sszuev.jena.ontapi.common.PunningsMode;
+import org.apache.jena.ontapi.common.OntPersonality;
+import org.apache.jena.ontapi.common.PunningsMode;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.semanticweb.owlapi.model.AddImport;

@@ -14,22 +14,21 @@
 
 package com.github.owlcs.ontapi.internal.objects;
 
+import com.github.owlcs.ontapi.BlankNodeId;
 import com.github.owlcs.ontapi.internal.InternalCache;
 import com.github.owlcs.ontapi.internal.ModelObjectFactory;
 import com.github.owlcs.ontapi.internal.ONTObject;
 import com.github.owlcs.ontapi.internal.ONTObjectFactory;
-import com.github.sszuev.jena.ontapi.model.OntClass;
-import com.github.sszuev.jena.ontapi.model.OntDataProperty;
-import com.github.sszuev.jena.ontapi.model.OntDataRange;
-import com.github.sszuev.jena.ontapi.model.OntIndividual;
-import com.github.sszuev.jena.ontapi.model.OntModel;
-import com.github.sszuev.jena.ontapi.model.OntObject;
-import com.github.sszuev.jena.ontapi.model.OntObjectProperty;
-import org.apache.jena.graph.BlankNodeId;
 import org.apache.jena.graph.Node;
-import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.graph.impl.LiteralLabel;
+import org.apache.jena.ontapi.model.OntClass;
+import org.apache.jena.ontapi.model.OntDataProperty;
+import org.apache.jena.ontapi.model.OntDataRange;
+import org.apache.jena.ontapi.model.OntIndividual;
+import org.apache.jena.ontapi.model.OntModel;
+import org.apache.jena.ontapi.model.OntObject;
+import org.apache.jena.ontapi.model.OntObjectProperty;
 import org.apache.jena.rdf.model.Literal;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLDataProperty;
@@ -137,7 +136,7 @@ public abstract class ONTExpressionImpl<R extends OntObject> extends ONTResource
         if (i.isURIResource()) {
             return i.asNode().getURI();
         }
-        return i.asNode().getBlankNodeId();
+        return BlankNodeId.of(i.asNode());
     }
 
     /**
@@ -196,7 +195,7 @@ public abstract class ONTExpressionImpl<R extends OntObject> extends ONTResource
 
     @Override
     public Node asNode() {
-        return NodeFactory.createBlankNode(getBlankNodeId());
+        return getBlankNodeId().asNode();
     }
 
     @Override
@@ -225,15 +224,13 @@ public abstract class ONTExpressionImpl<R extends OntObject> extends ONTResource
         if (obj == null) {
             return false;
         }
-        if (!(obj instanceof OWLObject)) {
+        if (!(obj instanceof OWLObject other)) {
             return false;
         }
-        OWLObject other = (OWLObject) obj;
         if (typeIndex() != other.typeIndex()) {
             return false;
         }
-        if (other instanceof ONTExpressionImpl) {
-            ONTExpressionImpl<?> expr = (ONTExpressionImpl<?>) other;
+        if (other instanceof ONTExpressionImpl<?> expr) {
             if (notSame(expr)) {
                 return false;
             }

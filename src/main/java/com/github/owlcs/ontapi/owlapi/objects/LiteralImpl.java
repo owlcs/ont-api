@@ -19,8 +19,6 @@ import com.github.owlcs.ontapi.owlapi.InternalizedEntities;
 import com.github.owlcs.ontapi.owlapi.OWLObjectImpl;
 import com.github.owlcs.ontapi.owlapi.objects.entity.BuiltinDatatypeImpl;
 import com.github.owlcs.ontapi.owlapi.objects.entity.DatatypeImpl;
-import com.github.sszuev.jena.ontapi.vocabulary.RDF;
-import com.github.sszuev.jena.ontapi.vocabulary.XSD;
 import javax.annotation.Nullable;
 import org.apache.jena.datatypes.BaseDatatype;
 import org.apache.jena.datatypes.RDFDatatype;
@@ -32,6 +30,8 @@ import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.graph.impl.LiteralLabel;
 import org.apache.jena.graph.impl.LiteralLabelFactory;
 import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.vocabulary.RDF;
+import org.apache.jena.vocabulary.XSD;
 import org.semanticweb.owlapi.model.HasHashIndex;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAnnotationProperty;
@@ -49,6 +49,7 @@ import org.semanticweb.owlapi.model.OWLObjectProperty;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.Serial;
 import java.lang.reflect.Field;
 import java.util.Locale;
 import java.util.Objects;
@@ -94,7 +95,7 @@ public class LiteralImpl extends OWLObjectImpl implements OWLLiteral, AsNode {
      * @see #equals(Object)
      */
     public static LiteralImpl createLiteral(String val, String lang) {
-        return newLiteral(LiteralLabelFactory.create(val, normalizeLanguageTag(lang)));
+        return newLiteral(newLiteralLabel(val, normalizeLanguageTag(lang), null));
     }
 
     /**
@@ -293,7 +294,23 @@ public class LiteralImpl extends OWLObjectImpl implements OWLLiteral, AsNode {
      * @return {@link LiteralImpl}
      */
     public static LiteralImpl newLiteral(Object lex, String lang, RDFDatatype dt) {
-        return newLiteral(LiteralLabelFactory.createByValue(lex, lang, dt));
+        return newLiteral(newLiteralLabel(lex, lang, dt));
+    }
+
+    private static LiteralLabel newLiteralLabel(Object lex, String lang, RDFDatatype dt) {
+        if (dt != null && (lang == null || lang.isEmpty())) {
+            return LiteralLabelFactory.createByValue(lex, dt);
+        }
+        if (lang != null && !lang.isEmpty()) {
+            if (lex instanceof String) {
+                return LiteralLabelFactory.createLang(lex.toString(), lang);
+            }
+        } else if (lex instanceof String) {
+            return LiteralLabelFactory.createString(lex.toString());
+        } else {
+            return LiteralLabelFactory.createTypedLiteral(lex);
+        }
+        throw new IllegalArgumentException("Can't construct literal ['%s', %s, %s]".formatted(lex, lang, dt));
     }
 
     /**
@@ -314,7 +331,7 @@ public class LiteralImpl extends OWLObjectImpl implements OWLLiteral, AsNode {
      * @return int
      */
     protected static int calcLiteralLabelHashCode(LiteralLabel label) {
-        if (label.isWellFormedRaw()) {
+        if (label.isWellFormed()) {
             Object value = label.getValue();
             String dtURI = label.getDatatypeURI();
             if (value instanceof Number && NUMBER_DATATYPES.contains(dtURI)) {
@@ -386,6 +403,7 @@ public class LiteralImpl extends OWLObjectImpl implements OWLLiteral, AsNode {
 
     @Override
     public Node asNode() {
+        //noinspection deprecation
         return NodeFactory.createLiteral(label);
     }
 
@@ -580,8 +598,7 @@ public class LiteralImpl extends OWLObjectImpl implements OWLLiteral, AsNode {
         if (!(obj instanceof OWLLiteral)) {
             return false;
         }
-        if (obj instanceof LiteralImpl) {
-            LiteralImpl other = (LiteralImpl) obj;
+        if (obj instanceof LiteralImpl other) {
             if (notSame(other)) {
                 return false;
             }
@@ -593,6 +610,7 @@ public class LiteralImpl extends OWLObjectImpl implements OWLLiteral, AsNode {
         return super.equals(obj);
     }
 
+    @Serial
     private void writeObject(ObjectOutputStream out) throws IOException {
         out.defaultWriteObject();
         out.writeObject(label.getDatatypeURI());
@@ -600,12 +618,13 @@ public class LiteralImpl extends OWLObjectImpl implements OWLLiteral, AsNode {
         out.writeObject(label.getLexicalForm());
     }
 
+    @Serial
     private void readObject(ObjectInputStream in) throws Exception {
         in.defaultReadObject();
         String uri = (String) in.readObject();
         String lang = (String) in.readObject();
         String value = (String) in.readObject();
-        LiteralLabel label = LiteralLabelFactory.createByValue(value, lang, getRDFDatatype(uri));
+        LiteralLabel label = newLiteralLabel(value, lang, getRDFDatatype(uri));
         Field field = getClass().getDeclaredField("label");
         field.setAccessible(true);
         field.set(this, label);

@@ -1,4 +1,4 @@
-# ONT-API (ver. 3.x.x)
+# ONT-API (ver. 4.x.x)
 
 <a href="https://maven-badges.herokuapp.com/maven-central/com.github.owlcs/ontapi"><img src="https://maven-badges.herokuapp.com/maven-central/com.github.owlcs/ontapi/badge.svg" height="25" alt="Maven Central"></a>
 <a href="https://javadoc.io/doc/com.github.owlcs/ontapi/latest/index.html"><img src="https://javadoc.io/badge2/com.github.owlcs/ontapi/javadoc.svg" height="25" alt="Javadoc"></a>
@@ -13,14 +13,13 @@ For more info about the library see the project [wiki](https://github.com/owlcs/
 
 ## Dependencies
 
-- **[Apache Jena](https://github.com/apache/jena)** (**4.x.x**)
+- **[Apache Jena](https://github.com/apache/jena)** (**5.x.x**)
 - **[OWL-API](https://github.com/owlcs/owlapi)** (**5.x.x**)
 - **[concurrent-rdf-graph](https://github.com/sszuev/concurrent-rdf-graph)** (jitpack)
-- **[jena-owl2](https://github.com/sszuev/jena-owl2)** (jitpack)
 
 ## Requirements
 
-- Java **11+**
+- Java **17+**
 
 ## License
 
@@ -33,13 +32,13 @@ For more info about the library see the project [wiki](https://github.com/owlcs/
 import com.github.owlcs.ontapi.OntManagers;
 import com.github.owlcs.ontapi.Ontology;
 import com.github.owlcs.ontapi.OntologyManager;
-import com.github.sszuev.jena.ontapi.OntSpecification;
-import com.github.sszuev.jena.ontapi.model.OntModel;
-import com.github.sszuev.jena.ontapi.vocabulary.OWL;
+import org.apache.jena.ontapi.OntSpecification;
+import org.apache.jena.ontapi.model.OntModel;
 import org.apache.jena.query.QueryExecution;
 import org.apache.jena.query.QueryExecutionFactory;
 import org.apache.jena.query.QueryFactory;
 import org.apache.jena.query.ResultSet;
+import org.apache.jena.vocabulary.OWL;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLDataFactory;
 

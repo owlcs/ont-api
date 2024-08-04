@@ -16,8 +16,8 @@ package com.github.owlcs.ontapi.internal;
 
 import com.github.owlcs.ontapi.DataFactory;
 import com.github.owlcs.ontapi.OntApiException;
-import com.github.sszuev.jena.ontapi.model.OntModel;
 import javax.annotation.Nonnull;
+import org.apache.jena.ontapi.model.OntModel;
 
 /**
  * An abstract {@link ModelObjectFactory} provider.

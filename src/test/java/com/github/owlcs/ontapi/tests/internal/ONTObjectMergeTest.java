@@ -20,20 +20,20 @@ import com.github.owlcs.ontapi.OntologyManager;
 import com.github.owlcs.ontapi.TestManagers;
 import com.github.owlcs.ontapi.internal.ONTObject;
 import com.github.owlcs.ontapi.testutils.OWLIOUtils;
-import com.github.sszuev.jena.ontapi.OntModelFactory;
-import com.github.sszuev.jena.ontapi.model.OntAnnotationProperty;
-import com.github.sszuev.jena.ontapi.model.OntClass;
-import com.github.sszuev.jena.ontapi.model.OntDataProperty;
-import com.github.sszuev.jena.ontapi.model.OntDataRange;
-import com.github.sszuev.jena.ontapi.model.OntIndividual;
-import com.github.sszuev.jena.ontapi.model.OntModel;
-import com.github.sszuev.jena.ontapi.model.OntObject;
-import com.github.sszuev.jena.ontapi.model.OntObjectProperty;
-import com.github.sszuev.jena.ontapi.model.OntSWRL;
-import com.github.sszuev.jena.ontapi.vocabulary.OWL;
-import com.github.sszuev.jena.ontapi.vocabulary.SWRL;
+import org.apache.jena.ontapi.OntModelFactory;
+import org.apache.jena.ontapi.model.OntAnnotationProperty;
+import org.apache.jena.ontapi.model.OntClass;
+import org.apache.jena.ontapi.model.OntDataProperty;
+import org.apache.jena.ontapi.model.OntDataRange;
+import org.apache.jena.ontapi.model.OntIndividual;
+import org.apache.jena.ontapi.model.OntModel;
+import org.apache.jena.ontapi.model.OntObject;
+import org.apache.jena.ontapi.model.OntObjectProperty;
+import org.apache.jena.ontapi.model.OntSWRL;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
+import org.apache.jena.vocabulary.OWL;
+import org.apache.jena.vocabulary.SWRL;
 import org.apache.jena.vocabulary.XSD;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -106,7 +106,7 @@ public class ONTObjectMergeTest {
 
         Assertions.assertEquals(initModelSize, g.size());
 
-        Assertions.assertEquals(initAxiomsSize, o.axioms().peek(a -> LOGGER.debug("Axiom: {}", a)).count());
+        Assertions.assertEquals(initAxiomsSize, o.axioms().count());
         OWL a = o.axioms(type).findFirst().orElseThrow(AssertionError::new);
 
         o.remove(a);

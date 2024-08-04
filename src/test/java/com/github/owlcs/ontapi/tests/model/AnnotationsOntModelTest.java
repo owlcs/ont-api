@@ -24,13 +24,13 @@ import com.github.owlcs.ontapi.internal.WriteHelper;
 import com.github.owlcs.ontapi.testutils.MiscTestUtils;
 import com.github.owlcs.ontapi.testutils.OWLIOUtils;
 import com.github.owlcs.ontapi.testutils.OntIRI;
-import com.github.sszuev.jena.ontapi.model.OntClass;
-import com.github.sszuev.jena.ontapi.model.OntModel;
-import com.github.sszuev.jena.ontapi.vocabulary.OWL;
-import com.github.sszuev.jena.ontapi.vocabulary.RDF;
+import org.apache.jena.ontapi.model.OntClass;
+import org.apache.jena.ontapi.model.OntModel;
 import org.apache.jena.rdf.model.Literal;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.Statement;
+import org.apache.jena.vocabulary.OWL;
+import org.apache.jena.vocabulary.RDF;
 import org.apache.jena.vocabulary.RDFS;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -148,14 +148,14 @@ public class AnnotationsOntModelTest extends OntModelTestBase {
         LOGGER.debug("Check");
 
         Set<OWLAnnotation> annotations = Stream.of(
-                factory.getOWLAnnotation(factory.getRDFSComment(), annotationProperty),
-                factory.getOWLAnnotation(factory.getRDFSLabel(), factory.getOWLLiteral(comment, commentLang),
-                        Stream.of(
-                                factory.getOWLAnnotation(factory.getRDFSComment(), annotationProperty),
-                                factory.getOWLAnnotation(factory.getRDFSLabel(), factory.getOWLLiteral(label))
-                        )
-                ),
-                factory.getOWLAnnotation(factory.getRDFSLabel(), factory.getOWLLiteral(label)))
+                        factory.getOWLAnnotation(factory.getRDFSComment(), annotationProperty),
+                        factory.getOWLAnnotation(factory.getRDFSLabel(), factory.getOWLLiteral(comment, commentLang),
+                                Stream.of(
+                                        factory.getOWLAnnotation(factory.getRDFSComment(), annotationProperty),
+                                        factory.getOWLAnnotation(factory.getRDFSLabel(), factory.getOWLLiteral(label))
+                                )
+                        ),
+                        factory.getOWLAnnotation(factory.getRDFSLabel(), factory.getOWLLiteral(label)))
                 .collect(Collectors.toSet());
         OWLAxiom expected = factory.getOWLDeclarationAxiom(factory.getOWLClass(clazzIRI), annotations);
 
@@ -261,8 +261,7 @@ public class AnnotationsOntModelTest extends OntModelTestBase {
         Assertions.assertTrue(owl2.containsAxiom(individualAxiom));
 
         Assertions.assertEquals(allowBulkAnnotationAssertions ? 4 : 2,
-                AxiomTranslator.get(AxiomType.ANNOTATION_ASSERTION).statements(owl2.asGraphModel())
-                        .peek(x -> LOGGER.debug("TEST:::: {}", x)).count());
+                AxiomTranslator.get(AxiomType.ANNOTATION_ASSERTION).statements(owl2.asGraphModel()).count());
 
         if (allowBulkAnnotationAssertions) {
             Assertions.assertEquals(7, owl2.getAxiomCount());
@@ -554,17 +553,15 @@ public class AnnotationsOntModelTest extends OntModelTestBase {
         OWLAnnotationProperty p1 = df.getOWLAnnotationProperty("http://www.geneontology.org/formats/oboInOwl#hasNarrowSynonym");
         OWLAnnotationProperty p2 = df.getOWLAnnotationProperty("http://www.geneontology.org/formats/oboInOwl#hasDbXref");
         OWLClass c = df.getOWLClass("http://purl.obolibrary.org/obo/TTO_1006537");
-        Assertions.assertEquals(2, o.axioms(AxiomType.ANNOTATION_ASSERTION)
-                .peek(x -> LOGGER.debug("Axiom {}", x))
-                .peek(axiom -> {
-                    Assertions.assertEquals(df.getOWLLiteral("Squalus cinereus"), axiom.getValue());
-                    Assertions.assertEquals(c.getIRI(), axiom.getSubject());
-                    Assertions.assertEquals(p1, axiom.getProperty());
-                    List<OWLAnnotation> sub = axiom.annotationsAsList();
-                    Assertions.assertEquals(1, sub.size());
-                    Assertions.assertEquals(p2, sub.get(0).getProperty());
-                })
-                .count());
+        Assertions.assertEquals(2, o.axioms(AxiomType.ANNOTATION_ASSERTION).count());
+        o.axioms(AxiomType.ANNOTATION_ASSERTION).forEach(axiom -> {
+            Assertions.assertEquals(df.getOWLLiteral("Squalus cinereus"), axiom.getValue());
+            Assertions.assertEquals(c.getIRI(), axiom.getSubject());
+            Assertions.assertEquals(p1, axiom.getProperty());
+            List<OWLAnnotation> sub = axiom.annotationsAsList();
+            Assertions.assertEquals(1, sub.size());
+            Assertions.assertEquals(p2, sub.get(0).getProperty());
+        });
     }
 
     @Test
@@ -572,7 +569,7 @@ public class AnnotationsOntModelTest extends OntModelTestBase {
         OWLOntologyManager m = OntManagers.createManager();
         OWLOntology o = m.loadOntologyFromOntologyDocument(IRI.create(OWLIOUtils.getResourceURI("/ontapi/test-annotations-2.ttl")));
         OWLIOUtils.print(o);
-        List<OWLAnnotationAssertionAxiom> list = o.axioms(AxiomType.ANNOTATION_ASSERTION).collect(Collectors.toList());
+        List<OWLAnnotationAssertionAxiom> list = o.axioms(AxiomType.ANNOTATION_ASSERTION).toList();
         Assertions.assertEquals(1, list.size());
         OWLAnnotationAssertionAxiom axiom = list.get(0);
 
@@ -583,7 +580,7 @@ public class AnnotationsOntModelTest extends OntModelTestBase {
         Assertions.assertEquals(df.getOWLLiteral("Squalus cinereus"), axiom.getValue());
         Assertions.assertEquals(c.getIRI(), axiom.getSubject());
         Assertions.assertEquals(p1, axiom.getProperty());
-        List<OWLAnnotation> sub = axiom.annotations().sorted().collect(Collectors.toList());
+        List<OWLAnnotation> sub = axiom.annotations().sorted().toList();
         Assertions.assertEquals(2, sub.size());
         Assertions.assertEquals(p2, sub.get(0).getProperty());
         Assertions.assertEquals(p2, sub.get(1).getProperty());
@@ -598,7 +595,7 @@ public class AnnotationsOntModelTest extends OntModelTestBase {
         FileDocumentSource src = new FileDocumentSource(file.toFile());
         OWLOntology o = m.loadOntologyFromOntologyDocument(src, m.getOntologyLoaderConfiguration()
                 .setSplitAxiomAnnotations(true));
-        Assertions.assertEquals(4, o.axioms().peek(x -> LOGGER.debug("{}", x)).count());
+        Assertions.assertEquals(4, o.axioms().count());
         Assertions.assertEquals(3, o.axioms(AxiomType.DECLARATION).count());
         Assertions.assertEquals(1, o.axioms(AxiomType.ANNOTATION_ASSERTION).count());
         o.axioms(AxiomType.DECLARATION).forEach(a -> {
@@ -612,7 +609,7 @@ public class AnnotationsOntModelTest extends OntModelTestBase {
         OWLOntologyManager m = OntManagers.createManager();
         String file = "/ontapi/test-annotations-3.ttl";
         OWLOntology o = m.loadOntologyFromOntologyDocument(IRI.create(OWLIOUtils.getResourceURI(file)));
-        Assertions.assertEquals(3, o.axioms().peek(x -> LOGGER.debug("Axiom: {}", x)).count());
+        Assertions.assertEquals(3, o.axioms().count());
 
         Assertions.assertEquals(2, o.axioms(AxiomType.DECLARATION).count());
         Assertions.assertEquals(1, o.axioms(AxiomType.ANNOTATION_ASSERTION).count());
@@ -667,7 +664,7 @@ public class AnnotationsOntModelTest extends OntModelTestBase {
                     WriteHelper.toResource(link)));
             // test annotation with custom property:
             Assertions.assertTrue(jena.contains(iri.toResource(),
-                    WriteHelper.toProperty(annotationProperty), WriteHelper.toRDFNode(someLiteral)),
+                            WriteHelper.toProperty(annotationProperty), WriteHelper.toRDFNode(someLiteral)),
                     "Can't find " + annotationProperty + " " + someLiteral);
             Assertions.assertTrue(jena.contains(WriteHelper.toResource(annotationProperty), RDF.type, OWL.AnnotationProperty),
                     "Can't find declaration of " + annotationProperty);

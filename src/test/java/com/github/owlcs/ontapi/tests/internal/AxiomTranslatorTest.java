@@ -14,6 +14,7 @@
 
 package com.github.owlcs.ontapi.tests.internal;
 
+import com.github.owlcs.ontapi.BlankNodeId;
 import com.github.owlcs.ontapi.CommonOntologies;
 import com.github.owlcs.ontapi.DataFactory;
 import com.github.owlcs.ontapi.OntManagers;
@@ -23,10 +24,9 @@ import com.github.owlcs.ontapi.internal.AxiomTranslator;
 import com.github.owlcs.ontapi.internal.InternalConfig;
 import com.github.owlcs.ontapi.internal.ONTObject;
 import com.github.owlcs.ontapi.internal.ONTObjectFactory;
-import com.github.sszuev.jena.ontapi.OntModelFactory;
-import com.github.sszuev.jena.ontapi.model.OntIndividual;
-import com.github.sszuev.jena.ontapi.model.OntModel;
-import org.apache.jena.graph.BlankNodeId;
+import org.apache.jena.ontapi.OntModelFactory;
+import org.apache.jena.ontapi.model.OntIndividual;
+import org.apache.jena.ontapi.model.OntModel;
 import org.apache.jena.rdf.model.AnonId;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
@@ -183,8 +183,8 @@ public class AxiomTranslatorTest {
         String ns = "http://x#";
         String u1 = ns + "u1";
         String u2 = ns + "u2";
-        BlankNodeId b1 = BlankNodeId.create();
-        BlankNodeId b2 = BlankNodeId.create();
+        BlankNodeId b1 = BlankNodeId.of();
+        BlankNodeId b2 = BlankNodeId.of();
         return Stream.of(
                 of(OWLDisjointObjectPropertiesAxiom.class,
                         m -> createDisjointObjectPropertiesModel(m, ns, u1, u2),
@@ -221,10 +221,10 @@ public class AxiomTranslatorTest {
     private static OntModel createSameIndividualsModel(OntologyManager m, String ns, BlankNodeId b1, BlankNodeId b2) {
         OntModel res = m.createOntology()
                 .asGraphModel().setNsPrefixes(OntModelFactory.STANDARD).setNsPrefix("x", ns);
-        OntIndividual i1 = res.createResource(new AnonId(b1))
+        OntIndividual i1 = res.createResource(new AnonId(b1.label()))
                 .addProperty(RDF.type, res.createOntClass(ns + "C1"))
                 .as(OntIndividual.class);
-        OntIndividual i2 = res.createResource(new AnonId(b2))
+        OntIndividual i2 = res.createResource(new AnonId(b2.label()))
                 .addProperty(RDF.type, res.createOntClass(ns + "C2"))
                 .as(OntIndividual.class);
         i1.addSameAsStatement(i2);

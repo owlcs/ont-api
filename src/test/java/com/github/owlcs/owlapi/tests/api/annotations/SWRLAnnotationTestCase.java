@@ -16,7 +16,7 @@ package com.github.owlcs.owlapi.tests.api.annotations;
 import com.github.owlcs.ontapi.testutils.OWLIOUtils;
 import com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory;
 import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
-import com.github.sszuev.jena.ontapi.vocabulary.SWRL;
+import org.apache.jena.vocabulary.SWRL;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -42,36 +42,38 @@ import java.util.TreeSet;
 public class SWRLAnnotationTestCase extends TestBase {
 
     private static final String NS = "http://protege.org/ontologies/SWRLAnnotation.owl";
-    private static final String HEAD = "<?xml version=\"1.0\"?>\n"
-            + "<rdf:RDF"
-            + " xmlns:rdf=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#\""
-            + " xmlns:protege=\"http://protege.stanford.edu/plugins/owl/protege#\""
-            + " xmlns=\"urn:test#\""
-            + " xmlns:xsp=\"http://www.owl-ontologies.com/2005/08/07/xsp.owl#\"\n"
-            + " xmlns:owl=\"http://www.w3.org/2002/07/owl#\""
-            + " xmlns:sqwrl=\"http://sqwrl.stanford.edu/ontologies/built-ins/3.4/sqwrl.owl#\""
-            + " xmlns:xsd=\"http://www.w3.org/2001/XMLSchema#\""
-            + " xmlns:swrl=\"http://www.w3.org/2003/11/swrl#\"\n"
-            + " xmlns:swrlb=\"http://www.w3.org/2003/11/swrlb#\""
-            + " xmlns:rdfs=\"http://www.w3.org/2000/01/rdf-schema#\""
-            + " xmlns:swrla=\"http://swrl.stanford.edu/ontologies/3.3/swrla.owl#\""
-            + " xml:base=\"urn:test\">\n"
-            + "  <owl:Ontology rdf:about=\"\"></owl:Ontology>\n"
-            + "  <owl:AnnotationProperty rdf:about=\"http://swrl.stanford.edu/ontologies/3.3/swrla.owl#isRuleEnabled\"/>\n"
-            + "  <owl:ObjectProperty rdf:ID=\"hasDriver\"><owl:inverseOf><owl:ObjectProperty rdf:ID=\"drives\"/></owl:inverseOf></owl:ObjectProperty>\n"
-            + "  <owl:ObjectProperty rdf:about=\"#drives\"><owl:inverseOf rdf:resource=\"#hasDriver\"/></owl:ObjectProperty>\n"
-            + "  <swrl:Imp";
+    private static final String HEAD = """
+            <?xml version="1.0"?>
+            <rdf:RDF\
+             xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"\
+             xmlns:protege="http://protege.stanford.edu/plugins/owl/protege#"\
+             xmlns="urn:test#"\
+             xmlns:xsp="http://www.owl-ontologies.com/2005/08/07/xsp.owl#"
+             xmlns:owl="http://www.w3.org/2002/07/owl#"\
+             xmlns:sqwrl="http://sqwrl.stanford.edu/ontologies/built-ins/3.4/sqwrl.owl#"\
+             xmlns:xsd="http://www.w3.org/2001/XMLSchema#"\
+             xmlns:swrl="http://www.w3.org/2003/11/swrl#"
+             xmlns:swrlb="http://www.w3.org/2003/11/swrlb#"\
+             xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"\
+             xmlns:swrla="http://swrl.stanford.edu/ontologies/3.3/swrla.owl#"\
+             xml:base="urn:test">
+              <owl:Ontology rdf:about=""></owl:Ontology>
+              <owl:AnnotationProperty rdf:about="http://swrl.stanford.edu/ontologies/3.3/swrla.owl#isRuleEnabled"/>
+              <owl:ObjectProperty rdf:ID="hasDriver"><owl:inverseOf><owl:ObjectProperty rdf:ID="drives"/></owl:inverseOf></owl:ObjectProperty>
+              <owl:ObjectProperty rdf:about="#drives"><owl:inverseOf rdf:resource="#hasDriver"/></owl:ObjectProperty>
+              <swrl:Imp""";
 
-    private static final String TAIL = "><swrl:body><swrl:AtomList/></swrl:body>\n"
-            + "    <swrl:head><swrl:AtomList><rdf:rest rdf:resource=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#nil\"/>\n"
-            + "        <rdf:first><swrl:IndividualPropertyAtom>\n"
-            + "            <swrl:argument2><Person rdf:ID=\"i62\"/></swrl:argument2>\n"
-            + "            <swrl:argument1><Person rdf:ID=\"i61\"/></swrl:argument1>\n"
-            + "            <swrl:propertyPredicate rdf:resource=\"#drives\"/>\n"
-            + "          </swrl:IndividualPropertyAtom></rdf:first></swrl:AtomList></swrl:head>\n"
-            + "    <swrla:isRuleEnabled rdf:datatype=\"http://www.w3.org/2001/XMLSchema#boolean\">true</swrla:isRuleEnabled>\n"
-            + "    <rdfs:comment rdf:datatype=\"http://www.w3.org/2001/XMLSchema#string\">:i62, :i61</rdfs:comment></swrl:Imp>\n"
-            + "</rdf:RDF>";
+    private static final String TAIL = """
+            ><swrl:body><swrl:AtomList/></swrl:body>
+                <swrl:head><swrl:AtomList><rdf:rest rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#nil"/>
+                    <rdf:first><swrl:IndividualPropertyAtom>
+                        <swrl:argument2><Person rdf:ID="i62"/></swrl:argument2>
+                        <swrl:argument1><Person rdf:ID="i61"/></swrl:argument1>
+                        <swrl:propertyPredicate rdf:resource="#drives"/>
+                      </swrl:IndividualPropertyAtom></rdf:first></swrl:AtomList></swrl:head>
+                <swrla:isRuleEnabled rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</swrla:isRuleEnabled>
+                <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string">:i62, :i61</rdfs:comment></swrl:Imp>
+            </rdf:RDF>""";
 
     protected final OWLClass a = OWLFunctionalSyntaxFactory.Class(OWLFunctionalSyntaxFactory.IRI(NS + "#", "A"));
     protected final OWLClass b = OWLFunctionalSyntaxFactory.Class(OWLFunctionalSyntaxFactory.IRI(NS + "#", "B"));

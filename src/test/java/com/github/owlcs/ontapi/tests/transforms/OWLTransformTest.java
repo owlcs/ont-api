@@ -23,17 +23,17 @@ import com.github.owlcs.ontapi.testutils.OWLIOUtils;
 import com.github.owlcs.ontapi.transforms.GraphTransformers;
 import com.github.owlcs.ontapi.transforms.Transform;
 import com.github.owlcs.ontapi.transforms.vocabulary.DEPRECATED;
-import com.github.sszuev.jena.ontapi.OntModelFactory;
-import com.github.sszuev.jena.ontapi.vocabulary.OWL;
-import com.github.sszuev.jena.ontapi.vocabulary.XSD;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.graph.Triple;
+import org.apache.jena.ontapi.OntModelFactory;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.vocabulary.OWL;
 import org.apache.jena.vocabulary.RDF;
 import org.apache.jena.vocabulary.RDFS;
+import org.apache.jena.vocabulary.XSD;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.semanticweb.owlapi.io.OWLOntologyDocumentSource;
@@ -60,15 +60,16 @@ public class OWLTransformTest {
 
     @Test
     public void testCustomDatatypes() throws Exception {
-        String txt = "<http://dbpedia.org/resource/Belgium>\t" +
-                "<http://dbpedia.org/ontology/PopulatedPlace/populationDensity>\t" +
-                "\"363.6\"^^<http://dbpedia.org/datatype/inhabitantsPerSquareKilometre> .\n" +
-                "<http://dbpedia.org/resource/Belgium>\t" +
-                "<http://dbpedia.org/ontology/PopulatedPlace/populationDensity>\t" +
-                "\"363.58468065625044\"^^<http://dbpedia.org/datatype/inhabitantsPerSquareKilometre> .\n" +
-                "<http://dbpedia.org/resource/London>\t" +
-                "<http://dbpedia.org/ontology/PopulatedPlace/populationDensity>\t" +
-                "\"5518.0\"^^<http://dbpedia.org/datatype/inhabitantsPerSquareKilometre> .";
+        String txt = """
+                <http://dbpedia.org/resource/Belgium>\t\
+                <http://dbpedia.org/ontology/PopulatedPlace/populationDensity>\t\
+                "363.6"^^<http://dbpedia.org/datatype/inhabitantsPerSquareKilometre> .
+                <http://dbpedia.org/resource/Belgium>\t\
+                <http://dbpedia.org/ontology/PopulatedPlace/populationDensity>\t\
+                "363.58468065625044"^^<http://dbpedia.org/datatype/inhabitantsPerSquareKilometre> .
+                <http://dbpedia.org/resource/London>\t\
+                <http://dbpedia.org/ontology/PopulatedPlace/populationDensity>\t\
+                "5518.0"^^<http://dbpedia.org/datatype/inhabitantsPerSquareKilometre> .""";
 
         OWLOntologyDocumentSource src = OWLIOUtils.getStringDocumentSource(txt, OntFormat.TURTLE);
 
@@ -76,7 +77,7 @@ public class OWLTransformTest {
         OWLIOUtils.print(o);
         o.saveOntology(OntFormat.FUNCTIONAL_SYNTAX.createOwlFormat(), OWLIOUtils.NULL_OUT);
         Assertions.assertEquals(6, o.asGraphModel().size());
-        Assertions.assertEquals(5, o.axioms().peek(x -> LOGGER.debug("Axiom: {}", x)).count());
+        Assertions.assertEquals(5, o.axioms().count());
     }
 
     @Test
@@ -169,17 +170,18 @@ public class OWLTransformTest {
 
     @Test
     public void testTransformOnAmbiguousRestriction() throws OWLOntologyCreationException {
-        String s = "@prefix ex:    <http://www.example.org#> .\n" +
-                "@prefix owl:   <http://www.w3.org/2002/07/owl#> .\n" +
-                "@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n" +
-                "@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .\n" +
-                "@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .\n" +
-                "\n" +
-                "ex:c    owl:unionOf  ( ex:x ex:y ) .";
+        String s = """
+                @prefix ex:    <http://www.example.org#> .
+                @prefix owl:   <http://www.w3.org/2002/07/owl#> .
+                @prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+                @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+                @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+
+                ex:c    owl:unionOf  ( ex:x ex:y ) .""";
         Ontology o = OntManagers.createManager().loadOntologyFromOntologyDocument(new StringDocumentSource(s));
         OWLIOUtils.print(o);
-        Assertions.assertEquals(3, o.axioms(AxiomType.DECLARATION).peek(x -> LOGGER.debug("DE: {}", x)).count());
-        Assertions.assertEquals(1, o.axioms(AxiomType.EQUIVALENT_CLASSES).peek(x -> LOGGER.debug("EC: {}", x)).count());
+        Assertions.assertEquals(3, o.axioms(AxiomType.DECLARATION).count());
+        Assertions.assertEquals(1, o.axioms(AxiomType.EQUIVALENT_CLASSES).count());
     }
 
     @Test
@@ -273,9 +275,9 @@ public class OWLTransformTest {
             }
         }
         Triple t1 = Triple.create(NodeFactory.createBlankNode(), NodeFactory.createURI("a"),
-                NodeFactory.createLiteral("v1"));
+                NodeFactory.createLiteralString("v1"));
         Triple t2 = Triple.create(NodeFactory.createURI("b"), NodeFactory.createURI("c"),
-                NodeFactory.createLiteral("v2"));
+                NodeFactory.createLiteralString("v2"));
         OntologyManager manager = OntManagers.createManager();
         GraphTransformers transformers = manager.getOntologyConfigurator().getGraphTransformers()
                 .addLast(new Empty(t1)).addLast(new Empty(t2));

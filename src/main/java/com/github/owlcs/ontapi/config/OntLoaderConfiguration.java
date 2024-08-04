@@ -18,8 +18,8 @@ import com.github.owlcs.ontapi.OntApiException;
 import com.github.owlcs.ontapi.ReflectionUtils;
 import com.github.owlcs.ontapi.transforms.GraphTransformers;
 import com.github.owlcs.ontapi.transforms.TransformationModel;
-import com.github.sszuev.jena.ontapi.OntSpecification;
 import javax.annotation.Nonnull;
+import org.apache.jena.ontapi.OntSpecification;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.MissingImportHandlingStrategy;
 import org.semanticweb.owlapi.model.MissingOntologyHeaderStrategy;
@@ -31,6 +31,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.Serial;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -59,6 +60,7 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration imple
         CacheControl<OntLoaderConfiguration>,
         AxiomsControl<OntLoaderConfiguration> {
     private static final Logger LOGGER = LoggerFactory.getLogger(OntLoaderConfiguration.class);
+    @Serial
     private static final long serialVersionUID = 1599596390911768315L;
 
     // hods config data (simple serializable primitives)
@@ -219,7 +221,7 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration imple
      *
      * @param specification     {@link OntSpecification}, not {@code null}
      * @param constantFieldPath {@link String} a path to constant for serialization,
-     *                          e.g. {@code "com.github.sszuev.jena.ontapi.OntSpecification#OWL2_DL_MEM"};
+     *                          e.g. {@code "org.apache.jena.ontapi.OntSpecification#OWL2_DL_MEM"};
      *                          if {@code null} no attempt to serialize this field
      * @return {@link OntLoaderConfiguration}, a copied (new) or this instance in case no changes are made
      * @see OntConfig#setSpecification(OntSpecification, String)
@@ -923,8 +925,7 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration imple
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof OntLoaderConfiguration)) return false;
-        OntLoaderConfiguration that = (OntLoaderConfiguration) o;
+        if (!(o instanceof OntLoaderConfiguration that)) return false;
         return Objects.equals(this.asMap(), that.asMap());
     }
 
@@ -933,10 +934,12 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration imple
         return Objects.hash(asMap());
     }
 
+    @Serial
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
         in.defaultReadObject();
     }
 
+    @Serial
     private void writeObject(ObjectOutputStream out) throws IOException {
         out.writeObject(OntConfig.serializableOnly(data));
         out.writeObject(OntConfig.serializableOnly(store));

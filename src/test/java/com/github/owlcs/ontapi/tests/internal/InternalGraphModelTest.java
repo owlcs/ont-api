@@ -25,19 +25,19 @@ import com.github.owlcs.ontapi.internal.ONTObject;
 import com.github.owlcs.ontapi.testutils.MiscTestUtils;
 import com.github.owlcs.ontapi.testutils.OWLIOUtils;
 import com.github.owlcs.ontapi.transforms.GraphTransformers;
-import com.github.sszuev.jena.ontapi.OntModelFactory;
-import com.github.sszuev.jena.ontapi.common.OntPersonality;
-import com.github.sszuev.jena.ontapi.common.PunningsMode;
-import com.github.sszuev.jena.ontapi.model.OntModel;
-import com.github.sszuev.jena.ontapi.vocabulary.OWL;
-import com.github.sszuev.jena.ontapi.vocabulary.RDF;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Triple;
+import org.apache.jena.ontapi.OntModelFactory;
+import org.apache.jena.ontapi.common.OntPersonality;
+import org.apache.jena.ontapi.common.PunningsMode;
+import org.apache.jena.ontapi.model.OntModel;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.riot.Lang;
+import org.apache.jena.vocabulary.OWL;
+import org.apache.jena.vocabulary.RDF;
 import org.apache.jena.vocabulary.RDFS;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -81,7 +81,7 @@ public class InternalGraphModelTest {
         Assertions.assertEquals(945, model.statements()
                 .flatMap(s -> AxiomType.AXIOM_TYPES.stream().map(AxiomTranslator::get)
                         .filter(x -> x.testStatement(s))
-                        .map(x -> x.toAxiom(s))).peek(x -> LOGGER.debug("{}", x)).count());
+                        .map(x -> x.toAxiom(s))).count());
     }
 
     @Test

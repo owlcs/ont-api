@@ -15,7 +15,7 @@
 package com.github.owlcs.ontapi.internal;
 
 import com.github.owlcs.ontapi.config.AxiomsSettings;
-import com.github.sszuev.jena.ontapi.model.OntModel;
+import org.apache.jena.ontapi.model.OntModel;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLObject;

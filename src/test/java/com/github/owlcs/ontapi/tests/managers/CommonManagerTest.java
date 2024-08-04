@@ -31,12 +31,12 @@ import com.github.owlcs.ontapi.testutils.OntIRI;
 import com.github.owlcs.ontapi.testutils.SpinModels;
 import com.github.owlcs.ontapi.transforms.GraphTransformers;
 import com.github.sszuev.graphs.ReadWriteLockingGraph;
-import com.github.sszuev.jena.ontapi.OntModelFactory;
-import com.github.sszuev.jena.ontapi.UnionGraph;
-import com.github.sszuev.jena.ontapi.model.OntClass;
-import com.github.sszuev.jena.ontapi.model.OntEntity;
-import com.github.sszuev.jena.ontapi.model.OntModel;
-import com.github.sszuev.jena.ontapi.utils.Graphs;
+import org.apache.jena.ontapi.OntModelFactory;
+import org.apache.jena.ontapi.UnionGraph;
+import org.apache.jena.ontapi.model.OntClass;
+import org.apache.jena.ontapi.model.OntEntity;
+import org.apache.jena.ontapi.model.OntModel;
+import org.apache.jena.ontapi.utils.Graphs;
 import org.apache.jena.ontology.OntModelSpec;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.util.FileManager;
@@ -412,7 +412,7 @@ public class CommonManagerTest {
 
         Ontology o = (Ontology) data.fetch(OntManagers.createDirectManager());
 
-        List<OWLAxiom> list = o.axioms().collect(Collectors.toList());
+        List<OWLAxiom> list = o.axioms().toList();
         Assertions.assertEquals(count, list.size());
         Assertions.assertEquals(distinctCount, new HashSet<>(list).size());
         Assertions.assertEquals(count, o.axioms().count());
@@ -453,7 +453,7 @@ public class CommonManagerTest {
         a.addImport(b.addImport(c).addImport(d));
 
         m.addOntology(a.getGraph());
-        Assertions.assertEquals(4, m.ontologies().peek(tester).count());
+        Assertions.assertEquals(4, m.ontologies().count());
     }
 
     private void checkOntology(OWLOntology ont, boolean isConcurrent) {

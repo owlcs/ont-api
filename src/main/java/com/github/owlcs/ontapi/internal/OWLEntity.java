@@ -1,15 +1,15 @@
 package com.github.owlcs.ontapi.internal;
 
-import com.github.sszuev.jena.ontapi.model.OntAnnotationProperty;
-import com.github.sszuev.jena.ontapi.model.OntClass;
-import com.github.sszuev.jena.ontapi.model.OntDataProperty;
-import com.github.sszuev.jena.ontapi.model.OntDataRange;
-import com.github.sszuev.jena.ontapi.model.OntEntity;
-import com.github.sszuev.jena.ontapi.model.OntIndividual;
-import com.github.sszuev.jena.ontapi.model.OntObjectProperty;
-import com.github.sszuev.jena.ontapi.vocabulary.OWL;
 import org.apache.jena.graph.Node;
+import org.apache.jena.ontapi.model.OntAnnotationProperty;
+import org.apache.jena.ontapi.model.OntClass;
+import org.apache.jena.ontapi.model.OntDataProperty;
+import org.apache.jena.ontapi.model.OntDataRange;
+import org.apache.jena.ontapi.model.OntEntity;
+import org.apache.jena.ontapi.model.OntIndividual;
+import org.apache.jena.ontapi.model.OntObjectProperty;
 import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.vocabulary.OWL;
 import org.apache.jena.vocabulary.RDFS;
 
 import java.util.Objects;

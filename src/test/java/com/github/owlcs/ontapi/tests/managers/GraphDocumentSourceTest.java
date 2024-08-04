@@ -24,14 +24,14 @@ import com.github.owlcs.ontapi.Ontology;
 import com.github.owlcs.ontapi.OntologyManager;
 import com.github.owlcs.ontapi.testutils.OWLIOUtils;
 import com.github.owlcs.ontapi.transforms.GraphTransformers;
-import com.github.sszuev.jena.ontapi.OntModelFactory;
-import com.github.sszuev.jena.ontapi.UnionGraph;
-import com.github.sszuev.jena.ontapi.model.OntIndividual;
-import com.github.sszuev.jena.ontapi.model.OntModel;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.graph.compose.Union;
 import org.apache.jena.mem.GraphMem;
+import org.apache.jena.ontapi.OntModelFactory;
+import org.apache.jena.ontapi.UnionGraph;
+import org.apache.jena.ontapi.model.OntIndividual;
+import org.apache.jena.ontapi.model.OntModel;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.riot.Lang;
@@ -80,7 +80,7 @@ public class GraphDocumentSourceTest {
         Assertions.assertFalse(s.hasAlredyFailedOnIRIResolution());
         Assertions.assertEquals(u1, s.getDocumentIRI().toURI());
         Assertions.assertEquals(OntFormat.TURTLE, s.getOntFormat());
-        Assertions.assertTrue(s.getFormat().orElseThrow(AssertionError::new) instanceof TurtleDocumentFormat);
+        Assertions.assertInstanceOf(TurtleDocumentFormat.class, s.getFormat().orElseThrow(AssertionError::new));
     }
 
     @Test
@@ -190,13 +190,12 @@ public class GraphDocumentSourceTest {
 
         OntologyManager manager = OntManagers.createManager();
         Ontology o = manager.addOntology(u);
-        Assertions.assertEquals(1, manager.ontologies().peek(x -> LOGGER.debug("Ontology: {}", x)).count());
+        Assertions.assertEquals(1, manager.ontologies().count());
         Assertions.assertNotNull(manager.getOntology(new ID(m1.getID())));
 
         // class declaration and annotation property assertion with anonymous individual
-        Assertions.assertEquals(2, o.axioms().peek(x -> LOGGER.debug("AXIOM: {}", x)).count());
-        Assertions.assertEquals(1, o.asGraphModel().ontObjects(OntIndividual.class)
-                .peek(x -> LOGGER.debug("Individual: {}", x)).count());
+        Assertions.assertEquals(2, o.axioms().count());
+        Assertions.assertEquals(1, o.asGraphModel().ontObjects(OntIndividual.class).count());
 
         Assertions.assertInstanceOf(Union.class, o.asGraphModel().getBaseGraph());
         Assertions.assertInstanceOf(UnionGraph.class, o.asGraphModel().getGraph());

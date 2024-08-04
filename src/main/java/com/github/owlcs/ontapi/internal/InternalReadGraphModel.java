@@ -46,31 +46,31 @@ import com.github.owlcs.ontapi.internal.searchers.objects.DataPropertySearcher;
 import com.github.owlcs.ontapi.internal.searchers.objects.DatatypeSearcher;
 import com.github.owlcs.ontapi.internal.searchers.objects.NamedIndividualSearcher;
 import com.github.owlcs.ontapi.internal.searchers.objects.ObjectPropertySearcher;
-import com.github.sszuev.jena.ontapi.OntJenaException;
-import com.github.sszuev.jena.ontapi.common.OntPersonality;
-import com.github.sszuev.jena.ontapi.impl.OntGraphModelImpl;
-import com.github.sszuev.jena.ontapi.model.OntAnnotationProperty;
-import com.github.sszuev.jena.ontapi.model.OntClass;
-import com.github.sszuev.jena.ontapi.model.OntDataProperty;
-import com.github.sszuev.jena.ontapi.model.OntDataRange;
-import com.github.sszuev.jena.ontapi.model.OntEntity;
-import com.github.sszuev.jena.ontapi.model.OntID;
-import com.github.sszuev.jena.ontapi.model.OntIndividual;
-import com.github.sszuev.jena.ontapi.model.OntModel;
-import com.github.sszuev.jena.ontapi.model.OntObject;
-import com.github.sszuev.jena.ontapi.model.OntObjectProperty;
-import com.github.sszuev.jena.ontapi.model.OntStatement;
-import com.github.sszuev.jena.ontapi.utils.Graphs;
-import com.github.sszuev.jena.ontapi.vocabulary.OWL;
-import com.github.sszuev.jena.ontapi.vocabulary.RDF;
 import javax.annotation.Nonnull;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
+import org.apache.jena.ontapi.OntJenaException;
+import org.apache.jena.ontapi.common.OntPersonality;
+import org.apache.jena.ontapi.impl.OntGraphModelImpl;
+import org.apache.jena.ontapi.model.OntAnnotationProperty;
+import org.apache.jena.ontapi.model.OntClass;
+import org.apache.jena.ontapi.model.OntDataProperty;
+import org.apache.jena.ontapi.model.OntDataRange;
+import org.apache.jena.ontapi.model.OntEntity;
+import org.apache.jena.ontapi.model.OntID;
+import org.apache.jena.ontapi.model.OntIndividual;
+import org.apache.jena.ontapi.model.OntModel;
+import org.apache.jena.ontapi.model.OntObject;
+import org.apache.jena.ontapi.model.OntObjectProperty;
+import org.apache.jena.ontapi.model.OntStatement;
+import org.apache.jena.ontapi.utils.Graphs;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.shared.Lock;
 import org.apache.jena.util.iterator.ExtendedIterator;
+import org.apache.jena.vocabulary.OWL;
+import org.apache.jena.vocabulary.RDF;
 import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAnnotation;
@@ -999,21 +999,15 @@ abstract class InternalReadGraphModel extends OntGraphModelImpl implements ListA
     }
 
     private ObjectsSearcher<OWLObject> getEntitySearcher(OWLComponentType type) {
-        switch (type) {
-            case CLASS:
-                return BaseSearcher.cast(classSearcher);
-            case NAMED_INDIVIDUAL:
-                return BaseSearcher.cast(individualSearcher);
-            case DATATYPE:
-                return BaseSearcher.cast(datatypeSearcher);
-            case NAMED_OBJECT_PROPERTY:
-                return BaseSearcher.cast(objectPropertySearcher);
-            case ANNOTATION_PROPERTY:
-                return BaseSearcher.cast(annotationPropertySearcher);
-            case DATATYPE_PROPERTY:
-                return BaseSearcher.cast(dataPropertySearcher);
-        }
-        return null;
+        return switch (type) {
+            case CLASS -> BaseSearcher.cast(classSearcher);
+            case NAMED_INDIVIDUAL -> BaseSearcher.cast(individualSearcher);
+            case DATATYPE -> BaseSearcher.cast(datatypeSearcher);
+            case NAMED_OBJECT_PROPERTY -> BaseSearcher.cast(objectPropertySearcher);
+            case ANNOTATION_PROPERTY -> BaseSearcher.cast(annotationPropertySearcher);
+            case DATATYPE_PROPERTY -> BaseSearcher.cast(dataPropertySearcher);
+            default -> null;
+        };
     }
 
     /**

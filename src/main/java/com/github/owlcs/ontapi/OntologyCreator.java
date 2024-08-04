@@ -15,10 +15,10 @@
 package com.github.owlcs.ontapi;
 
 import com.github.owlcs.ontapi.config.OntLoaderConfiguration;
-import com.github.sszuev.jena.ontapi.UnionGraph;
-import com.github.sszuev.jena.ontapi.impl.UnionGraphImpl;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.GraphMemFactory;
+import org.apache.jena.ontapi.UnionGraph;
+import org.apache.jena.ontapi.impl.UnionGraphImpl;
 
 import java.util.Objects;
 

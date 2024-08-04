@@ -16,11 +16,11 @@ package com.github.owlcs.ontapi.internal.objects;
 
 import com.github.owlcs.ontapi.internal.ONTObject;
 import com.github.owlcs.ontapi.owlapi.objects.swrl.LiteralArgumentImpl;
-import com.github.sszuev.jena.ontapi.model.OntModel;
-import com.github.sszuev.jena.ontapi.model.OntSWRL;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.graph.impl.LiteralLabel;
+import org.apache.jena.ontapi.model.OntModel;
+import org.apache.jena.ontapi.model.OntSWRL;
 import org.semanticweb.owlapi.model.OWLDatatype;
 import org.semanticweb.owlapi.model.OWLLiteral;
 import org.semanticweb.owlapi.model.OWLObject;
@@ -54,6 +54,7 @@ public class ONTSWRLLiteralImpl extends ONTResourceImpl
 
     @Override
     public Node asNode() {
+        //noinspection deprecation
         return NodeFactory.createLiteral(getLiteralLabel());
     }
 

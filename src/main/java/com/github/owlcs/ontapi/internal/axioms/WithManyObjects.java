@@ -22,13 +22,13 @@ import com.github.owlcs.ontapi.internal.objects.ONTObjectImpl;
 import com.github.owlcs.ontapi.internal.objects.WithContent;
 import com.github.owlcs.ontapi.internal.objects.WithoutAnnotations;
 import com.github.owlcs.ontapi.owlapi.OWLObjectImpl;
-import com.github.sszuev.jena.ontapi.model.OntDisjoint;
-import com.github.sszuev.jena.ontapi.model.OntModel;
-import com.github.sszuev.jena.ontapi.model.OntStatement;
-import com.github.sszuev.jena.ontapi.utils.Iterators;
-import com.github.sszuev.jena.ontapi.vocabulary.OWL;
 import org.apache.jena.graph.Triple;
+import org.apache.jena.ontapi.model.OntDisjoint;
+import org.apache.jena.ontapi.model.OntModel;
+import org.apache.jena.ontapi.model.OntStatement;
+import org.apache.jena.ontapi.utils.Iterators;
 import org.apache.jena.util.iterator.ExtendedIterator;
+import org.apache.jena.vocabulary.OWL;
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLObject;
@@ -238,7 +238,7 @@ interface WithManyObjects<E extends OWLObject> extends WithTriple {
             return false;
         }
 
-        @SuppressWarnings({"unchecked", "RedundantCast"})
+        @SuppressWarnings({"unchecked"})
         @Override
         default Stream<ONTObject<? extends E>> members(ModelObjectFactory factory) {
             return (Stream<ONTObject<? extends E>>) ((Stream) objects(getObjectFactory()));

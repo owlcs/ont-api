@@ -20,15 +20,15 @@ import com.github.owlcs.ontapi.config.OntWriterConfiguration;
 import com.github.owlcs.ontapi.internal.InternalCache;
 import com.github.owlcs.ontapi.internal.InternalConfig;
 import com.github.owlcs.ontapi.internal.InternalGraphModel;
-import com.github.sszuev.jena.ontapi.UnionGraph;
-import com.github.sszuev.jena.ontapi.model.OntModel;
-import com.github.sszuev.jena.ontapi.utils.Graphs;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.GraphUtil;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.impl.WrappedGraph;
+import org.apache.jena.ontapi.UnionGraph;
+import org.apache.jena.ontapi.model.OntModel;
+import org.apache.jena.ontapi.utils.Graphs;
 import org.apache.jena.shared.PrefixMapping;
 import org.semanticweb.owlapi.io.IRIDocumentSource;
 import org.semanticweb.owlapi.io.OWLOntologyDocumentSource;
@@ -97,6 +97,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -129,6 +130,7 @@ import java.util.stream.Stream;
 public class OntologyManagerImpl
         implements OntologyManager, OWLOntologyFactory.OWLOntologyCreationHandler, HasAdapter, Serializable {
     private static final Logger LOGGER = LoggerFactory.getLogger(OntologyManagerImpl.class);
+    @Serial
     private static final long serialVersionUID = -4764329329583952286L;
 
     // listeners:
@@ -1378,10 +1380,9 @@ public class OntologyManagerImpl
      */
     protected ChangeApplied enactChangeApplication(OWLOntologyChange change) {
         OWLOntology owl = change.getOntology();
-        if (!(owl instanceof Ontology)) {
+        if (!(owl instanceof Ontology ont)) {
             throw new OntApiException.IllegalArgument("Not an OntologyModel instance: " + owl);
         }
-        Ontology ont = (Ontology) owl;
         if (!hasOntology(ont)) {
             throw new UnknownOWLOntologyException(ont.getOntologyID());
         }
@@ -1785,9 +1786,8 @@ public class OntologyManagerImpl
     public void write(OWLOntology ontology,
                       OWLDocumentFormat doc,
                       OWLOntologyDocumentTarget target) throws OWLOntologyStorageException {
-        if (!(ontology instanceof Ontology))
+        if (!(ontology instanceof Ontology ont))
             throw new OntApiException.Unsupported("Unsupported OWLOntology instance: " + this);
-        Ontology ont = (Ontology) ontology;
         OntFormat format = OntApiException.notNull(OntFormat.get(doc), "Can't determine format: " + doc);
         if (!format.isJena()) {
             writeUsingOWLStore(ont, doc, target);
@@ -1842,6 +1842,7 @@ public class OntologyManagerImpl
      * @throws ClassNotFoundException exception
      * @see OntBaseModelImpl#readObject(ObjectInputStream)
      */
+    @Serial
     @SuppressWarnings("JavadocReference")
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
         in.defaultReadObject();
@@ -1893,6 +1894,7 @@ public class OntologyManagerImpl
     @SuppressWarnings("UnusedReturnValue")
     protected static class ListenersHolder implements Serializable {
         private static final String BAD_LISTENER = "BADLY BEHAVING LISTENER: {} has been removed";
+        @Serial
         private static final long serialVersionUID = 6728609023804778746L;
         protected final List<MissingImportListener> missingImportsListeners = new ArrayList<>();
         protected final List<OWLOntologyLoaderListener> loaderListeners = new ArrayList<>();
@@ -2138,6 +2140,7 @@ public class OntologyManagerImpl
             importsLoadCount.set(0);
         }
 
+        @Serial
         private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
             in.defaultReadObject();
             listenerMap = new HashMap<>();
@@ -2155,6 +2158,7 @@ public class OntologyManagerImpl
      */
     @SuppressWarnings("UnusedReturnValue")
     public class OntInfo implements HasOntologyID, Serializable {
+        @Serial
         private static final long serialVersionUID = 5894845199098931128L;
         protected final Ontology ont;
         protected final ModelConfig conf;

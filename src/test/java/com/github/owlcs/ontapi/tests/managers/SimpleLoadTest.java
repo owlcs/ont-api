@@ -21,9 +21,9 @@ import com.github.owlcs.ontapi.TestOntSpecifications;
 import com.github.owlcs.ontapi.config.OntLoaderConfiguration;
 import com.github.owlcs.ontapi.testutils.MiscTestUtils;
 import com.github.owlcs.ontapi.testutils.OWLIOUtils;
-import com.github.sszuev.jena.ontapi.common.PunningsMode;
-import com.github.sszuev.jena.ontapi.model.OntEntity;
-import com.github.sszuev.jena.ontapi.model.OntModel;
+import org.apache.jena.ontapi.common.PunningsMode;
+import org.apache.jena.ontapi.model.OntEntity;
+import org.apache.jena.ontapi.model.OntModel;
 import org.apache.jena.rdf.model.Resource;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -76,7 +76,7 @@ public class SimpleLoadTest {
         Set<Resource> illegalPunningURIs = MiscTestUtils.getIllegalPunnings(model, PunningsMode.DL2);
         LOGGER.debug("There are following illegal punnins inside original graph: {}", illegalPunningURIs);
         List<OntEntity> illegalPunnings = model.ontEntities()
-                .filter(illegalPunningURIs::contains).collect(Collectors.toList());
+                .filter(illegalPunningURIs::contains).toList();
         Assertions.assertTrue(illegalPunnings.isEmpty(), "Has illegal punnings: " + illegalPunnings);
 
         List<OWLAxiom> ontList = ont.axioms().sorted().collect(Collectors.toList());

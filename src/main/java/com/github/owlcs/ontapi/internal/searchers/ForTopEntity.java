@@ -14,13 +14,13 @@
 
 package com.github.owlcs.ontapi.internal.searchers;
 
-import com.github.sszuev.jena.ontapi.model.OntModel;
-import com.github.sszuev.jena.ontapi.model.OntStatement;
-import com.github.sszuev.jena.ontapi.utils.Iterators;
-import com.github.sszuev.jena.ontapi.vocabulary.OWL;
+import org.apache.jena.ontapi.model.OntModel;
+import org.apache.jena.ontapi.model.OntStatement;
+import org.apache.jena.ontapi.utils.Iterators;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.util.iterator.ExtendedIterator;
+import org.apache.jena.vocabulary.OWL;
 
 /**
  * A technical interface that contains functionality common for searchers

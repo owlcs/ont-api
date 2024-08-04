@@ -21,17 +21,17 @@ import com.github.owlcs.ontapi.internal.ONTObject;
 import com.github.owlcs.ontapi.internal.ONTObjectFactory;
 import com.github.owlcs.ontapi.internal.ObjectsSearcher;
 import com.github.owlcs.ontapi.internal.searchers.WithRootStatement;
-import com.github.sszuev.jena.ontapi.common.OntEnhGraph;
-import com.github.sszuev.jena.ontapi.model.OntModel;
-import com.github.sszuev.jena.ontapi.model.OntObject;
-import com.github.sszuev.jena.ontapi.model.OntStatement;
-import com.github.sszuev.jena.ontapi.utils.Iterators;
-import com.github.sszuev.jena.ontapi.utils.OntModels;
-import com.github.sszuev.jena.ontapi.vocabulary.RDF;
+import org.apache.jena.ontapi.common.OntEnhGraph;
+import org.apache.jena.ontapi.model.OntModel;
+import org.apache.jena.ontapi.model.OntObject;
+import org.apache.jena.ontapi.model.OntStatement;
+import org.apache.jena.ontapi.utils.Iterators;
+import org.apache.jena.ontapi.utils.OntModels;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.util.iterator.ExtendedIterator;
+import org.apache.jena.vocabulary.RDF;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLEntity;
 
@@ -104,8 +104,7 @@ abstract class EntitySearcher<E extends OWLEntity> extends WithRootStatement imp
     }
 
     final Function<String, ONTObject<E>> createMapping(OntModel model, ONTObjectFactory factory) {
-        if (factory instanceof ModelObjectFactory) {
-            ModelObjectFactory f = (ModelObjectFactory) factory;
+        if (factory instanceof ModelObjectFactory f) {
             return uri -> createEntity(uri, f);
         }
         return uri -> createEntity(uri, model, factory);

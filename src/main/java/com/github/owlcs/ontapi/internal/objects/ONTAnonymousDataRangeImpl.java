@@ -14,6 +14,7 @@
 
 package com.github.owlcs.ontapi.internal.objects;
 
+import com.github.owlcs.ontapi.BlankNodeId;
 import com.github.owlcs.ontapi.OntApiException;
 import com.github.owlcs.ontapi.internal.ModelObjectFactory;
 import com.github.owlcs.ontapi.internal.ONTObject;
@@ -25,10 +26,9 @@ import com.github.owlcs.ontapi.owlapi.objects.dr.DataIntersectionOfImpl;
 import com.github.owlcs.ontapi.owlapi.objects.dr.DataOneOfImpl;
 import com.github.owlcs.ontapi.owlapi.objects.dr.DataUnionOfImpl;
 import com.github.owlcs.ontapi.owlapi.objects.dr.DatatypeRestrictionImpl;
-import com.github.sszuev.jena.ontapi.model.OntDataRange;
-import com.github.sszuev.jena.ontapi.model.OntModel;
-import com.github.sszuev.jena.ontapi.utils.OntModels;
-import org.apache.jena.graph.BlankNodeId;
+import org.apache.jena.ontapi.model.OntDataRange;
+import org.apache.jena.ontapi.model.OntModel;
+import org.apache.jena.ontapi.utils.OntModels;
 import org.apache.jena.rdf.model.Literal;
 import org.apache.jena.rdf.model.RDFNode;
 import org.semanticweb.owlapi.model.HasComponents;
@@ -84,7 +84,7 @@ public abstract class ONTAnonymousDataRangeImpl<ONT extends OntDataRange, OWL ex
                                                    ONTObjectFactory factory,
                                                    Supplier<OntModel> model) {
         Class<? extends OntDataRange> type = OntModels.getOntType(dr);
-        BlankNodeId id = dr.asNode().getBlankNodeId();
+        BlankNodeId id = BlankNodeId.of(dr.asNode());
         ONTAnonymousDataRangeImpl res = create(id, type, model);
         res.putContent(res.initContent(dr, factory));
         return res;

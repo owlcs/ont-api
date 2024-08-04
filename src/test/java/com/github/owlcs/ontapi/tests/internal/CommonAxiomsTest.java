@@ -94,8 +94,9 @@ public class CommonAxiomsTest extends StatementTestBase {
         o.add(ont);
         o.clearCache();
         OWLIOUtils.print(o);
+
         OWLAxiom res = o.axioms().filter(ont::equals).findFirst().orElseThrow(AssertionError::new);
-        Assertions.assertTrue(res instanceof ONTObject);
+        Assertions.assertInstanceOf(ONTObject.class, res);
         return res;
     }
 

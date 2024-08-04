@@ -18,10 +18,10 @@ import com.github.owlcs.ontapi.internal.ONTObject;
 import com.github.owlcs.ontapi.internal.ONTWrapperImpl;
 import com.github.owlcs.ontapi.owlapi.axioms.DisjointClassesAxiomImpl;
 import com.github.owlcs.ontapi.testutils.OWLIOUtils;
-import com.github.sszuev.jena.ontapi.OntModelFactory;
-import com.github.sszuev.jena.ontapi.model.OntClass;
-import com.github.sszuev.jena.ontapi.model.OntDisjoint;
-import com.github.sszuev.jena.ontapi.model.OntModel;
+import org.apache.jena.ontapi.OntModelFactory;
+import org.apache.jena.ontapi.model.OntClass;
+import org.apache.jena.ontapi.model.OntDisjoint;
+import org.apache.jena.ontapi.model.OntModel;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.semanticweb.owlapi.model.OWLDisjointClassesAxiom;
@@ -49,9 +49,9 @@ public class ONTWrappersTest {
         ONTObject<OWLDisjointClassesAxiom> ax =
                 ONTWrapperImpl.create(new DisjointClassesAxiomImpl(Collections.emptySet(), Collections.emptySet()), c);
 
-        Assertions.assertEquals(8, ax.triples().peek(x -> LOGGER.debug("{}", x)).count());
+        Assertions.assertEquals(8, ax.triples().count());
         LOGGER.debug("---");
         c.getList().addFirst(m.createOntClass("C3"));
-        Assertions.assertEquals(10, ax.triples().peek(x -> LOGGER.debug("{}", x)).count());
+        Assertions.assertEquals(10, ax.triples().count());
     }
 }

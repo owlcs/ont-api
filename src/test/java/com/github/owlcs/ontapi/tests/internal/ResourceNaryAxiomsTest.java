@@ -59,7 +59,7 @@ public class ResourceNaryAxiomsTest extends NaryAxiomsTestBase {
 
         OWLAxiom test = createONTObject(TestManagers.createONTManager(), owl);
 
-        Assertions.assertTrue(test instanceof ModelObject);
+        Assertions.assertInstanceOf(ModelObject.class, test);
         testONTObject(data, owl, ont, test);
     }
 

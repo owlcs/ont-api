@@ -15,7 +15,7 @@
 package com.github.owlcs.ontapi.tests.model;
 
 import com.github.owlcs.ontapi.internal.PrefixMappingRenderer;
-import com.github.sszuev.jena.ontapi.OntModelFactory;
+import org.apache.jena.ontapi.OntModelFactory;
 import org.semanticweb.owlapi.model.OWLObject;
 
 import java.util.Objects;

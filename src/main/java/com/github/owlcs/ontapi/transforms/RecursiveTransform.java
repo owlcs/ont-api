@@ -15,10 +15,10 @@
 package com.github.owlcs.ontapi.transforms;
 
 import com.github.owlcs.ontapi.transforms.vocabulary.ONTAPI;
-import com.github.sszuev.jena.ontapi.common.OntVocabulary;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
+import org.apache.jena.ontapi.common.OntVocabulary;
 
 import java.util.HashSet;
 import java.util.Optional;

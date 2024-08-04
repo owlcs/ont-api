@@ -17,10 +17,10 @@ package com.github.owlcs.ontapi.internal.objects;
 import com.github.owlcs.ontapi.internal.PrefixMappingRenderer;
 import com.github.owlcs.ontapi.owlapi.objects.AnonymousIndividualImpl;
 import com.github.owlcs.ontapi.owlapi.objects.LiteralImpl;
-import com.github.sszuev.jena.ontapi.vocabulary.RDF;
-import com.github.sszuev.jena.ontapi.vocabulary.XSD;
 import javax.annotation.ParametersAreNonnullByDefault;
 import org.apache.jena.shared.PrefixMapping;
+import org.apache.jena.vocabulary.RDF;
+import org.apache.jena.vocabulary.XSD;
 import org.semanticweb.owlapi.model.OWLAnonymousIndividual;
 import org.semanticweb.owlapi.model.OWLEntity;
 import org.semanticweb.owlapi.model.OWLLiteral;
@@ -40,7 +40,7 @@ class ONTPrefixMappingRenderer extends PrefixMappingRenderer {
 
     @Override
     public void visit(OWLAnonymousIndividual individual) {
-        sb.append(((AnonymousIndividualImpl) individual).getBlankNodeId().getLabelString());
+        sb.append(((AnonymousIndividualImpl) individual).getBlankNodeId());
     }
 
     @Override

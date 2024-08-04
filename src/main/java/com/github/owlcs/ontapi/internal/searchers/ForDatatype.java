@@ -14,11 +14,11 @@
 
 package com.github.owlcs.ontapi.internal.searchers;
 
-import com.github.sszuev.jena.ontapi.model.OntClass;
-import com.github.sszuev.jena.ontapi.model.OntStatement;
-import com.github.sszuev.jena.ontapi.vocabulary.XSD;
+import org.apache.jena.ontapi.model.OntClass;
+import org.apache.jena.ontapi.model.OntStatement;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.vocabulary.RDFS;
+import org.apache.jena.vocabulary.XSD;
 
 import java.util.Set;
 

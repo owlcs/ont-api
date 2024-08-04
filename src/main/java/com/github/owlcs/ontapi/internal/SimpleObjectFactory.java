@@ -14,19 +14,20 @@
 
 package com.github.owlcs.ontapi.internal;
 
+import com.github.owlcs.ontapi.BlankNodeId;
 import com.github.owlcs.ontapi.DataFactory;
 import com.github.owlcs.ontapi.OntApiException;
-import com.github.sszuev.jena.ontapi.model.OntAnnotationProperty;
-import com.github.sszuev.jena.ontapi.model.OntClass;
-import com.github.sszuev.jena.ontapi.model.OntDataProperty;
-import com.github.sszuev.jena.ontapi.model.OntDataRange;
-import com.github.sszuev.jena.ontapi.model.OntFacetRestriction;
-import com.github.sszuev.jena.ontapi.model.OntIndividual;
-import com.github.sszuev.jena.ontapi.model.OntModel;
-import com.github.sszuev.jena.ontapi.model.OntObject;
-import com.github.sszuev.jena.ontapi.model.OntObjectProperty;
-import com.github.sszuev.jena.ontapi.model.OntSWRL;
-import com.github.sszuev.jena.ontapi.model.OntStatement;
+import org.apache.jena.ontapi.model.OntAnnotationProperty;
+import org.apache.jena.ontapi.model.OntClass;
+import org.apache.jena.ontapi.model.OntDataProperty;
+import org.apache.jena.ontapi.model.OntDataRange;
+import org.apache.jena.ontapi.model.OntFacetRestriction;
+import org.apache.jena.ontapi.model.OntIndividual;
+import org.apache.jena.ontapi.model.OntModel;
+import org.apache.jena.ontapi.model.OntObject;
+import org.apache.jena.ontapi.model.OntObjectProperty;
+import org.apache.jena.ontapi.model.OntSWRL;
+import org.apache.jena.ontapi.model.OntStatement;
 import org.apache.jena.rdf.model.Literal;
 import org.apache.jena.rdf.model.Resource;
 import org.semanticweb.owlapi.model.IRI;
@@ -124,7 +125,7 @@ public class SimpleObjectFactory implements ONTObjectFactory {
 
     @Override
     public ONTObject<OWLAnonymousIndividual> getIndividual(OntIndividual.Anonymous i) {
-        return ONTWrapperImpl.create(getOWLDataFactory().getOWLAnonymousIndividual(i.asNode().getBlankNodeId()), i);
+        return ONTWrapperImpl.create(getOWLDataFactory().getOWLAnonymousIndividual(BlankNodeId.of(i.asNode())), i);
     }
 
     @Override

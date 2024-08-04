@@ -16,7 +16,7 @@ package com.github.owlcs.ontapi.internal.searchers.axioms;
 
 import com.github.owlcs.ontapi.internal.AxiomTranslator;
 import com.github.owlcs.ontapi.internal.OWLComponentType;
-import com.github.sszuev.jena.ontapi.utils.Iterators;
+import org.apache.jena.ontapi.utils.Iterators;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLObjectProperty;

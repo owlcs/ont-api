@@ -19,18 +19,18 @@ import com.github.owlcs.ontapi.internal.HasObjectFactory;
 import com.github.owlcs.ontapi.internal.ModelObjectFactory;
 import com.github.owlcs.ontapi.internal.ONTObject;
 import com.github.owlcs.ontapi.owlapi.objects.AnonymousIndividualImpl;
-import com.github.sszuev.jena.ontapi.common.OntEnhGraph;
-import com.github.sszuev.jena.ontapi.model.OntIndividual;
-import com.github.sszuev.jena.ontapi.model.OntModel;
 import javax.annotation.Nonnull;
-import org.apache.jena.graph.BlankNodeId;
 import org.apache.jena.graph.Triple;
+import org.apache.jena.ontapi.common.OntEnhGraph;
+import org.apache.jena.ontapi.model.OntIndividual;
+import org.apache.jena.ontapi.model.OntModel;
 import org.semanticweb.owlapi.model.OWLAnonymousIndividual;
 
 import java.io.IOException;
 import java.io.NotSerializableException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.Serial;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Supplier;
@@ -48,7 +48,7 @@ public class ONTAnonymousIndividualImpl extends AnonymousIndividualImpl
 
     protected final Supplier<OntModel> model;
 
-    public ONTAnonymousIndividualImpl(BlankNodeId n, Supplier<OntModel> m) {
+    public ONTAnonymousIndividualImpl(String n, Supplier<OntModel> m) {
         super(n);
         this.model = Objects.requireNonNull(m);
     }
@@ -94,11 +94,13 @@ public class ONTAnonymousIndividualImpl extends AnonymousIndividualImpl
         return createSet(this);
     }
 
+    @Serial
     private void writeObject(ObjectOutputStream out) throws IOException {
         throw new NotSerializableException("Suspicious method call. " +
                 "Serialization is unsupported for ONTAnonymousIndividual.");
     }
 
+    @Serial
     private void readObject(ObjectInputStream in) throws Exception {
         throw new NotSerializableException("Suspicious method call. " +
                 "Deserialization is unsupported for ONTAnonymousIndividual.");

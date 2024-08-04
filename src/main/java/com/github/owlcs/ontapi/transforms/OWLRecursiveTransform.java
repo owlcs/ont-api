@@ -14,12 +14,12 @@
 
 package com.github.owlcs.ontapi.transforms;
 
-import com.github.sszuev.jena.ontapi.utils.Iterators;
-import com.github.sszuev.jena.ontapi.vocabulary.OWL;
 import org.apache.jena.graph.FrontsNode;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
+import org.apache.jena.ontapi.utils.Iterators;
+import org.apache.jena.vocabulary.OWL;
 
 import java.util.Set;
 import java.util.stream.Collectors;

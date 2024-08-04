@@ -13,6 +13,8 @@
  */
 package com.github.owlcs.ontapi.owlapi.axioms;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClassExpression;
@@ -25,8 +27,6 @@ import org.semanticweb.owlapi.model.SWRLRule;
 import org.semanticweb.owlapi.model.SWRLVariable;
 import org.semanticweb.owlapi.util.SWRLVariableExtractor;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
@@ -190,10 +190,9 @@ public class RuleImpl extends LogicalAxiomImpl implements SWRLRule {
         if (obj == null) {
             return false;
         }
-        if (!(obj instanceof SWRLRule)) {
+        if (!(obj instanceof SWRLRule other)) {
             return false;
         }
-        SWRLRule other = (SWRLRule) obj;
         return annotations.equals(other.annotationsAsList())
                 && body.equals(getBodyList(other)) && head.equals(getHeadList(other));
     }

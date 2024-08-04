@@ -18,14 +18,14 @@ import com.github.owlcs.ontapi.config.OntConfig;
 import com.github.owlcs.ontapi.config.OntLoaderConfiguration;
 import com.github.owlcs.ontapi.transforms.GraphStats;
 import com.github.owlcs.ontapi.transforms.TransformException;
-import com.github.sszuev.jena.ontapi.UnionGraph;
-import com.github.sszuev.jena.ontapi.utils.Graphs;
-import com.github.sszuev.jena.ontapi.vocabulary.OWL;
 import javax.annotation.Nonnull;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.GraphUtil;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
+import org.apache.jena.ontapi.UnionGraph;
+import org.apache.jena.ontapi.utils.Graphs;
+import org.apache.jena.vocabulary.OWL;
 import org.semanticweb.owlapi.io.IRIDocumentSource;
 import org.semanticweb.owlapi.io.OWLOntologyDocumentSource;
 import org.semanticweb.owlapi.io.OWLParserFactory;
@@ -143,7 +143,8 @@ public class OntologyLoaderImpl implements OntologyFactory.Loader {
             // (we have already all graphs compiled, now need populate them as models):
             List<GraphInfo> graphs = this.graphs.keySet().stream()
                     .filter(u -> !Objects.equals(u, primary.getURI()))
-                    .map(this.graphs::get).collect(Collectors.toList());
+                    .map(this.graphs::get)
+                    .toList();
             for (GraphInfo g : graphs) {
                 createModel(g, builder, manager, config);
             }
@@ -295,10 +296,9 @@ public class OntologyLoaderImpl implements OntologyFactory.Loader {
                                         OntologyManager manager,
                                         OntLoaderConfiguration config) {
         Graph graph = node.getGraph();
-        if (graph instanceof UnionGraph) {
+        if (graph instanceof UnionGraph u) {
             // this situation may occur only in a single case
             // when the graph is passed into OntologyManager#addOntology, see OntGraphUtils#toGraphMap(Graph)
-            UnionGraph u = (UnionGraph) graph;
             if (u.subGraphs().findFirst().isPresent())
                 throw new OntApiException.IllegalState("A given graph has a hierarchy structure: " + graph);
             // always need to create a _new_ UnionGraph: the old may have listeners or caches attached
@@ -525,8 +525,7 @@ public class OntologyLoaderImpl implements OntologyFactory.Loader {
                                OntologyCreator builder,
                                OntologyManager manager,
                                OntLoaderConfiguration config) throws OWLOntologyCreationException {
-        if (source instanceof OntGraphDocumentSource) {
-            OntGraphDocumentSource src = (OntGraphDocumentSource) source;
+        if (source instanceof OntGraphDocumentSource src) {
             Graph graph = src.getGraph();
             return createGraphInfo(graph, src.getFormat().orElse(null), source.getDocumentIRI(), src.withTransforms());
         }
@@ -573,7 +572,7 @@ public class OntologyLoaderImpl implements OntologyFactory.Loader {
             OntologyManagerImpl _manager = createLoadCopy(_builder, manager, config);
             try {
                 // WARNING: it is a recursive part:
-                // The OWL-API will call some manager load methods which, in turn, will call a factory methods.
+                // The OWL-API will call some manager load methods that, in turn, will call a factory methods.
                 Ontology ont = alternative.loadOntology(_builder, _manager, src, _config);
                 ont.imports().forEach(o -> _manager.documentIRIByOntology(o)
                         .ifPresent(iri -> loaded.put(iri, toGraphInfo(getAdapter().asONT(o), iri))));

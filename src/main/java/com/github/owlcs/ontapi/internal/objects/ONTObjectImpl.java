@@ -18,10 +18,10 @@ import com.github.owlcs.ontapi.internal.HasObjectFactory;
 import com.github.owlcs.ontapi.internal.ModelObjectFactory;
 import com.github.owlcs.ontapi.internal.ONTObject;
 import com.github.owlcs.ontapi.owlapi.OWLObjectImpl;
-import com.github.sszuev.jena.ontapi.common.OntEnhGraph;
-import com.github.sszuev.jena.ontapi.model.OntModel;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import org.apache.jena.ontapi.common.OntEnhGraph;
+import org.apache.jena.ontapi.model.OntModel;
 import org.semanticweb.owlapi.model.OWLAnnotationProperty;
 import org.semanticweb.owlapi.model.OWLAnonymousIndividual;
 import org.semanticweb.owlapi.model.OWLClass;
@@ -37,6 +37,7 @@ import java.io.IOException;
 import java.io.NotSerializableException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.Serial;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Objects;
@@ -256,11 +257,13 @@ public abstract class ONTObjectImpl extends OWLObjectImpl implements ONTComposit
                 accept(ONTCollectors.forAnnotationProperties(createSortedSet())) : createSet();
     }
 
+    @Serial
     private void writeObject(ObjectOutputStream out) throws IOException {
         throw new NotSerializableException("Suspicious method call. " +
                 "Serialization is unsupported for " + getClass().getSimpleName() + ".");
     }
 
+    @Serial
     private void readObject(ObjectInputStream in) throws Exception {
         throw new NotSerializableException("Suspicious method call. " +
                 "Deserialization is unsupported for " + getClass().getSimpleName() + ".");

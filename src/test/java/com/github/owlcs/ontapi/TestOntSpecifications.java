@@ -1,9 +1,9 @@
 package com.github.owlcs.ontapi;
 
-import com.github.sszuev.jena.ontapi.OntSpecification;
-import com.github.sszuev.jena.ontapi.common.OntConfigs;
-import com.github.sszuev.jena.ontapi.common.OntPersonalities;
-import com.github.sszuev.jena.ontapi.common.OntPersonality;
+import org.apache.jena.ontapi.OntSpecification;
+import org.apache.jena.ontapi.common.OntConfigs;
+import org.apache.jena.ontapi.common.OntPersonalities;
+import org.apache.jena.ontapi.common.OntPersonality;
 
 public class TestOntSpecifications {
 

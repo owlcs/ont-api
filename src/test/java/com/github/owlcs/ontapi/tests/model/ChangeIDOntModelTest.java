@@ -20,13 +20,11 @@ import com.github.owlcs.ontapi.Ontology;
 import com.github.owlcs.ontapi.OntologyManager;
 import com.github.owlcs.ontapi.owlapi.objects.AnnotationImplNotAnnotated;
 import com.github.owlcs.ontapi.testutils.OntIRI;
-import com.github.sszuev.jena.ontapi.OntModelFactory;
-import com.github.sszuev.jena.ontapi.model.OntClass;
-import com.github.sszuev.jena.ontapi.model.OntID;
-import com.github.sszuev.jena.ontapi.model.OntModel;
-import com.github.sszuev.jena.ontapi.utils.StdModels;
-import com.github.sszuev.jena.ontapi.vocabulary.OWL;
-import com.github.sszuev.jena.ontapi.vocabulary.RDF;
+import org.apache.jena.ontapi.OntModelFactory;
+import org.apache.jena.ontapi.model.OntClass;
+import org.apache.jena.ontapi.model.OntID;
+import org.apache.jena.ontapi.model.OntModel;
+import org.apache.jena.ontapi.utils.StdModels;
 import org.apache.jena.rdf.model.Literal;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.RDFNode;
@@ -34,6 +32,8 @@ import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.util.ResourceUtils;
+import org.apache.jena.vocabulary.OWL;
+import org.apache.jena.vocabulary.RDF;
 import org.apache.jena.vocabulary.RDFS;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -275,7 +275,7 @@ public class ChangeIDOntModelTest extends OntModelTestBase {
                 .map(OWLDeclarationAxiom::getEntity)
                 .filter(AsOWLClass::isOWLClass).findFirst().orElseThrow(AssertionError::new);
         Assertions.assertEquals(classIRI, entity.getIRI());
-        List<OntClass.Named> classes = jena.ontEntities(OntClass.Named.class).collect(Collectors.toList());
+        List<OntClass.Named> classes = jena.ontEntities(OntClass.Named.class).toList();
         Assertions.assertFalse(classes.isEmpty());
         Assertions.assertEquals(classIRI.getIRIString(), classes.get(0).getURI());
     }

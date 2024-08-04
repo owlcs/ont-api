@@ -14,17 +14,17 @@
 
 package com.github.owlcs.ontapi.internal.objects;
 
+import com.github.owlcs.ontapi.BlankNodeId;
 import com.github.owlcs.ontapi.OntApiException;
-import com.github.sszuev.jena.ontapi.model.OntModel;
-import com.github.sszuev.jena.ontapi.model.OntStatement;
-import com.github.sszuev.jena.ontapi.utils.Iterators;
 import javax.annotation.Nullable;
-import org.apache.jena.graph.BlankNodeId;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.graph.impl.LiteralLabel;
+import org.apache.jena.ontapi.model.OntModel;
+import org.apache.jena.ontapi.model.OntStatement;
+import org.apache.jena.ontapi.utils.Iterators;
 import org.apache.jena.rdf.model.RDFNode;
 import org.semanticweb.owlapi.model.HasComponents;
 import org.semanticweb.owlapi.model.OWLAnnotation;
@@ -94,7 +94,7 @@ public abstract class ONTStatementImpl extends ONTObjectImpl implements WithAnno
         if (node.isURI())
             return node.getURI();
         if (node.isBlank())
-            return node.getBlankNodeId();
+            return BlankNodeId.of(node);
         if (node.isLiteral())
             return node.getLiteral();
         throw new OntApiException.IllegalState("Wrong node: " + node);
@@ -142,7 +142,7 @@ public abstract class ONTStatementImpl extends ONTObjectImpl implements WithAnno
             return NodeFactory.createURI((String) subject);
         }
         if (subject instanceof BlankNodeId) {
-            return NodeFactory.createBlankNode((BlankNodeId) subject);
+            return ((BlankNodeId) subject).asNode();
         }
         throw new OntApiException.IllegalState();
     }
@@ -157,9 +157,10 @@ public abstract class ONTStatementImpl extends ONTObjectImpl implements WithAnno
             return NodeFactory.createURI((String) object);
         }
         if (object instanceof BlankNodeId) {
-            return NodeFactory.createBlankNode((BlankNodeId) object);
+            return ((BlankNodeId) object).asNode();
         }
         if (object instanceof LiteralLabel) {
+            //noinspection deprecation
             return NodeFactory.createLiteral((LiteralLabel) object);
         }
         throw new OntApiException.IllegalState();
@@ -289,10 +290,9 @@ public abstract class ONTStatementImpl extends ONTObjectImpl implements WithAnno
         if (obj == null) {
             return false;
         }
-        if (!(obj instanceof OWLObject)) {
+        if (!(obj instanceof OWLObject other)) {
             return false;
         }
-        OWLObject other = (OWLObject) obj;
         if (typeIndex() != other.typeIndex()) {
             return false;
         }

@@ -19,7 +19,7 @@ import com.github.owlcs.ontapi.internal.ByObjectSearcher;
 import com.github.owlcs.ontapi.internal.WriteHelper;
 import com.github.owlcs.ontapi.internal.objects.ONTExpressionImpl;
 import com.github.owlcs.ontapi.internal.searchers.WithRootStatement;
-import com.github.sszuev.jena.ontapi.model.OntEntity;
+import org.apache.jena.ontapi.model.OntEntity;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.impl.ResourceImpl;
 import org.semanticweb.owlapi.model.OWLAnnotationSubject;

@@ -14,8 +14,9 @@
 package com.github.owlcs.ontapi.owlapi.objects;
 
 import com.github.owlcs.ontapi.AsNode;
+import com.github.owlcs.ontapi.BlankNodeId;
 import com.github.owlcs.ontapi.owlapi.OWLObjectImpl;
-import org.apache.jena.graph.BlankNodeId;
+import javax.annotation.Nullable;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
 import org.semanticweb.owlapi.model.NodeID;
@@ -29,11 +30,6 @@ import org.semanticweb.owlapi.model.OWLEntity;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
 
-import javax.annotation.Nullable;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.lang.reflect.Field;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -44,12 +40,12 @@ import java.util.Set;
  */
 public class AnonymousIndividualImpl extends OWLObjectImpl implements OWLAnonymousIndividual, AsNode {
 
-    protected transient final BlankNodeId id;
+    protected final String id;
 
     /**
      * @param id node id, not {@code null}
      */
-    public AnonymousIndividualImpl(BlankNodeId id) {
+    public AnonymousIndividualImpl(String id) {
         this.id = Objects.requireNonNull(id, "nodeID cannot be null");
     }
 
@@ -64,17 +60,17 @@ public class AnonymousIndividualImpl extends OWLObjectImpl implements OWLAnonymo
         if (individual instanceof AnonymousIndividualImpl) {
             return (AnonymousIndividualImpl) individual;
         }
-        BlankNodeId id;
+        String id;
         if (individual instanceof AsNode) {
-            id = ((AsNode) individual).asNode().getBlankNodeId();
+            id = ((AsNode) individual).asNode().getBlankNodeLabel();
         } else {
-            id = BlankNodeId.create(individual.toStringID());
+            id = individual.toStringID();
         }
         return new AnonymousIndividualImpl(id);
     }
 
     public BlankNodeId getBlankNodeId() {
-        return id;
+        return BlankNodeId.of(id);
     }
 
     @Override
@@ -84,7 +80,7 @@ public class AnonymousIndividualImpl extends OWLObjectImpl implements OWLAnonymo
 
     @Override
     public NodeID getID() {
-        return NodeID.getNodeID(id.getLabelString());
+        return NodeID.getNodeID(id);
     }
 
     @Override
@@ -163,30 +159,15 @@ public class AnonymousIndividualImpl extends OWLObjectImpl implements OWLAnonymo
         if (!(obj instanceof OWLAnonymousIndividual)) {
             return false;
         }
-        if (obj instanceof AnonymousIndividualImpl) {
-            AnonymousIndividualImpl other = (AnonymousIndividualImpl) obj;
+        if (obj instanceof AnonymousIndividualImpl other) {
             if (notSame(other)) {
                 return false;
             }
-            return id.equals(other.getBlankNodeId());
+            return id.equals(other.id);
         }
         if (obj instanceof AsNode) {
             return asNode().equals(((AsNode) obj).asNode());
         }
         return super.equals(obj);
-    }
-
-    private void writeObject(ObjectOutputStream out) throws IOException {
-        out.defaultWriteObject();
-        out.writeObject(id.getLabelString());
-    }
-
-    private void readObject(ObjectInputStream in) throws Exception {
-        in.defaultReadObject();
-        BlankNodeId id = BlankNodeId.create((String) in.readObject());
-        Field field = getClass().getDeclaredField("id");
-        field.setAccessible(true);
-        field.set(this, id);
-        field.setAccessible(false);
     }
 }

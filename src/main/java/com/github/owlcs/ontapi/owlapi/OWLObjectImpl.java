@@ -13,6 +13,8 @@
  */
 package com.github.owlcs.ontapi.owlapi;
 
+import javax.annotation.Nullable;
+import javax.annotation.ParametersAreNonnullByDefault;
 import org.semanticweb.owlapi.model.HasAnnotations;
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLAnnotationProperty;
@@ -30,8 +32,6 @@ import org.semanticweb.owlapi.util.OWLClassExpressionCollector;
 import org.semanticweb.owlapi.util.OWLEntityCollector;
 import org.semanticweb.owlapi.util.SimpleRenderer;
 
-import javax.annotation.Nullable;
-import javax.annotation.ParametersAreNonnullByDefault;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Collections;
@@ -140,7 +140,7 @@ public abstract class OWLObjectImpl implements OWLObject, Serializable {
      */
     protected static List<OWLAnnotation> mergeAnnotations(HasAnnotations withAnnotations,
                                                           Stream<OWLAnnotation> other) {
-        return forOutput(Stream.concat(other, withAnnotations.annotations())).collect(Collectors.toUnmodifiableList());
+        return forOutput(Stream.concat(other, withAnnotations.annotations())).toList();
     }
 
     /**
@@ -157,7 +157,7 @@ public abstract class OWLObjectImpl implements OWLObject, Serializable {
         if (Objects.requireNonNull(annotations, "Annotations cannot be null").isEmpty()) {
             return NO_ANNOTATIONS;
         }
-        return forOutput(annotations.stream()).collect(Collectors.toUnmodifiableList());
+        return forOutput(annotations.stream()).toList();
     }
 
     /**
@@ -486,10 +486,9 @@ public abstract class OWLObjectImpl implements OWLObject, Serializable {
         if (obj == null) {
             return false;
         }
-        if (!(obj instanceof OWLObject)) {
+        if (!(obj instanceof OWLObject other)) {
             return false;
         }
-        OWLObject other = (OWLObject) obj;
         return typeIndex() == other.typeIndex()
                 && hashCode() == other.hashCode()
                 && equalIterators(components().iterator(), other.components().iterator());

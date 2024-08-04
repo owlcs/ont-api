@@ -47,7 +47,7 @@ public class OWLLiteralCorruptionTestCase extends TestBase {
         StringBuilder sb = new StringBuilder();
         int count = 17;
         while (count-- > 0) {
-            sb.append("200 \u00B5Liters + character above U+0FFFF = ");
+            sb.append("200 µLiters + character above U+0FFFF = ");
             sb.appendCodePoint(0x10192); // happens to be "ROMAN SEMUNCIA SIGN"
             sb.append('\n');
         }
@@ -78,7 +78,7 @@ public class OWLLiteralCorruptionTestCase extends TestBase {
      */
     @Test
     public void testShouldRoundTripXMLLiteral() throws Exception {
-        String literal = "<div xmlns='http://www.w3.org/1999/xhtml'><h3>[unknown]</h3><p>(describe NameGroup \"[unknown]\")</p></div>";
+        String literal = "<div xmlns=\"http://www.w3.org/1999/xhtml\"><h3>[unknown]</h3><p>(describe NameGroup \"[unknown]\")</p></div>";
         OWLOntology o = getOWLOntology();
         OWLDataProperty p = df.getOWLDataProperty(IRI.create("urn:test#", "p"));
         OWLLiteral l = df.getOWLLiteral(literal, OWL2Datatype.RDF_XML_LITERAL);
@@ -149,21 +149,25 @@ public class OWLLiteralCorruptionTestCase extends TestBase {
         // They should be understood in input and saved correctly on roundtrip
         String wrong = "rdf:datatype=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#XMLLiteral\"";
         String correct = "rdf:parseType=\"Literal\"";
-        String preamble = "<?xml version=\"1.0\"?>\n"
-                + "<rdf:RDF xmlns=\"http://www.w3.org/2002/07/owl#\"\n"
-                + "     xml:base=\"http://www.w3.org/2002/07/owl\"\n"
-                + "     xmlns:rdf=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#\"\n"
-                + "     xmlns:owl=\"http://www.w3.org/2002/07/owl#\"\n"
-                + "     xmlns:xml=\"http://www.w3.org/XML/1998/namespace\"\n"
-                + "     xmlns:protege=\"http://protege.stanford.edu/\"\n"
-                + "     xmlns:xsd=\"http://www.w3.org/2001/XMLSchema#\"\n"
-                + "     xmlns:rdfs=\"http://www.w3.org/2000/01/rdf-schema#\">\n"
-                + "    <Ontology/>\n"
-                + "    <AnnotationProperty rdf:about=\"http://protege.stanford.edu/code\"/>\n"
-                + "    <Class rdf:about=\"http://protege.stanford.edu/A\">\n"
-                + "        <rdfs:subClassOf rdf:resource=\"http://www.w3.org/2002/07/owl#Thing\"/>\n"
-                + "        <protege:code ";
-        String closure = "><test>xxx</test></protege:code>\n    </Class>\n" + "</rdf:RDF>";
+        String preamble = """
+                <?xml version="1.0"?>
+                <rdf:RDF xmlns="http://www.w3.org/2002/07/owl#"
+                     xml:base="http://www.w3.org/2002/07/owl"
+                     xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+                     xmlns:owl="http://www.w3.org/2002/07/owl#"
+                     xmlns:xml="http://www.w3.org/XML/1998/namespace"
+                     xmlns:protege="http://protege.stanford.edu/"
+                     xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+                     xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#">
+                    <Ontology/>
+                    <AnnotationProperty rdf:about="http://protege.stanford.edu/code"/>
+                    <Class rdf:about="http://protege.stanford.edu/A">
+                        <rdfs:subClassOf rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
+                        <protege:code\s""";
+        String closure = """
+                ><test>xxx</test></protege:code>
+                    </Class>
+                </rdf:RDF>""";
         String in1 = preamble + wrong + closure;
         String in2 = preamble + correct + closure;
         LOGGER.debug(in1);
@@ -201,13 +205,18 @@ public class OWLLiteralCorruptionTestCase extends TestBase {
 
     @Test
     public void testShouldRoundtripPaddedLiterals() throws OWLOntologyCreationException, OWLOntologyStorageException {
-        String in = "Prefix(:=<urn:test#>)\n" + "Prefix(a:=<urn:test#>)\n"
-                + "Prefix(rdfs:=<http://www.w3.org/2000/01/rdf-schema#>)\n"
-                + "Prefix(owl2xml:=<http://www.w3.org/2006/12/owl2-xml#>)\n" + "Prefix(test:=<urn:test#>)\n"
-                + "Prefix(owl:=<http://www.w3.org/2002/07/owl#>)\n" + "Prefix(xsd:=<http://www.w3.org/2001/XMLSchema#>)\n"
-                + "Prefix(rdf:=<http://www.w3.org/1999/02/22-rdf-syntax-ns#>)\n" + "Ontology(<urn:test>\n"
-                + "DataPropertyAssertion(:dp :c \"1\"^^xsd:integer) " + "DataPropertyAssertion(:dp :c \"01\"^^xsd:integer) "
-                + "DataPropertyAssertion(:dp :c \"1\"^^xsd:short))";
+        String in = """
+                Prefix(:=<urn:test#>)
+                Prefix(a:=<urn:test#>)
+                Prefix(rdfs:=<http://www.w3.org/2000/01/rdf-schema#>)
+                Prefix(owl2xml:=<http://www.w3.org/2006/12/owl2-xml#>)
+                Prefix(test:=<urn:test#>)
+                Prefix(owl:=<http://www.w3.org/2002/07/owl#>)
+                Prefix(xsd:=<http://www.w3.org/2001/XMLSchema#>)
+                Prefix(rdf:=<http://www.w3.org/1999/02/22-rdf-syntax-ns#>)
+                Ontology(<urn:test>
+                DataPropertyAssertion(:dp :c "1"^^xsd:integer) DataPropertyAssertion(:dp :c "01"^^xsd:integer) \
+                DataPropertyAssertion(:dp :c "1"^^xsd:short))""";
         OWLOntology o = loadOntologyFromString(new StringDocumentSource(in, IRI.create("urn:test#", "test"), new FunctionalSyntaxDocumentFormat(), null));
         OWLOntology o2 = roundTrip(o, new FunctionalSyntaxDocumentFormat());
         equal(o, o2);

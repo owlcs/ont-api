@@ -14,6 +14,7 @@
 
 package com.github.owlcs.ontapi.internal.objects;
 
+import com.github.owlcs.ontapi.BlankNodeId;
 import com.github.owlcs.ontapi.DataFactory;
 import com.github.owlcs.ontapi.OntApiException;
 import com.github.owlcs.ontapi.internal.ModelObjectFactory;
@@ -21,17 +22,16 @@ import com.github.owlcs.ontapi.internal.ONTObject;
 import com.github.owlcs.ontapi.internal.ONTObjectFactory;
 import com.github.owlcs.ontapi.owlapi.OWLObjectImpl;
 import com.github.owlcs.ontapi.owlapi.objects.AnonymousIndividualImpl;
-import com.github.sszuev.jena.ontapi.model.OntClass;
-import com.github.sszuev.jena.ontapi.model.OntDataProperty;
-import com.github.sszuev.jena.ontapi.model.OntDataRange;
-import com.github.sszuev.jena.ontapi.model.OntIndividual;
-import com.github.sszuev.jena.ontapi.model.OntModel;
-import com.github.sszuev.jena.ontapi.model.OntObject;
-import com.github.sszuev.jena.ontapi.model.OntObjectProperty;
-import com.github.sszuev.jena.ontapi.utils.OntModels;
 import javax.annotation.Nullable;
-import org.apache.jena.graph.BlankNodeId;
 import org.apache.jena.graph.Node;
+import org.apache.jena.ontapi.model.OntClass;
+import org.apache.jena.ontapi.model.OntDataProperty;
+import org.apache.jena.ontapi.model.OntDataRange;
+import org.apache.jena.ontapi.model.OntIndividual;
+import org.apache.jena.ontapi.model.OntModel;
+import org.apache.jena.ontapi.model.OntObject;
+import org.apache.jena.ontapi.model.OntObjectProperty;
+import org.apache.jena.ontapi.utils.OntModels;
 import org.apache.jena.rdf.model.Literal;
 import org.semanticweb.owlapi.model.HasComponents;
 import org.semanticweb.owlapi.model.HasOperands;
@@ -115,7 +115,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntClass, OWL 
                                                          ONTObjectFactory factory,
                                                          Supplier<OntModel> model) {
         Class<? extends OntClass> type = OntModels.getOntType(ce);
-        BlankNodeId id = ce.asNode().getBlankNodeId();
+        BlankNodeId id = BlankNodeId.of(ce.asNode());
         ONTAnonymousClassExpressionImpl res = create(id, type, model);
         // since we have already the type information
         // we can forcibly load the cache to reduce graph traversal operations
@@ -467,7 +467,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntClass, OWL 
 
         @Override
         Object toLastContentItem(Node node, Object expr) {
-            return node.isURI() ? node.getURI() : node.getBlankNodeId();
+            return node.isURI() ? node.getURI() : BlankNodeId.of(node);
         }
 
         @Override

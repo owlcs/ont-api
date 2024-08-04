@@ -23,7 +23,7 @@ import java.util.UUID;
 
 /**
  * Vocabulary with (possible, temporary) resources used by ONT-API only.
- * Might be moved to {@link com.github.sszuev.jena.ontapi.vocabulary} if necessary.
+ * Might be moved to {@link org.apache.jena.vocabulary} if necessary.
  */
 public class ONTAPI {
     public final static String URI = "https://github.com/owlcs/ont-api";

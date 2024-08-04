@@ -16,19 +16,20 @@ package com.github.owlcs.ontapi.transforms;
 
 import com.github.owlcs.ontapi.OntApiException;
 import com.github.owlcs.ontapi.OntGraphUtils;
-import com.github.sszuev.jena.ontapi.OntModelFactory;
-import com.github.sszuev.jena.ontapi.UnionGraph;
-import com.github.sszuev.jena.ontapi.impl.GraphListenerBase;
-import com.github.sszuev.jena.ontapi.utils.Graphs;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.GraphEventManager;
 import org.apache.jena.graph.GraphUtil;
 import org.apache.jena.graph.Triple;
+import org.apache.jena.ontapi.OntModelFactory;
+import org.apache.jena.ontapi.UnionGraph;
+import org.apache.jena.ontapi.impl.GraphListenerBase;
+import org.apache.jena.ontapi.utils.Graphs;
 import org.apache.jena.shared.JenaException;
 import org.apache.jena.sparql.graph.GraphFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.HashSet;
@@ -58,6 +59,7 @@ import java.util.stream.Stream;
  */
 public class GraphTransformers implements Serializable {
     private static final Logger LOGGER = LoggerFactory.getLogger(GraphTransformers.class);
+    @Serial
     private static final long serialVersionUID = -1;
 
     // NOTE: the order is important
@@ -317,7 +319,7 @@ public class GraphTransformers implements Serializable {
      */
     public GraphStats transform(Graph graph, Set<Graph> skip) throws TransformException {
         UnionGraph u = Graphs.makeOntUnionFrom(graph, OntModelFactory::createUnionGraph);
-        List<Graph> children = u.subGraphs().collect(Collectors.toList());
+        List<Graph> children = u.subGraphs().toList();
         Graph base = u.getBaseGraph();
         GraphStats res = new GraphStats(base);
         for (Graph g : children) {

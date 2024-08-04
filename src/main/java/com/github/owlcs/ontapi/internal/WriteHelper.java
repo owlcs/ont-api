@@ -17,22 +17,21 @@ package com.github.owlcs.ontapi.internal;
 import com.github.owlcs.ontapi.OntApiException;
 import com.github.owlcs.ontapi.owlapi.objects.AnonymousIndividualImpl;
 import com.github.owlcs.ontapi.owlapi.objects.LiteralImpl;
-import com.github.sszuev.jena.ontapi.model.OntAnnotationProperty;
-import com.github.sszuev.jena.ontapi.model.OntClass;
-import com.github.sszuev.jena.ontapi.model.OntDataProperty;
-import com.github.sszuev.jena.ontapi.model.OntDataRange;
-import com.github.sszuev.jena.ontapi.model.OntEntity;
-import com.github.sszuev.jena.ontapi.model.OntFacetRestriction;
-import com.github.sszuev.jena.ontapi.model.OntIndividual;
-import com.github.sszuev.jena.ontapi.model.OntModel;
-import com.github.sszuev.jena.ontapi.model.OntObject;
-import com.github.sszuev.jena.ontapi.model.OntObjectProperty;
-import com.github.sszuev.jena.ontapi.model.OntSWRL;
-import com.github.sszuev.jena.ontapi.model.OntStatement;
-import com.github.sszuev.jena.ontapi.utils.OntModels;
-import com.github.sszuev.jena.ontapi.vocabulary.OWL;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
+import org.apache.jena.ontapi.model.OntAnnotationProperty;
+import org.apache.jena.ontapi.model.OntClass;
+import org.apache.jena.ontapi.model.OntDataProperty;
+import org.apache.jena.ontapi.model.OntDataRange;
+import org.apache.jena.ontapi.model.OntEntity;
+import org.apache.jena.ontapi.model.OntFacetRestriction;
+import org.apache.jena.ontapi.model.OntIndividual;
+import org.apache.jena.ontapi.model.OntModel;
+import org.apache.jena.ontapi.model.OntObject;
+import org.apache.jena.ontapi.model.OntObjectProperty;
+import org.apache.jena.ontapi.model.OntSWRL;
+import org.apache.jena.ontapi.model.OntStatement;
+import org.apache.jena.ontapi.utils.OntModels;
 import org.apache.jena.rdf.model.Literal;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.RDFList;
@@ -40,6 +39,7 @@ import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.rdf.model.impl.ResourceImpl;
+import org.apache.jena.vocabulary.OWL;
 import org.apache.jena.vocabulary.RDFS;
 import org.semanticweb.owlapi.model.ClassExpressionType;
 import org.semanticweb.owlapi.model.DataRangeType;
@@ -231,31 +231,19 @@ public class WriteHelper {
      * @see ReadHelper#getFacet(Class)
      */
     public static Class<? extends OntFacetRestriction> getFRType(OWLFacet facet) {
-        switch (facet) {
-            case LENGTH:
-                return OntFacetRestriction.Length.class;
-            case MIN_LENGTH:
-                return OntFacetRestriction.MinLength.class;
-            case MAX_LENGTH:
-                return OntFacetRestriction.MaxLength.class;
-            case MIN_INCLUSIVE:
-                return OntFacetRestriction.MinInclusive.class;
-            case MAX_INCLUSIVE:
-                return OntFacetRestriction.MaxInclusive.class;
-            case MIN_EXCLUSIVE:
-                return OntFacetRestriction.MinExclusive.class;
-            case MAX_EXCLUSIVE:
-                return OntFacetRestriction.MaxExclusive.class;
-            case PATTERN:
-                return OntFacetRestriction.Pattern.class;
-            case FRACTION_DIGITS:
-                return OntFacetRestriction.FractionDigits.class;
-            case TOTAL_DIGITS:
-                return OntFacetRestriction.TotalDigits.class;
-            case LANG_RANGE:
-                return OntFacetRestriction.LangRange.class;
-        }
-        throw new OntApiException.IllegalArgument("Unsupported " + facet);
+        return switch (facet) {
+            case LENGTH -> OntFacetRestriction.Length.class;
+            case MIN_LENGTH -> OntFacetRestriction.MinLength.class;
+            case MAX_LENGTH -> OntFacetRestriction.MaxLength.class;
+            case MIN_INCLUSIVE -> OntFacetRestriction.MinInclusive.class;
+            case MAX_INCLUSIVE -> OntFacetRestriction.MaxInclusive.class;
+            case MIN_EXCLUSIVE -> OntFacetRestriction.MinExclusive.class;
+            case MAX_EXCLUSIVE -> OntFacetRestriction.MaxExclusive.class;
+            case PATTERN -> OntFacetRestriction.Pattern.class;
+            case FRACTION_DIGITS -> OntFacetRestriction.FractionDigits.class;
+            case TOTAL_DIGITS -> OntFacetRestriction.TotalDigits.class;
+            case LANG_RANGE -> OntFacetRestriction.LangRange.class;
+        };
     }
 
     /**

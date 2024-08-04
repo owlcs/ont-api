@@ -14,10 +14,10 @@
 
 package com.github.owlcs.ontapi.transforms.vocabulary;
 
-import com.github.sszuev.jena.ontapi.vocabulary.XSD;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
+import org.apache.jena.vocabulary.XSD;
 
 /**
  * A collection of deprecated IRIs, that are used in obsolete ontologies,
@@ -27,8 +27,7 @@ import org.apache.jena.rdf.model.ResourceFactory;
  * <p>
  * Created by @ssz on 27.02.2019.
  *
- * @see com.github.sszuev.jena.ontapi.vocabulary.OWL the correct OWL2 vocabulary
- * @see org.apache.jena.vocabulary.OWL the correct OWL1 vocabulary
+ * @see org.apache.jena.vocabulary.OWL
  * @see XSD predicates that are used in facet restrictions
  * @see org.semanticweb.owlapi.vocab.OWLRDFVocabulary
  */
@@ -36,7 +35,7 @@ public class DEPRECATED {
 
     public static class OWL {
 
-        public final static String NS = com.github.sszuev.jena.ontapi.vocabulary.OWL.NS;
+        public final static String NS = org.apache.jena.vocabulary.OWL.NS;
 
         public static final Property propertyChain = property("propertyChain");
         public static final Property declaredAs = property("declaredAs");
@@ -86,7 +85,7 @@ public class DEPRECATED {
     }
 
     public static class RDF {
-        public final static String NS = com.github.sszuev.jena.ontapi.vocabulary.RDF.getURI();
+        public final static String NS = org.apache.jena.vocabulary.RDF.getURI();
 
         // used in negative assertions:
         public static final Property subject = property("subject");

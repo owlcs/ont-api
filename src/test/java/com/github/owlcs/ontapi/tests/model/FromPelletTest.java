@@ -18,7 +18,7 @@ import com.github.owlcs.ontapi.OntManagers;
 import com.github.owlcs.ontapi.Ontology;
 import com.github.owlcs.ontapi.OntologyManager;
 import com.github.owlcs.ontapi.testutils.OWLIOUtils;
-import com.github.sszuev.jena.ontapi.model.OntObjectProperty;
+import org.apache.jena.ontapi.model.OntObjectProperty;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.semanticweb.owlapi.model.AxiomType;
@@ -175,6 +175,6 @@ public class FromPelletTest {
         OWLOntology o = m.loadOntology(iri);
         OWLIOUtils.print(o);
         o.axioms().map(String::valueOf).forEach(LOGGER::debug);
-        Assertions.assertEquals(7, o.dataPropertiesInSignature().peek(x -> LOGGER.debug("DP: {}", x)).count());
+        Assertions.assertEquals(7, o.dataPropertiesInSignature().count());
     }
 }

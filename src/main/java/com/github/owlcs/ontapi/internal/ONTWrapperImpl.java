@@ -14,10 +14,10 @@
 
 package com.github.owlcs.ontapi.internal;
 
-import com.github.sszuev.jena.ontapi.model.OntObject;
-import com.github.sszuev.jena.ontapi.model.OntStatement;
 import org.apache.jena.graph.FrontsTriple;
 import org.apache.jena.graph.Triple;
+import org.apache.jena.ontapi.model.OntObject;
+import org.apache.jena.ontapi.model.OntStatement;
 import org.semanticweb.owlapi.model.OWLObject;
 
 import java.util.Collection;
@@ -119,8 +119,7 @@ public abstract class ONTWrapperImpl<O extends OWLObject> implements ONTObject<O
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof ONTObject)) return false;
-        ONTObject<?> that = (ONTObject<?>) o;
+        if (!(o instanceof ONTObject<?> that)) return false;
         return object.equals(that.getOWLObject());
     }
 

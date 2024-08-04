@@ -29,25 +29,25 @@ import com.github.owlcs.ontapi.transforms.SWRLTransform;
 import com.github.owlcs.ontapi.transforms.Transform;
 import com.github.owlcs.ontapi.transforms.TransformException;
 import com.github.owlcs.ontapi.transforms.TransformationModel;
-import com.github.sszuev.jena.ontapi.OntModelFactory;
-import com.github.sszuev.jena.ontapi.UnionGraph;
-import com.github.sszuev.jena.ontapi.impl.UnionGraphImpl;
-import com.github.sszuev.jena.ontapi.model.OntClass;
-import com.github.sszuev.jena.ontapi.model.OntEntity;
-import com.github.sszuev.jena.ontapi.model.OntModel;
-import com.github.sszuev.jena.ontapi.utils.Iterators;
-import com.github.sszuev.jena.ontapi.vocabulary.OWL;
-import com.github.sszuev.jena.ontapi.vocabulary.RDF;
-import com.github.sszuev.jena.ontapi.vocabulary.SWRL;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Triple;
+import org.apache.jena.ontapi.OntModelFactory;
+import org.apache.jena.ontapi.UnionGraph;
+import org.apache.jena.ontapi.impl.UnionGraphImpl;
+import org.apache.jena.ontapi.model.OntClass;
+import org.apache.jena.ontapi.model.OntEntity;
+import org.apache.jena.ontapi.model.OntModel;
+import org.apache.jena.ontapi.utils.Iterators;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.util.FileManager;
+import org.apache.jena.vocabulary.OWL;
+import org.apache.jena.vocabulary.RDF;
 import org.apache.jena.vocabulary.RDFS;
+import org.apache.jena.vocabulary.SWRL;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.semanticweb.owlapi.io.OWLOntologyLoaderMetaData;
@@ -217,9 +217,9 @@ public class GraphTransformersTest {
 
         GraphTransformers store = GraphTransformers.get();
         Assertions.assertSame(store, GraphTransformers.get());
-        Assertions.assertEquals(num, store.transforms().peek(x -> LOGGER.debug("Store:::{}", x.id())).count());
+        Assertions.assertEquals(num, store.transforms().count());
         Assertions.assertTrue(store.get(first.id()).isPresent());
-        List<String> ids = store.transforms().map(Transform::id).collect(Collectors.toList());
+        List<String> ids = store.transforms().map(Transform::id).toList();
         Assertions.assertEquals(first.id(), ids.get(0));
         Assertions.assertEquals(last.id(), ids.get(ids.size() - 1));
         Transform maker = Transform.Factory.create("a", g -> new TransformationModel(g) {
@@ -232,7 +232,7 @@ public class GraphTransformersTest {
         store1.transforms().map(Transform::id).forEach(x -> LOGGER.debug("Store1:::{}", x));
         Assertions.assertNotEquals(store, store1);
         Assertions.assertEquals(num, store.transforms().count());
-        List<String> ids1 = store1.transforms().map(Transform::id).collect(Collectors.toList());
+        List<String> ids1 = store1.transforms().map(Transform::id).toList();
         Assertions.assertEquals(num + 1, ids1.size());
         Assertions.assertEquals("a", ids1.get(1));
 
@@ -244,7 +244,7 @@ public class GraphTransformersTest {
         GraphTransformers store3 = store1.remove(OWLCommonTransform.class.getSimpleName());
         Assertions.assertNotEquals(store1, store3);
         Assertions.assertEquals(num + 1, store1.transforms().count());
-        Assertions.assertEquals(num, store3.transforms().peek(x -> LOGGER.debug("Store3:::{}", x.id())).count());
+        Assertions.assertEquals(num, store3.transforms().count());
 
         GraphTransformers store4 = store3.removeLast().removeLast().removeLast()
                 .addLast(g -> {
@@ -258,7 +258,7 @@ public class GraphTransformersTest {
                 })
                 .setFilter(Graph::isEmpty);
 
-        Assertions.assertEquals(num - 2, store4.transforms().peek(s -> LOGGER.debug("Store4::::{}", s.id())).count());
+        Assertions.assertEquals(num - 2, store4.transforms().count());
         Model m1 = ModelFactory.createDefaultModel();
         OntModel m2 = OntModelFactory.createModel().setID("http://x").getModel();
         store4.transform(m2.getGraph());

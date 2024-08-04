@@ -16,16 +16,16 @@ package com.github.owlcs.ontapi;
 
 import com.github.owlcs.ontapi.transforms.GraphStats;
 import com.github.owlcs.ontapi.transforms.OWLIDTransform;
-import com.github.sszuev.jena.ontapi.utils.Graphs;
-import com.github.sszuev.jena.ontapi.vocabulary.OWL;
-import com.github.sszuev.jena.ontapi.vocabulary.RDF;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Multimaps;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Triple;
+import org.apache.jena.ontapi.utils.Graphs;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
+import org.apache.jena.vocabulary.OWL;
+import org.apache.jena.vocabulary.RDF;
 import org.apache.jena.vocabulary.RDFS;
 import org.semanticweb.owlapi.io.OWLOntologyLoaderMetaData;
 import org.semanticweb.owlapi.io.RDFOntologyHeaderStatus;
@@ -44,6 +44,7 @@ import org.semanticweb.owlapi.model.OWLOntology;
 
 import java.io.IOException;
 import java.io.ObjectOutputStream;
+import java.io.Serial;
 import java.util.Collections;
 import java.util.Objects;
 import java.util.Set;
@@ -61,6 +62,7 @@ import java.util.stream.Stream;
  */
 @SuppressWarnings("WeakerAccess")
 public class OntologyMetaData implements OWLOntologyLoaderMetaData {
+    @Serial
     private static final long serialVersionUID = -1;
 
     private final transient Graph graph;
@@ -210,6 +212,7 @@ public class OntologyMetaData implements OWLOntologyLoaderMetaData {
         return Multimaps.unmodifiableMultimap((Multimap) guessed);
     }
 
+    @Serial
     private void writeObject(ObjectOutputStream out) throws IOException {
         getTripleCount();
         out.defaultWriteObject();

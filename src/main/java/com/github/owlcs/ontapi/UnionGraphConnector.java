@@ -1,9 +1,9 @@
 package com.github.owlcs.ontapi;
 
-import com.github.sszuev.jena.ontapi.UnionGraph;
-import com.github.sszuev.jena.ontapi.impl.UnionGraphImpl;
-import com.github.sszuev.jena.ontapi.utils.Graphs;
 import org.apache.jena.graph.Graph;
+import org.apache.jena.ontapi.UnionGraph;
+import org.apache.jena.ontapi.impl.UnionGraphImpl;
+import org.apache.jena.ontapi.utils.Graphs;
 
 /**
  * A {@link org.apache.jena.graph.GraphListener} that allows to connect two {@link UnionGraph}

@@ -18,12 +18,13 @@ import com.github.owlcs.ontapi.config.OntLoaderConfiguration;
 import com.github.owlcs.ontapi.config.OntWriterConfiguration;
 import com.github.owlcs.ontapi.internal.InternalCache;
 import com.github.owlcs.ontapi.internal.InternalConfig;
-import com.github.sszuev.jena.ontapi.OntSpecification;
+import org.apache.jena.ontapi.OntSpecification;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLOntologyLoaderConfiguration;
 import org.semanticweb.owlapi.model.OWLOntologyWriterConfiguration;
 import org.semanticweb.owlapi.model.OWLPrimitive;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.Map;
 import java.util.Objects;
@@ -39,6 +40,7 @@ import java.util.stream.Stream;
  */
 @SuppressWarnings("WeakerAccess")
 public class ModelConfig implements InternalConfig, Serializable {
+    @Serial
     private static final long serialVersionUID = 3681978037818003272L;
 
     protected OntLoaderConfiguration readConf;

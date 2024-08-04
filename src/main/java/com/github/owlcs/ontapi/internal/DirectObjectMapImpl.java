@@ -14,7 +14,7 @@
 
 package com.github.owlcs.ontapi.internal;
 
-import com.github.sszuev.jena.ontapi.utils.Iterators;
+import org.apache.jena.ontapi.utils.Iterators;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.semanticweb.owlapi.model.OWLObject;
 

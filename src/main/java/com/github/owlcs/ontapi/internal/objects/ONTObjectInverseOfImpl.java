@@ -14,13 +14,13 @@
 
 package com.github.owlcs.ontapi.internal.objects;
 
+import com.github.owlcs.ontapi.BlankNodeId;
 import com.github.owlcs.ontapi.internal.ModelObjectFactory;
 import com.github.owlcs.ontapi.internal.ONTObject;
 import com.github.owlcs.ontapi.internal.ONTObjectFactory;
 import com.github.owlcs.ontapi.owlapi.objects.ObjectInverseOfImpl;
-import com.github.sszuev.jena.ontapi.model.OntModel;
-import com.github.sszuev.jena.ontapi.model.OntObjectProperty;
-import org.apache.jena.graph.BlankNodeId;
+import org.apache.jena.ontapi.model.OntModel;
+import org.apache.jena.ontapi.model.OntObjectProperty;
 import org.semanticweb.owlapi.model.OWLEntity;
 import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLObjectInverseOf;
@@ -57,7 +57,7 @@ public class ONTObjectInverseOfImpl
     public static ONTObjectInverseOfImpl create(OntObjectProperty.Inverse iop,
                                                 ONTObjectFactory factory,
                                                 Supplier<OntModel> model) {
-        ONTObjectInverseOfImpl res = new ONTObjectInverseOfImpl(iop.asNode().getBlankNodeId(), model);
+        ONTObjectInverseOfImpl res = new ONTObjectInverseOfImpl(BlankNodeId.of(iop.asNode()), model);
         res.putContent(res.initContent(iop, factory));
         return res;
     }

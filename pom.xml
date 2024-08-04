@@ -20,46 +20,44 @@
 
     <groupId>com.github.owlcs</groupId>
     <artifactId>ontapi</artifactId>
-    <version>3.5.0</version>
+    <version>4.0.0-SNAPSHOT</version>
 
     <name>${project.groupId}:${project.artifactId}</name>
     <description>ONT-API is an RDF-centric library to work with OWL</description>
     <url>https://github.com/owlcs/ont-api</url>
 
     <properties>
-        <maven.compiler.target>11</maven.compiler.target>
-        <maven.compiler.source>11</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
+        <maven.compiler.source>17</maven.compiler.source>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-        <!--https://mvnrepository.com/artifact/org.apache.jena/jena-arq-->
-        <version.jena>4.10.0</version.jena>
-        <!--https://mvnrepository.com/artifact/net.sourceforge.owlapi/owlapi-api-->
+        <!-- https://mvnrepository.com/artifact/org.apache.jena/jena-arq -->
+        <version.jena>5.1.0</version.jena>
+        <!-- https://mvnrepository.com/artifact/net.sourceforge.owlapi/owlapi-api -->
         <version.owlapi>5.5.0</version.owlapi>
-        <!--https://mvnrepository.com/artifact/org.slf4j/slf4j-api-->
-        <version.slf4j>2.0.12</version.slf4j>
-        <!--https://mvnrepository.com/artifact/com.github.ben-manes.caffeine/caffeine-->
+        <!-- https://mvnrepository.com/artifact/org.slf4j/slf4j-api -->
+        <version.slf4j>2.0.13</version.slf4j>
+        <!-- https://mvnrepository.com/artifact/com.github.ben-manes.caffeine/caffeine -->
         <version.caffeine>3.1.8</version.caffeine>
-        <!--https://jitpack.io/#sszuev/concurrent-rdf-graph-->
+        <!-- https://jitpack.io/#sszuev/concurrent-rdf-graph -->
         <version.concurrent-rdf-graph>1.1.0-java</version.concurrent-rdf-graph>
-        <!--https://jitpack.io/#sszuev/jena-owl2-->
-        <version.jena-owl2>0.3.1-SNAPSHOT</version.jena-owl2>
-        <!--https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-->
-        <version.junit>5.10.2</version.junit>
-        <!--https://mvnrepository.com/artifact/org.mockito/mockito-core-->
-        <versio.mockito>5.11.0</versio.mockito>
+        <!-- https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter -->
+        <version.junit>5.10.3</version.junit>
+        <!-- https://mvnrepository.com/artifact/org.mockito/mockito-core -->
+        <versio.mockito>5.12.0</versio.mockito>
 
-        <!--https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-gpg-plugin-->
-        <version.maven-gpg-plugin>3.2.2</version.maven-gpg-plugin>
-        <!--https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-source-plugin-->
-        <version.maven-source-plugin>3.3.0</version.maven-source-plugin>
-        <!--https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-javadoc-plugin-->
-        <version.maven-javadoc-plugin>3.6.3</version.maven-javadoc-plugin>
-        <!--https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-jar-plugin-->
-        <version.maven-jar-plugin>3.3.0</version.maven-jar-plugin>
-        <!--https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-compiler-plugin-->
-        <version.maven-compiler-plugin>3.12.1</version.maven-compiler-plugin>
-        <!--https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-surefire-plugin-->
-        <version.maven-surefire-plugin>3.2.5</version.maven-surefire-plugin>
+        <!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-gpg-plugin -->
+        <version.maven-gpg-plugin>3.2.4</version.maven-gpg-plugin>
+        <!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-source-plugin -->
+        <version.maven-source-plugin>3.3.1</version.maven-source-plugin>
+        <!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-javadoc-plugin -->
+        <version.maven-javadoc-plugin>3.8.0</version.maven-javadoc-plugin>
+        <!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-jar-plugin -->
+        <version.maven-jar-plugin>3.4.2</version.maven-jar-plugin>
+        <!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-compiler-plugin -->
+        <version.maven-compiler-plugin>3.13.0</version.maven-compiler-plugin>
+        <!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-surefire-plugin -->
+        <version.maven-surefire-plugin>3.3.1</version.maven-surefire-plugin>
     </properties>
 
     <licenses>
@@ -150,7 +148,7 @@
         <!-- Apache Jena: -->
         <dependency>
             <groupId>org.apache.jena</groupId>
-            <artifactId>jena-arq</artifactId>
+            <artifactId>jena-ontapi</artifactId>
             <version>${version.jena}</version>
         </dependency>
         <!-- OWL-API: -->
@@ -170,11 +168,6 @@
             <groupId>com.github.sszuev</groupId>
             <artifactId>concurrent-rdf-graph</artifactId>
             <version>${version.concurrent-rdf-graph}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.github.sszuev</groupId>
-            <artifactId>jena-owl2</artifactId>
-            <version>${version.jena-owl2}</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>

@@ -14,7 +14,7 @@
 
 package com.github.owlcs.ontapi.internal;
 
-import com.github.sszuev.jena.ontapi.utils.Iterators;
+import org.apache.jena.ontapi.utils.Iterators;
 import org.apache.jena.util.iterator.ExtendedIterator;
 
 import java.util.ArrayList;
@@ -157,7 +157,7 @@ class ModelIterators {
         }
         // force put everything into cache (memory) and get data snapshot
         // for now there is no any better solution
-        return stream.map(map).collect(Collectors.toList()).stream().flatMap(Function.identity());
+        return stream.map(map).toList().stream().flatMap(Function.identity());
     }
 
 }

@@ -14,8 +14,8 @@
 
 package com.github.owlcs.ontapi.internal.searchers.axioms;
 
-import com.github.sszuev.jena.ontapi.model.OntModel;
-import com.github.sszuev.jena.ontapi.model.OntStatement;
+import org.apache.jena.ontapi.model.OntModel;
+import org.apache.jena.ontapi.model.OntStatement;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.apache.jena.vocabulary.RDFS;

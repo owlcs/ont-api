@@ -15,15 +15,15 @@
 package com.github.owlcs.ontapi.internal.objects;
 
 import com.github.owlcs.ontapi.AsNode;
+import com.github.owlcs.ontapi.BlankNodeId;
 import com.github.owlcs.ontapi.OntApiException;
 import com.github.owlcs.ontapi.internal.AsRDFNode;
-import com.github.sszuev.jena.ontapi.model.OntModel;
-import com.github.sszuev.jena.ontapi.model.OntObject;
-import org.apache.jena.graph.BlankNodeId;
 import org.apache.jena.graph.FrontsTriple;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.graph.impl.LiteralLabel;
+import org.apache.jena.ontapi.model.OntModel;
+import org.apache.jena.ontapi.model.OntObject;
 import org.semanticweb.owlapi.model.OWLObject;
 
 import java.util.Objects;

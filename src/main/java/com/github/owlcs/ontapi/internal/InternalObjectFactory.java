@@ -14,6 +14,7 @@
 
 package com.github.owlcs.ontapi.internal;
 
+import com.github.owlcs.ontapi.BlankNodeId;
 import com.github.owlcs.ontapi.DataFactory;
 import com.github.owlcs.ontapi.OntApiException;
 import com.github.owlcs.ontapi.internal.objects.ONTAnnotationImpl;
@@ -34,16 +35,15 @@ import com.github.owlcs.ontapi.internal.objects.ONTSWRLAtomImpl;
 import com.github.owlcs.ontapi.internal.objects.ONTSWRLIndividualImpl;
 import com.github.owlcs.ontapi.internal.objects.ONTSWRLLiteralImpl;
 import com.github.owlcs.ontapi.internal.objects.ONTSWRLVariable;
-import com.github.sszuev.jena.ontapi.model.OntClass;
-import com.github.sszuev.jena.ontapi.model.OntDataRange;
-import com.github.sszuev.jena.ontapi.model.OntFacetRestriction;
-import com.github.sszuev.jena.ontapi.model.OntModel;
-import com.github.sszuev.jena.ontapi.model.OntObject;
-import com.github.sszuev.jena.ontapi.model.OntObjectProperty;
-import com.github.sszuev.jena.ontapi.model.OntSWRL;
-import com.github.sszuev.jena.ontapi.model.OntStatement;
-import org.apache.jena.graph.BlankNodeId;
 import org.apache.jena.graph.impl.LiteralLabel;
+import org.apache.jena.ontapi.model.OntClass;
+import org.apache.jena.ontapi.model.OntDataRange;
+import org.apache.jena.ontapi.model.OntFacetRestriction;
+import org.apache.jena.ontapi.model.OntModel;
+import org.apache.jena.ontapi.model.OntObject;
+import org.apache.jena.ontapi.model.OntObjectProperty;
+import org.apache.jena.ontapi.model.OntSWRL;
+import org.apache.jena.ontapi.model.OntStatement;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLAnnotationProperty;
@@ -165,7 +165,7 @@ public class InternalObjectFactory implements ModelObjectFactory {
 
     @Override
     public ONTObject<OWLAnonymousIndividual> getAnonymousIndividual(BlankNodeId id) {
-        return new ONTAnonymousIndividualImpl(id, model);
+        return new ONTAnonymousIndividualImpl(id.label(), model);
     }
 
     @Override

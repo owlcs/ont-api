@@ -14,11 +14,12 @@
 
 package com.github.owlcs.ontapi;
 
-import com.github.sszuev.jena.ontapi.model.OntModel;
-import com.github.sszuev.jena.ontapi.utils.Iterators;
+import org.apache.jena.ontapi.model.OntModel;
+import org.apache.jena.ontapi.utils.Iterators;
 import org.semanticweb.owlapi.model.HasOntologyID;
 import org.semanticweb.owlapi.model.OWLOntologyID;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.HashMap;
@@ -46,6 +47,7 @@ import java.util.stream.Stream;
  */
 @SuppressWarnings("WeakerAccess")
 public class OntologyCollectionImpl<O extends HasOntologyID> implements OntologyCollection<O>, Serializable {
+    @Serial
     private static final long serialVersionUID = 3693502109998760296L;
 
     protected final Map<OWLOntologyID, O> map;

@@ -17,19 +17,19 @@ package com.github.owlcs.ontapi.internal;
 import com.github.owlcs.ontapi.DataFactory;
 import com.github.owlcs.ontapi.OntApiException;
 import com.github.owlcs.ontapi.config.AxiomsSettings;
-import com.github.sszuev.jena.ontapi.model.OntAnnotation;
-import com.github.sszuev.jena.ontapi.model.OntAnnotationProperty;
-import com.github.sszuev.jena.ontapi.model.OntClass;
-import com.github.sszuev.jena.ontapi.model.OntDataProperty;
-import com.github.sszuev.jena.ontapi.model.OntDataRange;
-import com.github.sszuev.jena.ontapi.model.OntFacetRestriction;
-import com.github.sszuev.jena.ontapi.model.OntIndividual;
-import com.github.sszuev.jena.ontapi.model.OntObject;
-import com.github.sszuev.jena.ontapi.model.OntObjectProperty;
-import com.github.sszuev.jena.ontapi.model.OntSWRL;
-import com.github.sszuev.jena.ontapi.model.OntStatement;
-import com.github.sszuev.jena.ontapi.utils.Iterators;
-import com.github.sszuev.jena.ontapi.utils.OntModels;
+import org.apache.jena.ontapi.model.OntAnnotation;
+import org.apache.jena.ontapi.model.OntAnnotationProperty;
+import org.apache.jena.ontapi.model.OntClass;
+import org.apache.jena.ontapi.model.OntDataProperty;
+import org.apache.jena.ontapi.model.OntDataRange;
+import org.apache.jena.ontapi.model.OntFacetRestriction;
+import org.apache.jena.ontapi.model.OntIndividual;
+import org.apache.jena.ontapi.model.OntObject;
+import org.apache.jena.ontapi.model.OntObjectProperty;
+import org.apache.jena.ontapi.model.OntSWRL;
+import org.apache.jena.ontapi.model.OntStatement;
+import org.apache.jena.ontapi.utils.Iterators;
+import org.apache.jena.ontapi.utils.OntModels;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.apache.jena.vocabulary.RDFS;
@@ -286,8 +286,7 @@ public class ReadHelper {
         }
         seen.add(dr);
         DataFactory df = of.getOWLDataFactory();
-        if (dr instanceof OntDataRange.Restriction) {
-            OntDataRange.Restriction _dr = (OntDataRange.Restriction) dr;
+        if (dr instanceof OntDataRange.Restriction _dr) {
             ONTObject<OWLDatatype> d = of.getDatatype(_dr.getValue());
             Set<ONTObject<OWLFacetRestriction>> restrictions = OntModels.listMembers(_dr.getList())
                     .mapWith(of::getFacetRestriction).toSet();
@@ -295,8 +294,7 @@ public class ReadHelper {
                     restrictions.stream().map(ONTObject::getOWLObject).collect(Collectors.toList()));
             return ONTWrapperImpl.create(res, dr).append(restrictions);
         }
-        if (dr instanceof OntDataRange.ComplementOf) {
-            OntDataRange.ComplementOf _dr = (OntDataRange.ComplementOf) dr;
+        if (dr instanceof OntDataRange.ComplementOf _dr) {
             ONTObject<? extends OWLDataRange> d = calcDataRange(_dr.getValue(), of, seen);
             return ONTWrapperImpl.create(df.getOWLDataComplementOf(d.getOWLObject()), _dr).append(d);
         }
@@ -309,8 +307,7 @@ public class ReadHelper {
                     df.getOWLDataIntersectionOf(dataRanges.stream().map(ONTObject::getOWLObject));
             return ONTWrapperImpl.create(res, dr).append(dataRanges);
         }
-        if (dr instanceof OntDataRange.OneOf) {
-            OntDataRange.OneOf _dr = (OntDataRange.OneOf) dr;
+        if (dr instanceof OntDataRange.OneOf _dr) {
             Set<ONTObject<OWLLiteral>> literals = _dr.getList().members().map(of::getLiteral)
                     .collect(Collectors.toSet());
             OWLDataRange res = df.getOWLDataOneOf(literals.stream().map(ONTObject::getOWLObject));
@@ -438,8 +435,7 @@ public class ReadHelper {
             OWLClassExpression owl = df.getOWLObjectOneOf(components.stream().map(ONTObject::getOWLObject));
             return ONTWrapperImpl.create(owl, _ce).append(components);
         }
-        if (ce instanceof OntClass.ComplementOf) {
-            OntClass.ComplementOf _ce = (OntClass.ComplementOf) ce;
+        if (ce instanceof OntClass.ComplementOf _ce) {
             ONTObject<? extends OWLClassExpression> c = calcClassExpression(_ce.getValue(), of, seen);
             return ONTWrapperImpl.create(df.getOWLObjectComplementOf(c.getOWLObject()), _ce).append(c);
         }
@@ -509,8 +505,7 @@ public class ReadHelper {
      * @return {@link ONTObject} around {@link SWRLAtom}
      */
     public static ONTObject<? extends SWRLAtom> calcSWRLAtom(OntSWRL.Atom<?> atom, ONTObjectFactory of) {
-        if (atom instanceof OntSWRL.Atom.WithBuiltin) {
-            OntSWRL.Atom.WithBuiltin _atom = (OntSWRL.Atom.WithBuiltin) atom;
+        if (atom instanceof OntSWRL.Atom.WithBuiltin _atom) {
             IRI iri = of.toIRI(_atom.getPredicate().getURI());
             List<ONTObject<? extends SWRLDArgument>> arguments = _atom.arguments().map(of::getSWRLArgument)
                     .collect(Collectors.toList());
@@ -518,15 +513,13 @@ public class ReadHelper {
                     .collect(Collectors.toList()));
             return ONTWrapperImpl.create(res, _atom).append(arguments);
         }
-        if (atom instanceof OntSWRL.Atom.WithClass) {
-            OntSWRL.Atom.WithClass _atom = (OntSWRL.Atom.WithClass) atom;
+        if (atom instanceof OntSWRL.Atom.WithClass _atom) {
             ONTObject<? extends OWLClassExpression> c = of.getClass(_atom.getPredicate());
             ONTObject<? extends SWRLIArgument> a = of.getSWRLArgument(_atom.getArg());
             return ONTWrapperImpl.create(of.getOWLDataFactory().getSWRLClassAtom(c.getOWLObject(), a.getOWLObject()), _atom)
                     .append(c).append(a);
         }
-        if (atom instanceof OntSWRL.Atom.WithDataProperty) {
-            OntSWRL.Atom.WithDataProperty _atom = (OntSWRL.Atom.WithDataProperty) atom;
+        if (atom instanceof OntSWRL.Atom.WithDataProperty _atom) {
             ONTObject<OWLDataProperty> p = of.getProperty(_atom.getPredicate());
             ONTObject<? extends SWRLIArgument> f = of.getSWRLArgument(_atom.getFirstArg());
             ONTObject<? extends SWRLDArgument> s = of.getSWRLArgument(_atom.getSecondArg());
@@ -534,8 +527,7 @@ public class ReadHelper {
                     .getSWRLDataPropertyAtom(p.getOWLObject(), f.getOWLObject(), s.getOWLObject()), _atom)
                     .append(p).append(f).append(s);
         }
-        if (atom instanceof OntSWRL.Atom.WithObjectProperty) {
-            OntSWRL.Atom.WithObjectProperty _atom = (OntSWRL.Atom.WithObjectProperty) atom;
+        if (atom instanceof OntSWRL.Atom.WithObjectProperty _atom) {
             ONTObject<? extends OWLObjectPropertyExpression> p = of.getProperty(_atom.getPredicate());
             ONTObject<? extends SWRLIArgument> f = of.getSWRLArgument(_atom.getFirstArg());
             ONTObject<? extends SWRLIArgument> s = of.getSWRLArgument(_atom.getSecondArg());
@@ -543,22 +535,19 @@ public class ReadHelper {
                     .getSWRLObjectPropertyAtom(p.getOWLObject(), f.getOWLObject(), s.getOWLObject()), _atom)
                     .append(p).append(f).append(s);
         }
-        if (atom instanceof OntSWRL.Atom.WithDataRange) {
-            OntSWRL.Atom.WithDataRange _atom = (OntSWRL.Atom.WithDataRange) atom;
+        if (atom instanceof OntSWRL.Atom.WithDataRange _atom) {
             ONTObject<? extends OWLDataRange> d = of.getDatatype(_atom.getPredicate());
             ONTObject<? extends SWRLDArgument> a = of.getSWRLArgument(_atom.getArg());
             return ONTWrapperImpl.create(of.getOWLDataFactory()
                     .getSWRLDataRangeAtom(d.getOWLObject(), a.getOWLObject()), _atom).append(d).append(a);
         }
-        if (atom instanceof OntSWRL.Atom.WithDifferentIndividuals) {
-            OntSWRL.Atom.WithDifferentIndividuals _atom = (OntSWRL.Atom.WithDifferentIndividuals) atom;
+        if (atom instanceof OntSWRL.Atom.WithDifferentIndividuals _atom) {
             ONTObject<? extends SWRLIArgument> f = of.getSWRLArgument(_atom.getFirstArg());
             ONTObject<? extends SWRLIArgument> s = of.getSWRLArgument(_atom.getSecondArg());
             return ONTWrapperImpl.create(of.getOWLDataFactory()
                     .getSWRLDifferentIndividualsAtom(f.getOWLObject(), s.getOWLObject()), _atom).append(f).append(s);
         }
-        if (atom instanceof OntSWRL.Atom.WithSameIndividuals) {
-            OntSWRL.Atom.WithSameIndividuals _atom = (OntSWRL.Atom.WithSameIndividuals) atom;
+        if (atom instanceof OntSWRL.Atom.WithSameIndividuals _atom) {
             ONTObject<? extends SWRLIArgument> f = of.getSWRLArgument(_atom.getFirstArg());
             ONTObject<? extends SWRLIArgument> s = of.getSWRLArgument(_atom.getSecondArg());
             return ONTWrapperImpl.create(of.getOWLDataFactory()

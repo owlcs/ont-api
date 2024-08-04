@@ -24,18 +24,18 @@ import com.github.owlcs.ontapi.OntologyManager;
 import com.github.owlcs.ontapi.testutils.MiscTestUtils;
 import com.github.owlcs.ontapi.testutils.OWLIOUtils;
 import com.github.owlcs.ontapi.testutils.OntIRI;
-import com.github.sszuev.jena.ontapi.OntModelFactory;
-import com.github.sszuev.jena.ontapi.UnionGraph;
-import com.github.sszuev.jena.ontapi.model.OntID;
-import com.github.sszuev.jena.ontapi.model.OntIndividual;
-import com.github.sszuev.jena.ontapi.model.OntModel;
-import com.github.sszuev.jena.ontapi.utils.Graphs;
-import com.github.sszuev.jena.ontapi.vocabulary.OWL;
-import com.github.sszuev.jena.ontapi.vocabulary.RDF;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Triple;
+import org.apache.jena.ontapi.OntModelFactory;
+import org.apache.jena.ontapi.UnionGraph;
+import org.apache.jena.ontapi.model.OntID;
+import org.apache.jena.ontapi.model.OntIndividual;
+import org.apache.jena.ontapi.model.OntModel;
+import org.apache.jena.ontapi.utils.Graphs;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.vocabulary.OWL;
+import org.apache.jena.vocabulary.RDF;
 import org.apache.jena.vocabulary.RDFS;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -102,7 +102,7 @@ public class ImportsOntModelTest extends OntModelTestBase {
         Assertions.assertEquals(0, c.ontEntities().count());
 
         c.createOntClass("C");
-        Assertions.assertEquals(3, a.ontEntities().peek(x -> LOGGER.debug("Entity: {}", x)).count());
+        Assertions.assertEquals(3, a.ontEntities().count());
         Assertions.assertEquals(3, b.ontEntities().count());
         Assertions.assertEquals(1, c.ontEntities().count());
 
@@ -139,8 +139,8 @@ public class ImportsOntModelTest extends OntModelTestBase {
         Assertions.assertNotNull(b);
 
         a.add(df.getOWLDeclarationAxiom(df.getOWLClass("http://X")));
-        Assertions.assertEquals(3, a.axioms(Imports.INCLUDED).peek(x -> LOGGER.debug("{}:::Axiom: {}", a_iri, x)).count());
-        Assertions.assertEquals(3, b.axioms(Imports.INCLUDED).peek(x -> LOGGER.debug("{}:::Axiom: {}", b_iri, x)).count());
+        Assertions.assertEquals(3, a.axioms(Imports.INCLUDED).count());
+        Assertions.assertEquals(3, b.axioms(Imports.INCLUDED).count());
     }
 
     private static OWLOntologyDocumentSource createSource(IRI ont, IRI imports) {
@@ -386,7 +386,7 @@ public class ImportsOntModelTest extends OntModelTestBase {
         m.applyChange(new AddImport(b, df.getOWLImportsDeclaration(ver1)));
 
         // check OWL-API declaration:
-        List<OWLImportsDeclaration> dec = b.importsDeclarations().collect(Collectors.toList());
+        List<OWLImportsDeclaration> dec = b.importsDeclarations().toList();
         Assertions.assertEquals(1, dec.size());
         Assertions.assertEquals(ver1, dec.get(0).getIRI());
         // check graph references and graph imports:

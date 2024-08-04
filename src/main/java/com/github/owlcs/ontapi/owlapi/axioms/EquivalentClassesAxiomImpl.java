@@ -13,8 +13,8 @@
  */
 package com.github.owlcs.ontapi.owlapi.axioms;
 
-import com.github.sszuev.jena.ontapi.vocabulary.OWL;
 import javax.annotation.Nonnull;
+import org.apache.jena.vocabulary.OWL;
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClass;

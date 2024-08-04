@@ -36,11 +36,11 @@ import com.github.owlcs.ontapi.internal.OWLTopObjectType;
 import com.github.owlcs.ontapi.internal.ObjectMap;
 import com.github.owlcs.ontapi.internal.SearchModel;
 import com.github.owlcs.ontapi.testutils.OWLIOUtils;
-import com.github.sszuev.jena.ontapi.impl.OntGraphModelImpl;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.graph.impl.WrappedGraph;
+import org.apache.jena.ontapi.impl.OntGraphModelImpl;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.junit.jupiter.api.Assertions;
@@ -145,15 +145,16 @@ public class CacheConfigTest {
     }
 
     private static void testLoadManchesterString(OntologyManager m) throws OWLOntologyCreationException {
-        String input = "Prefix: o: <urn:test#>\n" +
-                "Ontology: <urn:test>\n" +
-                "AnnotationProperty: o:bob\n" +
-                "Annotations:\n" +
-                "rdfs:label \"bob-label\"@en";
+        String input = """
+                Prefix: o: <urn:test#>
+                Ontology: <urn:test>
+                AnnotationProperty: o:bob
+                Annotations:
+                rdfs:label "bob-label"@en""";
         OWLOntologyDocumentSource source = OWLIOUtils.getStringDocumentSource(input, OntFormat.MANCHESTER_SYNTAX);
         Ontology o = m.loadOntologyFromOntologyDocument(source);
         Assertions.assertNotNull(o);
-        Assertions.assertEquals(2, o.axioms().peek(x -> LOGGER.debug("{}", x)).count());
+        Assertions.assertEquals(2, o.axioms().count());
     }
 
     @Test
@@ -504,29 +505,32 @@ public class CacheConfigTest {
         // Since Jena fails as expected, ONT-API uses the native OWL-API Turtle Parser as alternative,
         // which is more tolerant.
         // It calls remove axiom operations, to test which this test-case is intended.
-        String wrong = "@prefix : <urn:fm2#> .\n"
-                + "@prefix owl: <http://www.w3.org/2002/07/owl#> .\n"
-                + "@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n"
-                + "@prefix xml: <http://www.w3.org/XML/1998/namespace> .\n"
-                + "@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .\n"
-                + "@prefix prov: <urn:prov#> .\n"
-                + "@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n"
-                + "@base <urn:fm2> .\n"
-                + "<http://www.ida.org/fm2.owl> rdf:type owl:Ontology.\n"
-                + ":prov rdf:type owl:AnnotationProperty .\n"
-                + ":Manage rdf:type owl:Class ; rdfs:subClassOf :ManagementType .\n"
-                + "[ rdf:type owl:Axiom ;\n"
-                + "  owl:annotatedSource :Manage ;\n"
-                + "  owl:annotatedTarget :ManagementType ;\n"
-                + "  owl:annotatedProperty rdfs:subClassOf ;\n"
-                + "  :prov [\n"
-                + " prov:gen :FMDomain ;\n"
-                + " prov:att :DM .\n "
-                + "]\n ] "
-                + ".\n"
-                + ":ManagementType rdf:type owl:Class .\n"
-                + ":DM rdf:type owl:NamedIndividual , prov:Person .\n"
-                + ":FMDomain rdf:type owl:NamedIndividual , prov:Activity ; prov:ass :DM .";
+        String wrong = """
+                @prefix : <urn:fm2#> .
+                @prefix owl: <http://www.w3.org/2002/07/owl#> .
+                @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+                @prefix xml: <http://www.w3.org/XML/1998/namespace> .
+                @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+                @prefix prov: <urn:prov#> .
+                @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+                @base <urn:fm2> .
+                <http://www.ida.org/fm2.owl> rdf:type owl:Ontology.
+                :prov rdf:type owl:AnnotationProperty .
+                :Manage rdf:type owl:Class ; rdfs:subClassOf :ManagementType .
+                [ rdf:type owl:Axiom ;
+                  owl:annotatedSource :Manage ;
+                  owl:annotatedTarget :ManagementType ;
+                  owl:annotatedProperty rdfs:subClassOf ;
+                  :prov [
+                 prov:gen :FMDomain ;
+                 prov:att :DM .
+                 \
+                ]
+                 ] \
+                .
+                :ManagementType rdf:type owl:Class .
+                :DM rdf:type owl:NamedIndividual , prov:Person .
+                :FMDomain rdf:type owl:NamedIndividual , prov:Activity ; prov:ass :DM .""";
 
         OntologyManager m = OntManagers.createManager();
         m.getOntologyConfigurator().setModelCacheLevel(0);
@@ -534,7 +538,7 @@ public class CacheConfigTest {
         OWLOntologyDocumentSource source = OWLIOUtils.getStringDocumentSource(wrong, OntFormat.TURTLE);
         Ontology o = m.loadOntologyFromOntologyDocument(source);
         OWLIOUtils.print(o);
-        Assertions.assertEquals(16, o.axioms().peek(x -> LOGGER.debug("{}", x)).count());
+        Assertions.assertEquals(16, o.axioms().count());
     }
 
     enum Prop {

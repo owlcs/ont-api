@@ -14,6 +14,7 @@
 
 package com.github.owlcs.ontapi.internal.objects;
 
+import com.github.owlcs.ontapi.BlankNodeId;
 import com.github.owlcs.ontapi.OntApiException;
 import com.github.owlcs.ontapi.internal.InternalCache;
 import com.github.owlcs.ontapi.internal.ModelObjectFactory;
@@ -22,16 +23,15 @@ import com.github.owlcs.ontapi.internal.ONTObjectFactory;
 import com.github.owlcs.ontapi.internal.ReadHelper;
 import com.github.owlcs.ontapi.internal.WithMerge;
 import com.github.owlcs.ontapi.owlapi.objects.AnnotationImpl;
-import com.github.sszuev.jena.ontapi.model.OntAnnotation;
-import com.github.sszuev.jena.ontapi.model.OntModel;
-import com.github.sszuev.jena.ontapi.model.OntStatement;
-import com.github.sszuev.jena.ontapi.utils.OntModels;
-import com.github.sszuev.jena.ontapi.utils.StdModels;
-import com.github.sszuev.jena.ontapi.vocabulary.OWL;
-import org.apache.jena.graph.BlankNodeId;
 import org.apache.jena.graph.FrontsTriple;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.graph.impl.LiteralLabel;
+import org.apache.jena.ontapi.model.OntAnnotation;
+import org.apache.jena.ontapi.model.OntModel;
+import org.apache.jena.ontapi.model.OntStatement;
+import org.apache.jena.ontapi.utils.OntModels;
+import org.apache.jena.ontapi.utils.StdModels;
+import org.apache.jena.vocabulary.OWL;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLAnnotationProperty;

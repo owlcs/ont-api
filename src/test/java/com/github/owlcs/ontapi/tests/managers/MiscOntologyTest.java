@@ -23,15 +23,15 @@ import com.github.owlcs.ontapi.Ontology;
 import com.github.owlcs.ontapi.OntologyManager;
 import com.github.owlcs.ontapi.OntologyModelImpl;
 import com.github.owlcs.ontapi.testutils.OWLIOUtils;
-import com.github.sszuev.jena.ontapi.OntJenaException;
-import com.github.sszuev.jena.ontapi.OntModelFactory;
-import com.github.sszuev.jena.ontapi.model.OntClass;
-import com.github.sszuev.jena.ontapi.model.OntModel;
-import com.github.sszuev.jena.ontapi.vocabulary.RDF;
 import org.apache.jena.graph.Graph;
+import org.apache.jena.ontapi.OntJenaException;
+import org.apache.jena.ontapi.OntModelFactory;
+import org.apache.jena.ontapi.model.OntClass;
+import org.apache.jena.ontapi.model.OntModel;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.vocabulary.OWL;
+import org.apache.jena.vocabulary.RDF;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.semanticweb.owlapi.io.FileDocumentSource;
@@ -50,7 +50,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 /**
  * For testing miscellaneous general functionality related to manager and load settings.
@@ -83,12 +82,9 @@ public class MiscOntologyTest {
         OWLIOUtils.print(a);
         OWLIOUtils.print(b);
 
-        Assertions.assertEquals(3, a.imports()
-                .peek(x -> Assertions.assertTrue(expected.isInstance(x))).count());
-        Assertions.assertEquals(2, a.directImports()
-                .peek(x -> Assertions.assertTrue(expected.isInstance(x))).count());
-        Assertions.assertEquals(4, a.importsClosure()
-                .peek(x -> Assertions.assertTrue(expected.isInstance(x))).count());
+        Assertions.assertEquals(3, a.imports().count());
+        Assertions.assertEquals(2, a.directImports().count());
+        Assertions.assertEquals(4, a.importsClosure().count());
     }
 
     @Test
@@ -112,7 +108,7 @@ public class MiscOntologyTest {
             Graph g = makeGraphWithRecursion();
             OntModel o = OntModelFactory.createModel(g);
             OWLIOUtils.print(o);
-            List<OntClass> ces = o.ontObjects(OntClass.class).collect(Collectors.toList());
+            List<OntClass> ces = o.ontObjects(OntClass.class).toList();
             ces.forEach(x -> LOGGER.error("{}", x));
         });
     }

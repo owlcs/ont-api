@@ -14,16 +14,16 @@
 
 package com.github.owlcs.ontapi.internal.objects;
 
+import com.github.owlcs.ontapi.BlankNodeId;
 import com.github.owlcs.ontapi.OntApiException;
 import com.github.owlcs.ontapi.internal.ModelObjectFactory;
 import com.github.owlcs.ontapi.internal.ONTObject;
 import com.github.owlcs.ontapi.owlapi.objects.swrl.IndividualArgumentImpl;
-import com.github.sszuev.jena.ontapi.model.OntIndividual;
-import com.github.sszuev.jena.ontapi.model.OntModel;
-import com.github.sszuev.jena.ontapi.model.OntSWRL;
-import org.apache.jena.graph.BlankNodeId;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
+import org.apache.jena.ontapi.model.OntIndividual;
+import org.apache.jena.ontapi.model.OntModel;
+import org.apache.jena.ontapi.model.OntSWRL;
 import org.semanticweb.owlapi.model.OWLAnnotationProperty;
 import org.semanticweb.owlapi.model.OWLAnonymousIndividual;
 import org.semanticweb.owlapi.model.OWLClass;
@@ -79,7 +79,7 @@ public class ONTSWRLIndividualImpl extends ONTResourceImpl
         if (i.isURI()) {
             return new ONTSWRLIndividualImpl(i.getURI(), m);
         }
-        return new ONTSWRLIndividualImpl(i.getBlankNodeId(), m);
+        return new ONTSWRLIndividualImpl(BlankNodeId.of(i), m);
     }
 
     @Override
@@ -102,7 +102,7 @@ public class ONTSWRLIndividualImpl extends ONTResourceImpl
         if (node instanceof String)
             return NodeFactory.createURI((String) node);
         if (node instanceof BlankNodeId)
-            return NodeFactory.createBlankNode((BlankNodeId) node);
+            return ((BlankNodeId) node).asNode();
         return wrongState();
     }
 

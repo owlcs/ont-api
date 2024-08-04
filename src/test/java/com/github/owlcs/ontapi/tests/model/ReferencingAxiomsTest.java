@@ -17,9 +17,9 @@ package com.github.owlcs.ontapi.tests.model;
 import com.github.owlcs.ontapi.CommonOntologies;
 import com.github.owlcs.ontapi.OntManagers;
 import com.github.owlcs.ontapi.OwlObjects;
-import com.github.sszuev.jena.ontapi.vocabulary.OWL;
-import com.github.sszuev.jena.ontapi.vocabulary.RDF;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.jena.vocabulary.OWL;
+import org.apache.jena.vocabulary.RDF;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.semanticweb.owlapi.model.HasAnnotationPropertiesInSignature;
@@ -55,13 +55,13 @@ public class ReferencingAxiomsTest {
 
     @ParameterizedTest
     @EnumSource(value = TestData.class)
-    public void testSearchByClass(TestData data) {
+    void testSearchByClass(TestData data) {
         data.doTest(T.CLASS, HasClassesInSignature::classesInSignature);
     }
 
     @ParameterizedTest
     @EnumSource(value = TestData.class)
-    public void testSearchByLiteral(TestData data) {
+    void testSearchByLiteral(TestData data) {
         OWLOntology ont = data.load(newManager());
         OWLDataFactory df = ont.getOWLOntologyManager().getOWLDataFactory();
         Set<OWLLiteral> literals = ont.axioms().flatMap(x -> OwlObjects.objects(OWLLiteral.class, x))
@@ -74,7 +74,7 @@ public class ReferencingAxiomsTest {
 
     @ParameterizedTest
     @EnumSource(value = TestData.class)
-    public void testSearchByIRI(TestData data) {
+    void testSearchByIRI(TestData data) {
         OWLOntology ont = data.load(newManager());
         Set<IRI> iris = ont.signature().map(HasIRI::getIRI).collect(Collectors.toSet());
         iris.add(IRI.create(OWL.intersectionOf.getURI()));
@@ -85,37 +85,37 @@ public class ReferencingAxiomsTest {
 
     @ParameterizedTest
     @EnumSource(value = TestData.class)
-    public void testSearchByAnonymousIndividuals(TestData data) {
+    void testSearchByAnonymousIndividuals(TestData data) {
         data.doTest(T.ANONYMOUS_INDIVIDUAL, HasAnonymousIndividuals::anonymousIndividuals);
     }
 
     @ParameterizedTest
     @EnumSource(value = TestData.class)
-    public void testSearchByNamedIndividuals(TestData data) {
+    void testSearchByNamedIndividuals(TestData data) {
         data.doTest(T.NAMED_INDIVIDUAL, HasIndividualsInSignature::individualsInSignature);
     }
 
     @ParameterizedTest
     @EnumSource(value = TestData.class)
-    public void testSearchByDatatypes(TestData data) {
+    void testSearchByDatatypes(TestData data) {
         data.doTest(T.DATATYPE, HasDatatypesInSignature::datatypesInSignature);
     }
 
     @ParameterizedTest
     @EnumSource(value = TestData.class)
-    public void testSearchByObjectProperty(TestData data) {
+    void testSearchByObjectProperty(TestData data) {
         data.doTest(T.OBJECT_PROPERTY, HasObjectPropertiesInSignature::objectPropertiesInSignature);
     }
 
     @ParameterizedTest
     @EnumSource(value = TestData.class)
-    public void testSearchByDatatypeProperty(TestData data) {
+    void testSearchByDatatypeProperty(TestData data) {
         data.doTest(T.DATA_PROPERTY, HasDataPropertiesInSignature::dataPropertiesInSignature);
     }
 
     @ParameterizedTest
     @EnumSource(value = TestData.class)
-    public void testSearchByAnnotationProperty(TestData data) {
+    void testSearchByAnnotationProperty(TestData data) {
         data.doTest(T.ANNOTATION_PROPERTY, HasAnnotationPropertiesInSignature::annotationPropertiesInSignature);
     }
 

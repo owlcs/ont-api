@@ -102,7 +102,7 @@ public class ReflectionUtils {
 
     /**
      * Access to field.
-     * E.g. {@code getDeclaredField("com.github.sszuev.jena.ontapi.OntSpecification#OWL2_DL_MEM")}.
+     * E.g. {@code getDeclaredField("org.apache.jena.ontapi.OntSpecification#OWL2_DL_MEM")}.
      *
      * @param constantPath {@link String}, not {@code null}; format full-path-to-class#static-final-object-name
      * @param <R>          generic class-type

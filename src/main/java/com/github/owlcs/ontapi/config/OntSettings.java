@@ -20,12 +20,12 @@ import com.github.owlcs.ontapi.transforms.OWLDeclarationTransform;
 import com.github.owlcs.ontapi.transforms.OWLIDTransform;
 import com.github.owlcs.ontapi.transforms.RDFSTransform;
 import com.github.owlcs.ontapi.transforms.SWRLTransform;
-import com.github.sszuev.jena.ontapi.vocabulary.OWL;
-import com.github.sszuev.jena.ontapi.vocabulary.RDF;
-import com.github.sszuev.jena.ontapi.vocabulary.SWRL;
-import com.github.sszuev.jena.ontapi.vocabulary.SWRLB;
-import com.github.sszuev.jena.ontapi.vocabulary.XSD;
+import org.apache.jena.vocabulary.OWL;
+import org.apache.jena.vocabulary.RDF;
 import org.apache.jena.vocabulary.RDFS;
+import org.apache.jena.vocabulary.SWRL;
+import org.apache.jena.vocabulary.SWRLB;
+import org.apache.jena.vocabulary.XSD;
 import org.semanticweb.owlapi.model.MissingImportHandlingStrategy;
 import org.semanticweb.owlapi.model.MissingOntologyHeaderStrategy;
 import org.semanticweb.owlapi.model.PriorityCollectionSorting;
@@ -107,7 +107,7 @@ public enum OntSettings {
     OWL_API_WRITE_CONF_BANNERS_ENABLED(true),
     OWL_API_WRITE_CONF_INDENT_SIZE(4),
 
-    ONT_API_LOAD_CONF_SPECIFICATION("com.github.sszuev.jena.ontapi.OntSpecification#OWL2_DL_MEM"),
+    ONT_API_LOAD_CONF_SPECIFICATION("org.apache.jena.ontapi.OntSpecification#OWL2_DL_MEM"),
 
     ONT_API_LOAD_CONF_TRANSFORMERS(OWLIDTransform.class
             , RDFSTransform.class

@@ -18,13 +18,8 @@ import com.github.owlcs.ontapi.config.OntConfig;
 import com.github.owlcs.ontapi.config.OntLoaderConfiguration;
 import com.github.owlcs.ontapi.transforms.GraphStats;
 import com.github.sszuev.graphs.ReadWriteLockingGraph;
-import com.github.sszuev.jena.ontapi.UnionGraph;
-import com.github.sszuev.jena.ontapi.impl.UnionGraphImpl;
-import com.github.sszuev.jena.ontapi.model.OntID;
-import com.github.sszuev.jena.ontapi.model.OntModel;
-import com.github.sszuev.jena.ontapi.utils.Graphs;
-import com.github.sszuev.jena.ontapi.utils.Iterators;
-import com.github.sszuev.jena.ontapi.vocabulary.OWL;
+import org.apache.commons.io.input.ReaderInputStream;
+import org.apache.commons.io.output.WriterOutputStream;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
@@ -32,11 +27,18 @@ import org.apache.jena.graph.Node_Blank;
 import org.apache.jena.graph.Node_Literal;
 import org.apache.jena.graph.Node_URI;
 import org.apache.jena.graph.Triple;
+import org.apache.jena.ontapi.UnionGraph;
+import org.apache.jena.ontapi.impl.UnionGraphImpl;
+import org.apache.jena.ontapi.model.OntID;
+import org.apache.jena.ontapi.model.OntModel;
+import org.apache.jena.ontapi.utils.Graphs;
+import org.apache.jena.ontapi.utils.Iterators;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.riot.RDFLanguages;
 import org.apache.jena.shared.JenaException;
 import org.apache.jena.shared.PrefixMapping;
+import org.apache.jena.vocabulary.OWL;
 import org.semanticweb.owlapi.io.DocumentSources;
 import org.semanticweb.owlapi.io.OWLOntologyDocumentSource;
 import org.semanticweb.owlapi.io.OWLOntologyDocumentTarget;
@@ -61,9 +63,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Reader;
+import java.io.StringReader;
+import java.io.StringWriter;
 import java.io.Writer;
 import java.net.URL;
 import java.net.URLConnection;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -281,7 +286,7 @@ public class OntGraphUtils {
     public static RDFResourceBlankNode blank(Node node) throws IllegalArgumentException {
         if (!Objects.requireNonNull(node, "Null node").isBlank())
             throw new IllegalArgumentException("Not a blank node: " + node);
-        return new RDFResourceBlankNode(IRI.create(node.getBlankNodeId().getLabelString()), false, false, false);
+        return new RDFResourceBlankNode(IRI.create(node.getBlankNodeLabel()), false, false, false);
     }
 
     /**
@@ -382,10 +387,10 @@ public class OntGraphUtils {
     protected static void readGraph(Graph graph, Closeable stream, String base, Lang lang) {
         if (stream instanceof InputStream) {
             RDFDataMgr.read(graph, (InputStream) stream, base, lang);
+        } else if (stream instanceof StringReader) {
+            RDFDataMgr.read(graph, (StringReader) stream, base, lang);
         } else {
-            //Jena discourages the use of Readers in favor of InputStreams (can't work with non-UTF8 encodings)
-            //noinspection deprecation <- we take that risk, assuming that the source provider knows what he is doing
-            RDFDataMgr.read(graph, (Reader) stream, base, lang);
+            RDFDataMgr.read(graph, new ReaderInputStream((Reader) stream, StandardCharsets.UTF_8), base, lang);
         }
     }
 
@@ -475,7 +480,6 @@ public class OntGraphUtils {
      * @param target {@link OWLOntologyDocumentTarget}}, not empty, not {@code null}
      * @throws OWLOntologyStorageException in case of any error
      */
-    @SuppressWarnings("deprecation") // for RDFDataMgr#write
     public static void writeGraph(Graph graph, Lang lang, OWLOntologyDocumentTarget target) throws OWLOntologyStorageException {
         String name = getOntologyGraphPrintName(graph);
         try {
@@ -495,10 +499,13 @@ public class OntGraphUtils {
                 if (LOGGER.isDebugEnabled()) {
                     LOGGER.debug("Save {} to the writer in the default serialization for {}", name, lang);
                 }
-                //Using Java Writers risks corruption because of mismatch of a character set.
-                // Only UTF-8 is safe.
-                //No inspection deprecation <- we take the risk, assuming that the provider knows what he is doing
-                RDFDataMgr.write(writerFromTarget, graph, lang);
+                if (writerFromTarget instanceof StringWriter) {
+                    RDFDataMgr.write((StringWriter) writerFromTarget, graph, lang);
+                } else {
+                    //Using Java Writers risks corruption because of mismatch of a character set.
+                    // Only UTF-8 is safe.
+                    RDFDataMgr.write(new WriterOutputStream(writerFromTarget, StandardCharsets.UTF_8), graph, lang);
+                }
                 return;
             }
         } catch (JenaException | IOException ex) {

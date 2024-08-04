@@ -18,11 +18,11 @@ import com.github.owlcs.ontapi.internal.InternalCache;
 import com.github.owlcs.ontapi.internal.InternalConfig;
 import com.github.owlcs.ontapi.internal.InternalGraphModel;
 import com.github.owlcs.ontapi.internal.InternalGraphModelImpl;
-import com.github.sszuev.jena.ontapi.OntSpecification;
-import com.github.sszuev.jena.ontapi.UnionGraph;
-import com.github.sszuev.jena.ontapi.impl.UnionGraphImpl;
-import com.github.sszuev.jena.ontapi.model.OntModel;
 import org.apache.jena.graph.Graph;
+import org.apache.jena.ontapi.OntSpecification;
+import org.apache.jena.ontapi.UnionGraph;
+import org.apache.jena.ontapi.impl.UnionGraphImpl;
+import org.apache.jena.ontapi.model.OntModel;
 import org.apache.jena.reasoner.ReasonerFactory;
 import org.semanticweb.owlapi.model.OWLPrimitive;
 

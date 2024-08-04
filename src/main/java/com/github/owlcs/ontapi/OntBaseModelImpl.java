@@ -16,12 +16,12 @@ package com.github.owlcs.ontapi;
 
 import com.github.owlcs.ontapi.internal.InternalGraphModel;
 import com.github.owlcs.ontapi.owlapi.OWLObjectImpl;
-import com.github.sszuev.jena.ontapi.model.OntModel;
-import com.github.sszuev.jena.ontapi.utils.Graphs;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.GraphMemFactory;
+import org.apache.jena.ontapi.model.OntModel;
+import org.apache.jena.ontapi.utils.Graphs;
 import org.apache.jena.riot.RDFDataMgr;
 import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.EntityType;
@@ -103,6 +103,7 @@ import org.semanticweb.owlapi.util.OWLAxiomSearchFilter;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.Serial;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
@@ -122,6 +123,7 @@ import java.util.stream.Stream;
 public abstract class OntBaseModelImpl implements OWLOntology, OntBaseModel {
     // binary format to provide serialization:
     public static final OntFormat DEFAULT_SERIALIZATION_FORMAT = OntFormat.RDF_THRIFT;
+    @Serial
     private static final long serialVersionUID = 7605836729147058594L;
 
     protected transient InternalGraphModel base;
@@ -1182,6 +1184,7 @@ public abstract class OntBaseModelImpl implements OWLOntology, OntBaseModel {
      * @throws ClassNotFoundException if the class of a serialized object could not be found
      * @see OntologyManagerImpl#readObject(ObjectInputStream)
      */
+    @Serial
     @SuppressWarnings("JavadocReference")
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
         in.defaultReadObject();
@@ -1202,6 +1205,7 @@ public abstract class OntBaseModelImpl implements OWLOntology, OntBaseModel {
      * @throws IOException     if I/O errors occur while writing to the underlying <code>OutputStream</code>
      * @throws OntApiException in case this instance encapsulates graph which is not plain in-memory graph
      */
+    @Serial
     private void writeObject(ObjectOutputStream out) throws IOException, OntApiException {
         Graph g = base.getBaseGraph();
         if (!Graphs.isGraphMem(g)) {

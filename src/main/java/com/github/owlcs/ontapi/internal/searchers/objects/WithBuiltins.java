@@ -15,13 +15,13 @@
 package com.github.owlcs.ontapi.internal.searchers.objects;
 
 import com.github.owlcs.ontapi.config.AxiomsSettings;
-import com.github.sszuev.jena.ontapi.common.OntPersonality;
-import com.github.sszuev.jena.ontapi.model.OntModel;
-import com.github.sszuev.jena.ontapi.utils.Iterators;
-import com.github.sszuev.jena.ontapi.vocabulary.RDF;
 import org.apache.jena.graph.FrontsNode;
 import org.apache.jena.graph.Node;
+import org.apache.jena.ontapi.common.OntPersonality;
+import org.apache.jena.ontapi.model.OntModel;
+import org.apache.jena.ontapi.utils.Iterators;
 import org.apache.jena.util.iterator.ExtendedIterator;
+import org.apache.jena.vocabulary.RDF;
 import org.semanticweb.owlapi.model.OWLEntity;
 
 import java.util.HashSet;

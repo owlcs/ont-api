@@ -14,12 +14,12 @@
 
 package com.github.owlcs.ontapi.internal.objects;
 
-import com.github.sszuev.jena.ontapi.OntJenaException;
-import com.github.sszuev.jena.ontapi.model.OntEntity;
-import com.github.sszuev.jena.ontapi.model.OntModel;
 import javax.annotation.Nullable;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
+import org.apache.jena.ontapi.OntJenaException;
+import org.apache.jena.ontapi.model.OntEntity;
+import org.apache.jena.ontapi.model.OntModel;
 import org.apache.jena.rdf.model.Resource;
 import org.semanticweb.owlapi.model.HasIRI;
 import org.semanticweb.owlapi.model.IRI;
@@ -178,10 +178,9 @@ public abstract class ONTEntityImpl<X extends OWLEntity>
         if (obj == null) {
             return false;
         }
-        if (!(obj instanceof OWLEntity)) {
+        if (!(obj instanceof OWLEntity entity)) {
             return false;
         }
-        OWLEntity entity = (OWLEntity) obj;
         if (typeIndex() != entity.typeIndex()) {
             return false;
         }

@@ -14,14 +14,13 @@
 
 package com.github.owlcs.ontapi;
 
-import com.github.sszuev.jena.ontapi.model.OntID;
-import com.github.sszuev.jena.ontapi.model.OntModel;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
+import org.apache.jena.ontapi.model.OntID;
+import org.apache.jena.ontapi.model.OntModel;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLOntologyID;
 
-import java.lang.reflect.Field;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -113,20 +112,10 @@ public class ID extends OWLOntologyID implements AsNode {
         hashCode += 37 * internalID.hashCode();
         hashCode += 37 * ontologyIRI.hashCode();
         hashCode += 37 * versionIRI.hashCode();
-        setField("hashCode", hashCode);
-        setField("internalID", internalID);
-        setField("ontologyIRI", ontologyIRI);
-        setField("versionIRI", versionIRI);
-    }
-
-    private void setField(String name, Object value) {
-        try {
-            Field field = getClass().getSuperclass().getDeclaredField(name);
-            field.setAccessible(true);
-            field.set(this, value);
-        } catch (NoSuchFieldException | IllegalAccessException e) {
-            throw new IllegalStateException("Can't get access to " + name, e);
-        }
+        this.hashCode = hashCode;
+        this.internalID = internalID;
+        this.ontologyIRI = ontologyIRI;
+        this.versionIRI = versionIRI;
     }
 
     /**

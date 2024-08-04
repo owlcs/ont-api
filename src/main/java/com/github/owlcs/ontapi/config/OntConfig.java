@@ -20,9 +20,9 @@ import com.github.owlcs.ontapi.ReflectionUtils;
 import com.github.owlcs.ontapi.transforms.GraphTransformers;
 import com.github.owlcs.ontapi.transforms.Transform;
 import com.github.owlcs.ontapi.transforms.TransformationModel;
-import com.github.sszuev.jena.ontapi.OntSpecification;
-import com.github.sszuev.jena.ontapi.common.OntPersonality;
 import javax.annotation.Nonnull;
+import org.apache.jena.ontapi.OntSpecification;
+import org.apache.jena.ontapi.common.OntPersonality;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.MissingImportHandlingStrategy;
 import org.semanticweb.owlapi.model.MissingOntologyHeaderStrategy;
@@ -35,6 +35,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.Serial;
 import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -88,6 +89,7 @@ import java.util.stream.Stream;
 public class OntConfig extends OntologyConfigurator
         implements LoadControl<OntConfig>, CacheControl<OntConfig>, AxiomsControl<OntConfig> {
     private static final Logger LOGGER = LoggerFactory.getLogger(OntConfig.class);
+    @Serial
     private static final long serialVersionUID = 656765031127374396L;
 
     static final String NULL_VALUE = "null";
@@ -325,7 +327,7 @@ public class OntConfig extends OntologyConfigurator
      *
      * @param specification     {@link OntPersonality} the personality
      * @param constantFieldPath {@link String} a path to constant for serialization,
-     *                          e.g. {@code "com.github.sszuev.jena.ontapi.OntSpecification#OWL2_DL_MEM"};
+     *                          e.g. {@code "org.apache.jena.ontapi.OntSpecification#OWL2_DL_MEM"};
      *                          if {@code null} no attempt to serialize this field
      * @return this instance
      * @see OntLoaderConfiguration#setSpecification(OntSpecification, String)
@@ -1275,8 +1277,7 @@ public class OntConfig extends OntologyConfigurator
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof OntConfig)) return false;
-        OntConfig that = (OntConfig) o;
+        if (!(o instanceof OntConfig that)) return false;
         return Objects.equals(this.asMap(), that.asMap());
     }
 
@@ -1289,10 +1290,12 @@ public class OntConfig extends OntologyConfigurator
         return loadMap(this.data, OntSettings.values());
     }
 
+    @Serial
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
         in.defaultReadObject();
     }
 
+    @Serial
     private void writeObject(ObjectOutputStream out) throws IOException {
         out.writeObject(serializableOnly(data));
         out.writeObject(locked);
@@ -1327,6 +1330,7 @@ public class OntConfig extends OntologyConfigurator
      * Created by @ssz on 05.07.2018.
      */
     public static class Concurrent extends OntConfig {
+        @Serial
         private static final long serialVersionUID = 5910609264963651991L;
         protected final ReadWriteLock lock;
         protected final OntConfig delegate;

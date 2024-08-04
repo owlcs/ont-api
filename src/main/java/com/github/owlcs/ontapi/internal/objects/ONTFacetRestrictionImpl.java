@@ -14,16 +14,16 @@
 
 package com.github.owlcs.ontapi.internal.objects;
 
+import com.github.owlcs.ontapi.BlankNodeId;
 import com.github.owlcs.ontapi.internal.ModelObjectFactory;
 import com.github.owlcs.ontapi.internal.ONTObject;
 import com.github.owlcs.ontapi.internal.ONTObjectFactory;
 import com.github.owlcs.ontapi.internal.ReadHelper;
 import com.github.owlcs.ontapi.owlapi.objects.FacetRestrictionImpl;
-import com.github.sszuev.jena.ontapi.model.OntFacetRestriction;
-import com.github.sszuev.jena.ontapi.model.OntModel;
-import com.github.sszuev.jena.ontapi.utils.OntModels;
-import org.apache.jena.graph.BlankNodeId;
 import org.apache.jena.graph.impl.LiteralLabel;
+import org.apache.jena.ontapi.model.OntFacetRestriction;
+import org.apache.jena.ontapi.model.OntModel;
+import org.apache.jena.ontapi.utils.OntModels;
 import org.apache.jena.rdf.model.Literal;
 import org.semanticweb.owlapi.model.OWLDatatype;
 import org.semanticweb.owlapi.model.OWLEntity;
@@ -63,7 +63,7 @@ public class ONTFacetRestrictionImpl
     public static ONTFacetRestrictionImpl create(OntFacetRestriction fr,
                                                  ONTObjectFactory factory,
                                                  Supplier<OntModel> model) {
-        ONTFacetRestrictionImpl res = new ONTFacetRestrictionImpl(fr.asNode().getBlankNodeId(), model);
+        ONTFacetRestrictionImpl res = new ONTFacetRestrictionImpl(BlankNodeId.of(fr.asNode()), model);
         res.putContent(res.initContent(fr, factory));
         return res;
     }

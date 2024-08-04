@@ -14,6 +14,7 @@
 
 package com.github.owlcs.ontapi.internal.objects;
 
+import com.github.owlcs.ontapi.BlankNodeId;
 import com.github.owlcs.ontapi.OntApiException;
 import com.github.owlcs.ontapi.internal.ModelObjectFactory;
 import com.github.owlcs.ontapi.internal.ONTObject;
@@ -27,18 +28,17 @@ import com.github.owlcs.ontapi.owlapi.objects.swrl.DataRangeAtomImpl;
 import com.github.owlcs.ontapi.owlapi.objects.swrl.DifferentIndividualsAtomImpl;
 import com.github.owlcs.ontapi.owlapi.objects.swrl.ObjectPropertyAtomImpl;
 import com.github.owlcs.ontapi.owlapi.objects.swrl.SameIndividualAtomImpl;
-import com.github.sszuev.jena.ontapi.model.OntClass;
-import com.github.sszuev.jena.ontapi.model.OntDataProperty;
-import com.github.sszuev.jena.ontapi.model.OntDataRange;
-import com.github.sszuev.jena.ontapi.model.OntModel;
-import com.github.sszuev.jena.ontapi.model.OntObject;
-import com.github.sszuev.jena.ontapi.model.OntObjectProperty;
-import com.github.sszuev.jena.ontapi.model.OntSWRL;
-import com.github.sszuev.jena.ontapi.utils.OntModels;
-import org.apache.jena.graph.BlankNodeId;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.graph.impl.LiteralLabel;
+import org.apache.jena.ontapi.model.OntClass;
+import org.apache.jena.ontapi.model.OntDataProperty;
+import org.apache.jena.ontapi.model.OntDataRange;
+import org.apache.jena.ontapi.model.OntModel;
+import org.apache.jena.ontapi.model.OntObject;
+import org.apache.jena.ontapi.model.OntObjectProperty;
+import org.apache.jena.ontapi.model.OntSWRL;
+import org.apache.jena.ontapi.utils.OntModels;
 import org.semanticweb.owlapi.model.AsOWLNamedIndividual;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAnonymousIndividual;
@@ -112,7 +112,7 @@ public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom<?>, OWL extends S
                                          ONTObjectFactory factory,
                                          Supplier<OntModel> model) {
         Class<? extends OntSWRL.Atom<?>> type = OntModels.getOntType(atom);
-        BlankNodeId id = atom.asNode().getBlankNodeId();
+        BlankNodeId id = BlankNodeId.of(atom.asNode());
         ONTSWRLAtomImpl res = create(id, type, model);
         res.putContent(res.initContent(atom, factory));
         return res;
@@ -164,7 +164,7 @@ public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom<?>, OWL extends S
      */
     protected static Object fromIArgument(OntSWRL.IArg argument, Object object) {
         if (argument.isAnon()) {
-            return argument.asNode().getBlankNodeId();
+            return BlankNodeId.of(argument.asNode());
         }
         if (argument.canAs(OntSWRL.Variable.class)) {
             return object;
@@ -251,12 +251,11 @@ public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom<?>, OWL extends S
         if (!(item instanceof String) && !(item instanceof BlankNodeId)) {
             return (ONTObject<? extends SWRLIArgument>) item;
         }
-        if (factory instanceof ModelObjectFactory) {
-            ModelObjectFactory mf = (ModelObjectFactory) factory;
+        if (factory instanceof ModelObjectFactory mf) {
             return item instanceof String ? mf.getSWRLArgument((String) item) : mf.getSWRLArgument((BlankNodeId) item);
         }
         Node node = item instanceof String ?
-                NodeFactory.createURI((String) item) : NodeFactory.createBlankNode((BlankNodeId) item);
+                NodeFactory.createURI((String) item) : ((BlankNodeId) item).asNode();
         return factory.getSWRLArgument(getModel().asRDFNode(node).as(OntSWRL.IArg.class));
     }
 
@@ -275,11 +274,10 @@ public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom<?>, OWL extends S
         if (!(item instanceof LiteralLabel)) {
             return (ONTObject<? extends SWRLDArgument>) item;
         }
-        if (factory instanceof ModelObjectFactory) {
-            ModelObjectFactory mf = (ModelObjectFactory) factory;
+        if (factory instanceof ModelObjectFactory mf) {
             return mf.getSWRLArgument((LiteralLabel) item);
         }
-        Node node = NodeFactory.createLiteral((LiteralLabel) item);
+        @SuppressWarnings("deprecation") Node node = NodeFactory.createLiteral((LiteralLabel) item);
         return factory.getSWRLArgument(getModel().asRDFNode(node).as(OntSWRL.DArg.class));
     }
 

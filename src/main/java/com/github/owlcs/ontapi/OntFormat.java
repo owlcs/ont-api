@@ -16,8 +16,8 @@ package com.github.owlcs.ontapi;
 
 import com.github.owlcs.ontapi.OWLLangRegistry.LangKey;
 import com.github.owlcs.ontapi.OWLLangRegistry.OWLLang;
-import com.github.sszuev.jena.ontapi.OntModelFactory;
 import javax.annotation.Nullable;
+import org.apache.jena.ontapi.OntModelFactory;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFParserRegistry;
 import org.apache.jena.riot.RDFWriterRegistry;
@@ -135,7 +135,7 @@ public enum OntFormat {
      */
     @Nullable
     public Lang getLang() {
-        return jenaLangs.size() == 0 ? null : jenaLangs.get(0);
+        return jenaLangs.isEmpty() ? null : jenaLangs.get(0);
     }
 
     /**

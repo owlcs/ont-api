@@ -14,23 +14,23 @@
 
 package com.github.owlcs.ontapi.testutils;
 
+import com.github.owlcs.ontapi.BlankNodeId;
 import com.github.owlcs.ontapi.OntManagers;
 import com.github.owlcs.ontapi.Ontology;
 import com.github.owlcs.ontapi.OntologyManager;
 import com.github.owlcs.ontapi.owlapi.objects.AnonymousIndividualImpl;
-import com.github.sszuev.jena.ontapi.common.OntPersonalities;
-import com.github.sszuev.jena.ontapi.common.OntPersonality;
-import com.github.sszuev.jena.ontapi.common.PunningsMode;
-import com.github.sszuev.jena.ontapi.model.OntID;
-import com.github.sszuev.jena.ontapi.model.OntModel;
-import com.github.sszuev.jena.ontapi.utils.Graphs;
-import com.github.sszuev.jena.ontapi.vocabulary.OWL;
-import com.github.sszuev.jena.ontapi.vocabulary.RDF;
-import org.apache.jena.graph.BlankNodeId;
 import org.apache.jena.graph.Graph;
+import org.apache.jena.ontapi.common.OntPersonalities;
+import org.apache.jena.ontapi.common.OntPersonality;
+import org.apache.jena.ontapi.common.PunningsMode;
+import org.apache.jena.ontapi.model.OntID;
+import org.apache.jena.ontapi.model.OntModel;
+import org.apache.jena.ontapi.utils.Graphs;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.Statement;
+import org.apache.jena.vocabulary.OWL;
+import org.apache.jena.vocabulary.RDF;
 import org.apache.jena.vocabulary.RDFS;
 import org.junit.jupiter.api.Assertions;
 import org.semanticweb.owlapi.model.AxiomType;
@@ -63,7 +63,7 @@ import java.util.stream.Stream;
 public class MiscTestUtils {
     private static final Logger LOGGER = LoggerFactory.getLogger(MiscTestUtils.class);
 
-    private static final OWLAnonymousIndividual ANONYMOUS_INDIVIDUAL = new AnonymousIndividualImpl(BlankNodeId.create());
+    private static final OWLAnonymousIndividual ANONYMOUS_INDIVIDUAL = new AnonymousIndividualImpl(BlankNodeId.of().label());
 
     public static Ontology createModel(OntIRI iri) {
         return createModel(iri.toOwlOntologyID());

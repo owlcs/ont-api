@@ -17,13 +17,12 @@ package com.github.owlcs.ontapi.transforms;
 import com.github.owlcs.ontapi.OntGraphUtils;
 import com.github.owlcs.ontapi.OntologyManager;
 import com.github.owlcs.ontapi.UnionGraphConnector;
-import com.github.sszuev.jena.ontapi.UnionGraph;
-import com.github.sszuev.jena.ontapi.common.OntVocabulary;
-import com.github.sszuev.jena.ontapi.utils.Iterators;
-import com.github.sszuev.jena.ontapi.vocabulary.RDF;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.graph.impl.WrappedGraph;
+import org.apache.jena.ontapi.UnionGraph;
+import org.apache.jena.ontapi.common.OntVocabulary;
+import org.apache.jena.ontapi.utils.Iterators;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Property;
@@ -31,6 +30,7 @@ import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.util.iterator.ExtendedIterator;
+import org.apache.jena.vocabulary.RDF;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -81,8 +81,7 @@ public abstract class TransformationModel {
     public TransformationModel(Graph graph, OntVocabulary vocabulary) throws NullPointerException {
         this.builtins = Objects.requireNonNull(vocabulary, "Null builtins vocabulary.");
         this.graph = Objects.requireNonNull(graph, "Null graph.");
-        if (graph instanceof UnionGraph) {
-            UnionGraph u = (UnionGraph) graph;
+        if (graph instanceof UnionGraph u) {
             UnionGraph g = UnionGraphConnector.withBase(u, new TrackedGraph(u.getBaseGraph()));
             queryModel = createModel(u.getBaseGraph());
             workModel = createModel(g);

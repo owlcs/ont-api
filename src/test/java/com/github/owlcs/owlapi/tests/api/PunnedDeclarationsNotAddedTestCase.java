@@ -18,7 +18,7 @@ import com.github.owlcs.ontapi.OntApiException;
 import com.github.owlcs.ontapi.TestOntSpecifications;
 import com.github.owlcs.owlapi.OWLManager;
 import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
-import com.github.sszuev.jena.ontapi.OntJenaException;
+import org.apache.jena.ontapi.OntJenaException;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;

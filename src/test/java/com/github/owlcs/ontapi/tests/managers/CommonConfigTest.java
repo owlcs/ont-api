@@ -20,7 +20,7 @@ import com.github.owlcs.ontapi.OntologyManager;
 import com.github.owlcs.ontapi.TestOntSpecifications;
 import com.github.owlcs.ontapi.config.OntConfig;
 import com.github.owlcs.ontapi.config.OntSettings;
-import com.github.sszuev.jena.ontapi.vocabulary.OWL;
+import org.apache.jena.vocabulary.OWL;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.semanticweb.owlapi.model.IRI;

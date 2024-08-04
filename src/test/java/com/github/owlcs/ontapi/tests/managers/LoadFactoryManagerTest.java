@@ -37,20 +37,20 @@ import com.github.owlcs.ontapi.testutils.StringInputStreamDocumentSource;
 import com.github.owlcs.ontapi.transforms.GraphTransformers;
 import com.github.owlcs.ontapi.transforms.OWLRecursiveTransform;
 import com.github.owlcs.ontapi.transforms.Transform;
-import com.github.sszuev.jena.ontapi.OntModelFactory;
-import com.github.sszuev.jena.ontapi.UnionGraph;
-import com.github.sszuev.jena.ontapi.impl.UnionGraphImpl;
-import com.github.sszuev.jena.ontapi.model.OntModel;
-import com.github.sszuev.jena.ontapi.vocabulary.OWL;
-import com.github.sszuev.jena.ontapi.vocabulary.RDF;
-import com.github.sszuev.jena.ontapi.vocabulary.XSD;
 import javax.annotation.ParametersAreNonnullByDefault;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.jena.graph.Graph;
+import org.apache.jena.ontapi.OntModelFactory;
+import org.apache.jena.ontapi.UnionGraph;
+import org.apache.jena.ontapi.impl.UnionGraphImpl;
+import org.apache.jena.ontapi.model.OntModel;
 import org.apache.jena.rdf.model.RDFList;
 import org.apache.jena.rdf.model.Statement;
-import org.apache.jena.sparql.graph.UnmodifiableGraph;
+import org.apache.jena.sparql.graph.GraphReadOnly;
+import org.apache.jena.vocabulary.OWL;
+import org.apache.jena.vocabulary.RDF;
 import org.apache.jena.vocabulary.RDFS;
+import org.apache.jena.vocabulary.XSD;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.semanticweb.owlapi.io.FileDocumentSource;
@@ -216,7 +216,7 @@ public class LoadFactoryManagerTest {
         // round-trip turtle
         String txt1 = OWLIOUtils.asString(o, f1);
         LOGGER.debug(txt1);
-        int c = StringUtils.countMatches(txt1, "@prefix");
+        int c = StringUtils.countMatches(txt1, "PREFIX");
         Assertions.assertEquals(11, c);
         OWLOntologyDocumentSource src1 = new StringInputStreamDocumentSource(txt1, f1);
         OWLDocumentFormat f2 = OntManagers.createConcurrentManager().loadOntologyFromOntologyDocument(src1).getFormat();
@@ -252,11 +252,10 @@ public class LoadFactoryManagerTest {
         String str = OWLIOUtils.asString(a, OntFormat.TURTLE);
         LOGGER.debug("{}", str);
 
-        @SuppressWarnings("deprecation") UnmodifiableGraph g = new UnmodifiableGraph(b.getGraph());
+        GraphReadOnly g = new GraphReadOnly(b.getGraph());
         m.addOntology(g);
 
-        //noinspection deprecation
-        Assertions.assertInstanceOf(UnmodifiableGraph.class, m.models().findFirst()
+        Assertions.assertInstanceOf(GraphReadOnly.class, m.models().findFirst()
                 .orElseThrow(AssertionError::new).getBaseGraph());
         m.loadOntologyFromOntologyDocument(OWLIOUtils.getStringDocumentSource(str, OntFormat.TURTLE));
         Assertions.assertEquals(2, m.ontologies().count());
@@ -547,14 +546,10 @@ public class LoadFactoryManagerTest {
 
         data.forEach((iri, txt) -> LOGGER.debug("Document iri: <{}>\nData:\n{}", iri, txt));
 
-        OWLOntologyIRIMapper iriMapper = iri -> {
-            switch (iri.toString()) {
-                case a_uri:
-                    return IRI.create("store://a");
-                case b_uri:
-                    return IRI.create("store://b");
-            }
-            return null;
+        OWLOntologyIRIMapper iriMapper = iri -> switch (iri.toString()) {
+            case a_uri -> IRI.create("store://a");
+            case b_uri -> IRI.create("store://b");
+            default -> null;
         };
         OntologyManager.DocumentSourceMapping docMapper = id -> id.getOntologyIRI()
                 .map(iriMapper::getDocumentIRI)
@@ -662,7 +657,7 @@ public class LoadFactoryManagerTest {
         // check all []-lists are valid:
         List<RDFList> lists = o1.asGraphModel()
                 .statements(null, SP.where, null)
-                .map(Statement::getObject).map(o -> o.as(RDFList.class)).collect(Collectors.toList());
+                .map(Statement::getObject).map(o -> o.as(RDFList.class)).toList();
         Assertions.assertEquals(40, lists.size());
         Assertions.assertTrue(lists.stream().allMatch(RDFList::isValid));
 
@@ -683,10 +678,11 @@ public class LoadFactoryManagerTest {
         OntologyManager m = OntManagers.createManager();
         String uri_a = "urn:a";
         String uri_b = "urn:b";
-        String prefixes = "@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n" +
-                "@prefix owl:   <http://www.w3.org/2002/07/owl#> .\n" +
-                "@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .\n" +
-                "@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .";
+        String prefixes = """
+                @prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+                @prefix owl:   <http://www.w3.org/2002/07/owl#> .
+                @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+                @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .""";
 
         String txt1 = String.format("%s[ a owl:Ontology; owl:imports  <%s>, <%s> ].", prefixes, uri_a, uri_b);
         OWLOntologyDocumentSource src1 = OWLIOUtils.getStringDocumentSource(txt1, OntFormat.TURTLE);
@@ -753,10 +749,11 @@ public class LoadFactoryManagerTest {
         String uri_a = "urn:a";
         String uri_b = "urn:b";
         String uri_c = "urn:c";
-        String prefixes = "@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n" +
-                "@prefix owl:   <http://www.w3.org/2002/07/owl#> .\n" +
-                "@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .\n" +
-                "@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .";
+        String prefixes = """
+                @prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+                @prefix owl:   <http://www.w3.org/2002/07/owl#> .
+                @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+                @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .""";
         String txt_a = String.format("%s <%s> a owl:Ontology; owl:imports <%s> .", prefixes, uri_a, uri_b);
         String txt_b = String.format("%s <%s> a owl:Ontology .", prefixes, uri_b);
 
@@ -773,12 +770,15 @@ public class LoadFactoryManagerTest {
         Assertions.assertInstanceOf(MyUnion.class, b.asGraphModel().getGraph());
         Assertions.assertInstanceOf(MyUnion.class, c.asGraphModel().getGraph());
 
-        Assertions.assertEquals(3, MiscTestUtils.importsClosure(c.asGraphModel())
-                .peek(x -> Assertions.assertInstanceOf(MyUnion.class, x.getGraph())).count());
-        Assertions.assertEquals(2, MiscTestUtils.importsClosure(a.asGraphModel())
-                .peek(x -> Assertions.assertInstanceOf(MyUnion.class, x.getGraph())).count());
-        Assertions.assertEquals(1, MiscTestUtils.importsClosure(b.asGraphModel())
-                .peek(x -> Assertions.assertInstanceOf(MyUnion.class, x.getGraph())).count());
+        Assertions.assertEquals(3, MiscTestUtils.importsClosure(c.asGraphModel()).count());
+        Assertions.assertEquals(2, MiscTestUtils.importsClosure(a.asGraphModel()).count());
+        Assertions.assertEquals(1, MiscTestUtils.importsClosure(b.asGraphModel()).count());
+        MiscTestUtils.importsClosure(c.asGraphModel())
+                .forEach(x -> Assertions.assertInstanceOf(MyUnion.class, x.getGraph()));
+        MiscTestUtils.importsClosure(a.asGraphModel())
+                .forEach(x -> Assertions.assertInstanceOf(MyUnion.class, x.getGraph()));
+        MiscTestUtils.importsClosure(b.asGraphModel())
+                .forEach(x -> Assertions.assertInstanceOf(MyUnion.class, x.getGraph()));
     }
 
     @Test

@@ -21,15 +21,15 @@ import com.github.owlcs.ontapi.Ontology;
 import com.github.owlcs.ontapi.OntologyManager;
 import com.github.owlcs.ontapi.OwlObjects;
 import com.github.owlcs.ontapi.testutils.OWLIOUtils;
-import com.github.sszuev.jena.ontapi.model.OntClass;
-import com.github.sszuev.jena.ontapi.model.OntDataProperty;
-import com.github.sszuev.jena.ontapi.model.OntDataRange;
-import com.github.sszuev.jena.ontapi.model.OntIndividual;
-import com.github.sszuev.jena.ontapi.model.OntModel;
-import com.github.sszuev.jena.ontapi.model.OntStatement;
-import com.github.sszuev.jena.ontapi.vocabulary.OWL;
-import com.github.sszuev.jena.ontapi.vocabulary.XSD;
+import org.apache.jena.ontapi.model.OntClass;
+import org.apache.jena.ontapi.model.OntDataProperty;
+import org.apache.jena.ontapi.model.OntDataRange;
+import org.apache.jena.ontapi.model.OntIndividual;
+import org.apache.jena.ontapi.model.OntModel;
+import org.apache.jena.ontapi.model.OntStatement;
+import org.apache.jena.vocabulary.OWL;
 import org.apache.jena.vocabulary.RDFS;
+import org.apache.jena.vocabulary.XSD;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.semanticweb.owlapi.io.OWLOntologyDocumentSource;
@@ -189,7 +189,7 @@ public class MiscOntModelTest extends OntModelTestBase {
         m.createOntClass("y").addEquivalentClass(ce2);
         OWLIOUtils.print(m);
 
-        Assertions.assertEquals(5, o.axioms().peek(x -> LOGGER.debug("{}", x)).count());
+        Assertions.assertEquals(5, o.axioms().count());
 
         DataFactory df = man.getOWLDataFactory();
         Assertions.assertTrue(o.containsAxiom(df.getOWLSubClassOfAxiom(df.getOWLClass("x"),
@@ -201,16 +201,21 @@ public class MiscOntModelTest extends OntModelTestBase {
     @Test
     public void testLoadManchesterInCycle() throws OWLOntologyCreationException {
         int iter = 10;
-        String input = "Prefix: o: <urn:test#>\n " +
-                "Ontology: <urn:test>\n " +
-                "AnnotationProperty: o:bob\n " +
-                "Annotations:\n rdfs:label \"bob-label\"@en";
+        String input = """
+                Prefix: o: <urn:test#>
+                 \
+                Ontology: <urn:test>
+                 \
+                AnnotationProperty: o:bob
+                 \
+                Annotations:
+                 rdfs:label "bob-label"@en""";
         OWLOntologyDocumentSource source = OWLIOUtils.getStringDocumentSource(input, OntFormat.MANCHESTER_SYNTAX);
         for (int i = 0; i < iter; i++) {
             LOGGER.debug("Iter: #{}", (i + 1));
             OntologyManager m = OntManagers.createManager();
             Ontology o = m.loadOntologyFromOntologyDocument(source);
-            Assertions.assertEquals(2, o.axioms().peek(x -> LOGGER.debug("{}", x)).count());
+            Assertions.assertEquals(2, o.axioms().count());
         }
     }
 
@@ -222,13 +227,13 @@ public class MiscOntModelTest extends OntModelTestBase {
             LOGGER.debug("Iter: #{}", (i + 1));
             OWLOntologyManager m = OntManagers.createConcurrentManager();
             OWLOntology o = m.loadOntologyFromOntologyDocument(source);
-            Assertions.assertEquals(58, o.classesInSignature().peek(x -> LOGGER.debug("CL:{}", x)).count());
-            Assertions.assertEquals(2, o.datatypesInSignature().peek(x -> LOGGER.debug("DT:{}", x)).count());
-            Assertions.assertEquals(508, o.individualsInSignature().peek(x -> LOGGER.debug("NI:{}", x)).count());
-            Assertions.assertEquals(80, o.objectPropertiesInSignature().peek(x -> LOGGER.debug("OP:{}", x)).count());
-            Assertions.assertEquals(2, o.datatypesInSignature().peek(x -> LOGGER.debug("DP:{}", x)).count());
-            Assertions.assertEquals(1, o.annotationPropertiesInSignature().peek(x -> LOGGER.debug("AP:{}", x)).count());
-            Assertions.assertEquals(2845, o.axioms().peek(x -> LOGGER.debug("AXIOM:{}", x)).count());
+            Assertions.assertEquals(58, o.classesInSignature().count());
+            Assertions.assertEquals(2, o.datatypesInSignature().count());
+            Assertions.assertEquals(508, o.individualsInSignature().count());
+            Assertions.assertEquals(80, o.objectPropertiesInSignature().count());
+            Assertions.assertEquals(2, o.datatypesInSignature().count());
+            Assertions.assertEquals(1, o.annotationPropertiesInSignature().count());
+            Assertions.assertEquals(2845, o.axioms().count());
         }
     }
 
@@ -245,32 +250,33 @@ public class MiscOntModelTest extends OntModelTestBase {
         o.add(a2);
         o.add(a3);
         OWLIOUtils.print(o);
-        Assertions.assertEquals(3, o.axioms().peek(x -> LOGGER.debug("1) Axiom: {}", x)).count());
+        Assertions.assertEquals(3, o.axioms().count());
 
         o.remove(a1);
         OWLIOUtils.print(o);
-        Assertions.assertEquals(2, o.axioms().peek(x -> LOGGER.debug("2) Axiom: {}", x)).count());
+        Assertions.assertEquals(2, o.axioms().count());
 
         o.clearCache();
-        Assertions.assertEquals(5, o.axioms().peek(x -> LOGGER.debug("3) Axiom: {}", x)).count());
+        Assertions.assertEquals(5, o.axioms().count());
     }
 
     @Test
     public void testLoadDisjointUnion() throws OWLOntologyCreationException {
         OWLOntologyManager m = OntManagers.createManager();
-        String s = "@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n" +
-                "@prefix owl:   <http://www.w3.org/2002/07/owl#> .\n" +
-                "@prefix xml:   <http://www.w3.org/XML/1998/namespace> .\n" +
-                "@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .\n" +
-                "@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .\n" +
-                "<c1>    a       owl:Class .\n" +
-                "<c4>    a       owl:Class .\n" +
-                "<c2>    a       owl:Class .\n" +
-                "[ a       owl:Ontology ] .\n" +
-                "<c0>    a                    owl:Class ;\n" +
-                "        owl:disjointUnionOf  ( <c4> <c3> ) ;\n" +
-                "        owl:disjointUnionOf  ( <c2> <c1> <c1> ) .\n" +
-                "<c3>    a       owl:Class .";
+        String s = """
+                @prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+                @prefix owl:   <http://www.w3.org/2002/07/owl#> .
+                @prefix xml:   <http://www.w3.org/XML/1998/namespace> .
+                @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+                @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+                <c1>    a       owl:Class .
+                <c4>    a       owl:Class .
+                <c2>    a       owl:Class .
+                [ a       owl:Ontology ] .
+                <c0>    a                    owl:Class ;
+                        owl:disjointUnionOf  ( <c4> <c3> ) ;
+                        owl:disjointUnionOf  ( <c2> <c1> <c1> ) .
+                <c3>    a       owl:Class .""";
 
         OWLOntology o = m.loadOntologyFromOntologyDocument(OWLIOUtils.getStringDocumentSource(s, OntFormat.TURTLE));
         debug(o);
@@ -281,20 +287,21 @@ public class MiscOntModelTest extends OntModelTestBase {
     @Test
     public void testLoadHasKey() throws OWLOntologyCreationException {
         OWLOntologyManager m = OntManagers.createManager();
-        String s = "@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n" +
-                "@prefix owl:   <http://www.w3.org/2002/07/owl#> .\n" +
-                "@prefix xml:   <http://www.w3.org/XML/1998/namespace> .\n" +
-                "@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .\n" +
-                "@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .\n" +
-                "<d2>    a       owl:DatatypeProperty .\n" +
-                "<C>     a           owl:Class ;\n" +
-                "        owl:hasKey  ( <p2> <p2> <d1> <d3> ) ;\n" +
-                "        owl:hasKey  ( <p1> <p2> <d1> <d2> ) .\n" +
-                "[ a       owl:Ontology ] .\n" +
-                "<d3>    a       owl:ObjectProperty .\n" +
-                "<p1>    a       owl:ObjectProperty .\n" +
-                "<d1>    a       owl:DatatypeProperty .\n" +
-                "<p2>    a       owl:ObjectProperty .";
+        String s = """
+                @prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+                @prefix owl:   <http://www.w3.org/2002/07/owl#> .
+                @prefix xml:   <http://www.w3.org/XML/1998/namespace> .
+                @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+                @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+                <d2>    a       owl:DatatypeProperty .
+                <C>     a           owl:Class ;
+                        owl:hasKey  ( <p2> <p2> <d1> <d3> ) ;
+                        owl:hasKey  ( <p1> <p2> <d1> <d2> ) .
+                [ a       owl:Ontology ] .
+                <d3>    a       owl:ObjectProperty .
+                <p1>    a       owl:ObjectProperty .
+                <d1>    a       owl:DatatypeProperty .
+                <p2>    a       owl:ObjectProperty .""";
         OWLOntology o = m.loadOntologyFromOntologyDocument(OWLIOUtils.getStringDocumentSource(s, OntFormat.TURTLE));
         debug(o);
         Assertions.assertEquals(2, o.axioms(AxiomType.HAS_KEY).count());
@@ -320,8 +327,7 @@ public class MiscOntModelTest extends OntModelTestBase {
         debug(o);
 
         Assertions.assertEquals(3, o.axioms()
-                .filter(a -> OwlObjects.objects(OWLObjectInverseOf.class, a).findAny().isPresent())
-                .peek(x -> LOGGER.debug("AxiomWithInverseOf: {}", x)).count());
+                .filter(a -> OwlObjects.objects(OWLObjectInverseOf.class, a).findAny().isPresent()).count());
 
         Assertions.assertEquals(2, ((Ontology) o).asGraphModel().statements(null, OWL.inverseOf, null).count());
     }
@@ -361,14 +367,14 @@ public class MiscOntModelTest extends OntModelTestBase {
                 .addEquivalentClass(m.createObjectAllValuesFrom(m.createObjectProperty("p"), ce));
 
         OWLIOUtils.print(m);
-        Assertions.assertEquals(9, o.axioms().peek(x -> LOGGER.debug("1:{}", x)).count());
+        Assertions.assertEquals(9, o.axioms().count());
         Assertions.assertEquals(19, m.size());
 
         OntStatement s = m.statements(null, OWL.unionOf, null).findFirst().orElseThrow(AssertionError::new);
         m.remove(s);
 
         OWLIOUtils.print(m);
-        Assertions.assertEquals(6, o.axioms().peek(x -> LOGGER.debug("2:{}", x)).count());
+        Assertions.assertEquals(6, o.axioms().count());
         Assertions.assertEquals(18, m.size());
     }
 }
