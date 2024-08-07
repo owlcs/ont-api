@@ -17,7 +17,7 @@ package com.github.owlcs.ontapi.tests.model;
 import com.github.owlcs.ontapi.DataFactory;
 import com.github.owlcs.ontapi.OWLAdapter;
 import com.github.owlcs.ontapi.OntBaseModel;
-import com.github.owlcs.ontapi.OntGraphDocumentSourceImpl;
+import com.github.owlcs.ontapi.OntGraphDocumentSource;
 import com.github.owlcs.ontapi.OntManagers;
 import com.github.owlcs.ontapi.Ontology;
 import com.github.owlcs.ontapi.OntologyManager;
@@ -144,7 +144,7 @@ public class ImportsOntModelTest extends OntModelTestBase {
     }
 
     private static OWLOntologyDocumentSource createSource(IRI ont, IRI imports) {
-        return OntGraphDocumentSourceImpl.of(createGraph(ont.getIRIString(),
+        return OntGraphDocumentSource.of(createGraph(ont.getIRIString(),
                 imports.getIRIString(), ont.getIRIString() + "#C"));
     }
 

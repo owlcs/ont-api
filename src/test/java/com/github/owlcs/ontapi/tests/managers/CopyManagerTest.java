@@ -16,7 +16,7 @@ package com.github.owlcs.ontapi.tests.managers;
 
 import com.github.owlcs.ontapi.OntApiException;
 import com.github.owlcs.ontapi.OntFormat;
-import com.github.owlcs.ontapi.OntGraphDocumentSourceImpl;
+import com.github.owlcs.ontapi.OntGraphDocumentSource;
 import com.github.owlcs.ontapi.OntManagers;
 import com.github.owlcs.ontapi.Ontology;
 import com.github.owlcs.ontapi.OntologyManager;
@@ -305,8 +305,8 @@ public class CopyManagerTest {
         LOGGER.debug("New doc IRI: {}", di);
         Assertions.assertNotNull(f);
         Assertions.assertNotNull(di);
-        Assertions.assertEquals(OntFormat.TURTLE.createOwlFormat().getKey(), f.getKey());
-        Assertions.assertEquals(OntGraphDocumentSourceImpl.of(a.getBaseGraph()).getDocumentIRI(), di);
+        Assertions.assertEquals(OntFormat.RDF_XML.createOwlFormat().getKey(), f.getKey());
+        Assertions.assertEquals(OntGraphDocumentSource.of(a.getBaseGraph()).getDocumentIRI(), di);
     }
 
     @Test

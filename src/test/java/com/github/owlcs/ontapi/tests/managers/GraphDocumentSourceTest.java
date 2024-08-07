@@ -39,7 +39,7 @@ import org.apache.jena.util.iterator.ExtendedIterator;
 import org.apache.jena.vocabulary.RDFS;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.semanticweb.owlapi.formats.TurtleDocumentFormat;
+import org.semanticweb.owlapi.formats.RDFXMLDocumentFormat;
 import org.semanticweb.owlapi.io.OWLOntologyDocumentSource;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAxiom;
@@ -69,7 +69,7 @@ public class GraphDocumentSourceTest {
     @Test
     public void testCommonValidateOGDS() {
         OntModel m = OntModelFactory.createModel(OWLIOUtils.loadResourceAsModel("/ontapi/pizza.ttl", Lang.TURTLE).getGraph());
-        OntGraphDocumentSourceImpl s = OntGraphDocumentSourceImpl.of(m.getGraph());
+        OntGraphDocumentSourceImpl s = (OntGraphDocumentSourceImpl) OntGraphDocumentSource.of(m.getGraph());
         URI u1 = s.getDocumentIRI().toURI();
         Assertions.assertFalse(s.hasAlredyFailedOnStreams());
         Assertions.assertFalse(s.hasAlredyFailedOnIRIResolution());
@@ -79,8 +79,8 @@ public class GraphDocumentSourceTest {
         Assertions.assertFalse(s.hasAlredyFailedOnStreams());
         Assertions.assertFalse(s.hasAlredyFailedOnIRIResolution());
         Assertions.assertEquals(u1, s.getDocumentIRI().toURI());
-        Assertions.assertEquals(OntFormat.TURTLE, s.getOntFormat());
-        Assertions.assertInstanceOf(TurtleDocumentFormat.class, s.getFormat().orElseThrow(AssertionError::new));
+        Assertions.assertEquals(OntFormat.RDF_XML, s.getOntFormat());
+        Assertions.assertInstanceOf(RDFXMLDocumentFormat.class, s.getFormat().orElseThrow(AssertionError::new));
     }
 
     @Test
@@ -88,7 +88,7 @@ public class GraphDocumentSourceTest {
         IRI pizza = IRI.create(Objects.requireNonNull(MiscOntologyTest.class.getResource("/ontapi/pizza.ttl")));
         LOGGER.debug("File: {}", pizza);
         Ontology ont = OntManagers.createManager().loadOntology(pizza);
-        OWLOntologyDocumentSource src = OntGraphDocumentSourceImpl.of(ont.asGraphModel().getBaseGraph());
+        OWLOntologyDocumentSource src = OntGraphDocumentSource.of(ont.asGraphModel().getBaseGraph());
         URI uri = src.getDocumentIRI().toURI();
         LOGGER.debug("Load using pipes from: {}", uri);
         OWLOntology owl = OntManagers.createOWLAPIImplManager().loadOntologyFromOntologyDocument(src);
@@ -107,7 +107,7 @@ public class GraphDocumentSourceTest {
         OntModel c = OntModelFactory.createModel();
         c.setID(iris.get(2)).addImport(iris.get(0)).addImport(iris.get(1));
         OWLIOUtils.print(c);
-        OntGraphDocumentSource src = OntGraphDocumentSourceImpl.of(c.getGraph());
+        OntGraphDocumentSource src = OntGraphDocumentSource.of(c.getGraph());
         LOGGER.debug("Load graph from: {}", src.getDocumentIRI().toURI());
         m.loadOntologyFromOntologyDocument(src);
         Assertions.assertEquals(3, m.ontologies().count());
@@ -220,7 +220,7 @@ public class GraphDocumentSourceTest {
                 }));
 
         OntModel g = OntModelFactory.createModel(OWLIOUtils.loadResourceAsModel("/ontapi/pizza.ttl", Lang.TURTLE).getGraph());
-        OntGraphDocumentSourceImpl s1 = OntGraphDocumentSourceImpl.of(g.getBaseGraph());
+        OntGraphDocumentSourceImpl s1 = (OntGraphDocumentSourceImpl) OntGraphDocumentSource.of(g.getBaseGraph());
         try {
             m.loadOntologyFromOntologyDocument(s1);
             Assertions.fail("No transforms are running");

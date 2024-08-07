@@ -21,7 +21,6 @@ import com.github.owlcs.ontapi.OntFormat;
 import com.github.owlcs.ontapi.OntManagers;
 import com.github.owlcs.ontapi.Ontology;
 import com.github.owlcs.ontapi.OntologyManager;
-import com.github.owlcs.ontapi.OntologyModelImpl;
 import com.github.owlcs.ontapi.testutils.OWLIOUtils;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.ontapi.OntJenaException;
@@ -39,7 +38,6 @@ import org.semanticweb.owlapi.io.OWLOntologyDocumentSource;
 import org.semanticweb.owlapi.model.AddImport;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLDocumentFormat;
-import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyStorageException;
 import org.slf4j.Logger;
@@ -68,7 +66,6 @@ public class MiscOntologyTest {
 
     @Test
     public void testImportsOnConcurrentManager() {
-        Class<? extends OWLOntology> expected = OntologyModelImpl.Concurrent.class;
         OntologyManager m = OntManagers.createConcurrentManager();
         DataFactory df = m.getOWLDataFactory();
         Ontology a = m.createOntology(IRI.create("A"));
@@ -141,7 +138,7 @@ public class MiscOntologyTest {
         Ontology ontology1 = manager1.addOntology(model.getGraph());
         Assertions.assertEquals(1, ontology1.getAxiomCount());
         OWLDocumentFormat f = manager1.getOntologyFormat(ontology1);
-        Assertions.assertEquals(OntFormat.TURTLE.createOwlFormat(), f);
+        Assertions.assertEquals(OntFormat.RDF_XML.createOwlFormat(), f);
         Assertions.assertEquals(model.getNsPrefixURI(prefName),
                 f != null ? f.asPrefixOWLDocumentFormat().getPrefix(prefName + ":") : null, "Wrong prefix");
 

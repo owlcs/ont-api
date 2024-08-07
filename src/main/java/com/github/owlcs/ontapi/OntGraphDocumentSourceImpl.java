@@ -35,6 +35,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicReference;
 
 
@@ -96,14 +97,16 @@ public abstract class OntGraphDocumentSourceImpl implements OntGraphDocumentSour
 
     /**
      * Creates a new {@code InputStream} for the given {@code Graph} and {@code lang}.
-     * Please don't forget to call {@link AutoCloseable#close()} - all exceptions are handled there.
+     * Please remember to call {@link AutoCloseable#close()} - all exceptions are handled there.
+     * Note: this method is for compatibility,
+     * it can be used with OWL-API-impl internals, ONT-API does not use it, but uses the graph directly.
      *
      * @param graph {@link Graph} a graph to read from
      * @param lang  {@link Lang} format syntax
      * @param error {@link AtomicReference}, a container that will contain an {@code Exception} if it occurs
      * @return {@code InputStream}
      */
-    protected static InputStream toInputStream(Graph graph, Lang lang, AtomicReference<Exception> error) {
+    public static InputStream toInputStream(Graph graph, Lang lang, AtomicReference<Exception> error) {
         Objects.requireNonNull(graph);
         Objects.requireNonNull(lang);
         Objects.requireNonNull(error);
@@ -121,18 +124,18 @@ public abstract class OntGraphDocumentSourceImpl implements OntGraphDocumentSour
                     super.close();
                 } catch (IOException e) {
                     IOException x = findIOException(error.get(), graph, lang);
-                    if (x == null) {
-                        error.set(e);
-                    } else {
+                    if (x != null) {
                         x.addSuppressed(e);
                     }
+                    error.set(e);
+
                 }
                 IOException ex = findIOException(error.get(), graph, lang);
                 if (ex != null) throw ex;
             }
         };
 
-        new Thread(() -> {
+        Executors.newSingleThreadExecutor().execute(() -> {
             PipedOutputStream out;
             try {
                 out = new PipedOutputStream(in);
@@ -158,7 +161,7 @@ public abstract class OntGraphDocumentSourceImpl implements OntGraphDocumentSour
                     }
                 }
             }
-        }).start();
+        });
         try {
             complete.await();
         } catch (InterruptedException e) {
@@ -203,7 +206,8 @@ public abstract class OntGraphDocumentSourceImpl implements OntGraphDocumentSour
      * @return {@link OntFormat}
      */
     public OntFormat getOntFormat() {
-        return OntFormat.TURTLE;
+        // there is an issue with TURTLE: https://github.com/owlcs/owlapi/issues/1149
+        return OntFormat.RDF_XML;
     }
 
     private Optional<OntFormat> format() {
@@ -230,19 +234,4 @@ public abstract class OntGraphDocumentSourceImpl implements OntGraphDocumentSour
         throw new OntApiException.Unsupported("#setIRIResolutionFailed is not supported.");
     }
 
-    /**
-     * Creates an {@link OWLOntologyDocumentSource} that wraps the given graph.
-     *
-     * @param graph {@link Graph}, not {@code null}
-     * @return {@link OntGraphDocumentSourceImpl}
-     */
-    public static OntGraphDocumentSourceImpl of(Graph graph) {
-        Objects.requireNonNull(graph, "Null graph");
-        return new OntGraphDocumentSourceImpl() {
-            @Override
-            public Graph getGraph() {
-                return graph;
-            }
-        };
-    }
 }

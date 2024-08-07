@@ -19,6 +19,7 @@ import org.semanticweb.owlapi.io.OWLOntologyDocumentSource;
 
 import java.io.InputStream;
 import java.io.Reader;
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -30,6 +31,22 @@ import java.util.Optional;
  * To control transformations there is the method {@link #withTransforms()}.
  */
 public interface OntGraphDocumentSource extends OWLOntologyDocumentSource {
+
+    /**
+     * Creates an {@link OWLOntologyDocumentSource} that wraps the given graph.
+     *
+     * @param graph {@link Graph}, not {@code null}
+     * @return {@link OntGraphDocumentSource}
+     */
+    static OntGraphDocumentSource of(Graph graph) {
+        Objects.requireNonNull(graph, "Null graph");
+        return new OntGraphDocumentSourceImpl() {
+            @Override
+            public Graph getGraph() {
+                return graph;
+            }
+        };
+    }
 
     /**
      * Returns the {@link Graph Jena RDF Graph} to be wrapped as an ontology into the manager.
