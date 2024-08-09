@@ -63,7 +63,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Reader;
-import java.io.StringReader;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.net.URL;
@@ -366,7 +365,7 @@ public class OntGraphUtils {
                 if (LOGGER.isDebugEnabled()) {
                     LOGGER.debug("read {}, try <{}>", iri, lang);
                 }
-                readGraph(graph, stream, iri.toString(), lang);
+                RDFDataMgr.read(graph, getInputStream(format, stream), iri.toString(), lang);
                 return format;
             } catch (OWLOntologyInputSourceException | IOException e) {
                 throw new OWLOntologyCreationException(source.getClass().getSimpleName() +
@@ -384,14 +383,23 @@ public class OntGraphUtils {
         throw error;
     }
 
-    protected static void readGraph(Graph graph, Closeable stream, String base, Lang lang) {
-        if (stream instanceof InputStream) {
-            RDFDataMgr.read(graph, (InputStream) stream, base, lang);
-        } else if (stream instanceof StringReader) {
-            RDFDataMgr.read(graph, (StringReader) stream, base, lang);
+    private static InputStream getInputStream(OntFormat format, Closeable stream) {
+        InputStream res;
+        if (stream instanceof Reader) {
+            res = new ReaderInputStream((Reader) stream, StandardCharsets.UTF_8);
         } else {
-            RDFDataMgr.read(graph, new ReaderInputStream((Reader) stream, StandardCharsets.UTF_8), base, lang);
+            res = (InputStream) stream;
         }
+        if (format == OntFormat.RDF_XML) {
+            // check if it is OWLXML
+            BufferedHeadInputStream is = new BufferedHeadInputStream(res, 8192);
+            String head = new String(is.head(), StandardCharsets.UTF_8);
+            if (head.contains("<Ontology ") && head.contains("<Prefix name=")) {
+                throw new JenaException("OWL/XML is not supported");
+            }
+            res = is;
+        }
+        return res;
     }
 
     /**
