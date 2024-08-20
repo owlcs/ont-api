@@ -18,6 +18,7 @@ import com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory;
 import com.github.owlcs.owlapi.OWLManager;
 import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.semanticweb.owlapi.formats.FunctionalSyntaxDocumentFormat;
 import org.semanticweb.owlapi.formats.RDFXMLDocumentFormat;
@@ -107,6 +108,8 @@ public class OWLLiteralCorruptionTestCase extends TestBase {
      * @throws Exception
      */
     @Test
+    @Disabled("temporary disabled, see https://github.com/apache/jena/issues/2619")
+    // TODO: temporary disabled, see https://github.com/apache/jena/issues/2619
     public void testShouldFailOnMalformedXMLLiteral() throws Exception {
         String literal = "<ncicp:ComplexDefinition>" +
                 "<ncicp:def-definition>" +
