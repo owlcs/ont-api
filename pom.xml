@@ -20,7 +20,7 @@
 
     <groupId>com.github.owlcs</groupId>
     <artifactId>ontapi</artifactId>
-    <version>4.0.0</version>
+    <version>4.0.1-SNAPSHOT</version>
 
     <name>${project.groupId}:${project.artifactId}</name>
     <description>ONT-API is an RDF-centric library to work with OWL</description>
@@ -36,13 +36,13 @@
         <!-- https://mvnrepository.com/artifact/net.sourceforge.owlapi/owlapi-api -->
         <version.owlapi>5.5.0</version.owlapi>
         <!-- https://mvnrepository.com/artifact/org.slf4j/slf4j-api -->
-        <version.slf4j>2.0.13</version.slf4j>
+        <version.slf4j>2.0.16</version.slf4j>
         <!-- https://mvnrepository.com/artifact/com.github.ben-manes.caffeine/caffeine -->
         <version.caffeine>3.1.8</version.caffeine>
         <!-- https://jitpack.io/#sszuev/concurrent-rdf-graph -->
         <version.concurrent-rdf-graph>1.1.0-java</version.concurrent-rdf-graph>
         <!-- https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter -->
-        <version.junit>5.10.3</version.junit>
+        <version.junit>5.11.0</version.junit>
         <!-- https://mvnrepository.com/artifact/org.mockito/mockito-core -->
         <versio.mockito>5.12.0</versio.mockito>
 
