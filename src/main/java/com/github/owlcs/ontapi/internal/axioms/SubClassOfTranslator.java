@@ -83,7 +83,10 @@ public class SubClassOfTranslator extends AxiomTranslator<OWLSubClassOfAxiom> {
     }
 
     public boolean filter(Statement s) {
-        return s.getSubject().canAs(OntClass.class) && s.getObject().canAs(OntClass.class);
+        if (!s.getSubject().canAs(OntClass.class) || !s.getObject().canAs(OntClass.class)) {
+            return false;
+        }
+        return s.getSubject().as(OntClass.class).canAsSubClass() && s.getObject().as(OntClass.class).canAsSuperClass();
     }
 
     @Override
@@ -97,8 +100,8 @@ public class SubClassOfTranslator extends AxiomTranslator<OWLSubClassOfAxiom> {
     public ONTObject<OWLSubClassOfAxiom> toAxiomWrap(OntStatement statement,
                                                      ONTObjectFactory factory,
                                                      AxiomsSettings config) {
-        ONTObject<? extends OWLClassExpression> sub = factory.getClass(statement.getSubject(OntClass.class));
-        ONTObject<? extends OWLClassExpression> sup = factory.getClass(statement.getObject().as(OntClass.class));
+        ONTObject<? extends OWLClassExpression> sub = factory.getClass(statement.getSubject(OntClass.class).asSubClass());
+        ONTObject<? extends OWLClassExpression> sup = factory.getClass(statement.getObject().as(OntClass.class).asSuperClass());
         Collection<ONTObject<OWLAnnotation>> annotations = factory.getAnnotations(statement, config);
         OWLSubClassOfAxiom res = factory.getOWLDataFactory()
                 .getOWLSubClassOfAxiom(sub.getOWLObject(), sup.getOWLObject(), TranslateHelper.toSet(annotations));
@@ -174,13 +177,13 @@ public class SubClassOfTranslator extends AxiomTranslator<OWLSubClassOfAxiom> {
         @Override
         public ONTObject<? extends OWLClassExpression> subjectFromStatement(OntStatement statement,
                                                                             ModelObjectFactory factory) {
-            return factory.getClass(statement.getSubject(OntClass.class));
+            return factory.getClass(statement.getSubject(OntClass.class).asSubClass());
         }
 
         @Override
         public ONTObject<? extends OWLClassExpression> objectFromStatement(OntStatement statement,
                                                                            ModelObjectFactory factory) {
-            return factory.getClass(statement.getObject(OntClass.class));
+            return factory.getClass(statement.getObject(OntClass.class).asSuperClass());
         }
 
         @Override

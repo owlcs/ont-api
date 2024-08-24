@@ -17,8 +17,11 @@ package com.github.owlcs.ontapi.internal;
 import com.github.owlcs.ontapi.OntApiException;
 import com.github.owlcs.ontapi.owlapi.objects.AnonymousIndividualImpl;
 import com.github.owlcs.ontapi.owlapi.objects.LiteralImpl;
+import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
+import org.apache.jena.ontapi.common.OntEnhGraph;
+import org.apache.jena.ontapi.common.OntEnhNodeFactories;
 import org.apache.jena.ontapi.model.OntAnnotationProperty;
 import org.apache.jena.ontapi.model.OntClass;
 import org.apache.jena.ontapi.model.OntDataProperty;
@@ -322,6 +325,13 @@ public class WriteHelper {
                                    RDFNode object,
                                    Collection<OWLAnnotation> annotations) {
         OntObject s = addRDFNode(model, subject).as(OntObject.class);
+        if (RDFS.subClassOf.equals(predicate)) {
+            if (!((OntClass) s).canAsSubClass() || !((OntClass) object).canAsSuperClass()) {
+                throw new OntApiException.Unsupported(
+                        tripleAsString(s, predicate, object) + " cannot be added: prohibited by profile " + profileName(model)
+                );
+            }
+        }
         addAnnotations(s.addStatement(predicate, object), annotations);
     }
 
@@ -513,6 +523,20 @@ public class WriteHelper {
     public static Literal addLiteral(OntModel model, OWLLiteral literal) {
         addDataRange(model, literal.getDatatype()).as(OntDataRange.Named.class);
         return model.asRDFNode(toNode(literal)).asLiteral();
+    }
+
+    private static String tripleAsString(OntObject subject, Property predicate, RDFNode object) {
+        String objAsString;
+        if (object.canAs(OntObject.class)) {
+            objAsString = OntEnhNodeFactories.viewAsString(OntModels.getOntType((OntObject) object));
+        } else {
+            objAsString = OntEnhNodeFactories.toPrintString(object.asNode(), (EnhGraph) subject.getModel());
+        }
+        return "[" + OntEnhNodeFactories.viewAsString(OntModels.getOntType(subject)) + " " + predicate.getLocalName() + " " + objAsString + "]";
+    }
+
+    private static String profileName(OntModel model) {
+        return OntEnhGraph.asPersonalityModel(model).getOntPersonality().getName();
     }
 
     /**
