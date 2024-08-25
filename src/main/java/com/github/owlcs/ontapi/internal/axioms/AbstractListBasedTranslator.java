@@ -29,6 +29,7 @@ import com.github.owlcs.ontapi.internal.objects.ONTStatementImpl;
 import com.github.owlcs.ontapi.internal.objects.WithContent;
 import org.apache.jena.graph.FrontsTriple;
 import org.apache.jena.graph.Triple;
+import org.apache.jena.ontapi.OntModelControls;
 import org.apache.jena.ontapi.model.OntList;
 import org.apache.jena.ontapi.model.OntModel;
 import org.apache.jena.ontapi.model.OntObject;
@@ -38,6 +39,7 @@ import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.RDFList;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.util.iterator.ExtendedIterator;
+import org.apache.jena.util.iterator.NullIterator;
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLLogicalAxiom;
@@ -73,24 +75,45 @@ public abstract class AbstractListBasedTranslator<Axiom extends OWLLogicalAxiom,
 
     abstract Class<ONT_SUBJECT> getView();
 
+    OntModelControls control() {
+        return null;
+    }
+
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
+    boolean isAxiomSupported(OntModel m) {
+        OntModelControls control = control();
+        return control == null || TranslateHelper.supports(m, control);
+    }
+
     @Override
     public void write(Axiom axiom, OntModel model) {
+        if (!isAxiomSupported(model)) {
+            throw new OntApiException.Unsupported(
+                    axiom + " cannot be added: prohibited by the profile " + TranslateHelper.profileName(model)
+            );
+        }
         WriteHelper.writeList(model, getSubject(axiom), getPredicate(), getObjects(axiom), axiom.annotationsAsList());
     }
 
     @Override
     public ExtendedIterator<OntStatement> listStatements(OntModel model, AxiomsSettings config) {
+        if (!isAxiomSupported(model)) {
+            return NullIterator.instance();
+        }
         return listByPredicate(model, getPredicate()).filterKeep(this::filter);
-    }
-
-    protected boolean filter(OntStatement statement) {
-        return statement.getSubject().canAs(getView())
-                && statement.getObject().canAs(RDFList.class);
     }
 
     @Override
     public boolean testStatement(OntStatement statement, AxiomsSettings config) {
         return getPredicate().equals(statement.getPredicate()) && filter(statement);
+    }
+
+    protected boolean filter(OntStatement statement) {
+        if (!isAxiomSupported(statement.getModel())) {
+            return false;
+        }
+        return statement.getSubject().canAs(getView())
+                && statement.getObject().canAs(RDFList.class);
     }
 
     ONTObject<Axiom> makeAxiom(OntStatement statement,

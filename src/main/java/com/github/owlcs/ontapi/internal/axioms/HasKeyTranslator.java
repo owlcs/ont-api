@@ -19,11 +19,14 @@ import com.github.owlcs.ontapi.config.AxiomsSettings;
 import com.github.owlcs.ontapi.internal.ModelObjectFactory;
 import com.github.owlcs.ontapi.internal.ONTObject;
 import com.github.owlcs.ontapi.internal.ONTObjectFactory;
+import com.github.owlcs.ontapi.internal.WriteHelper;
 import com.github.owlcs.ontapi.internal.objects.FactoryAccessor;
 import org.apache.jena.graph.Triple;
+import org.apache.jena.ontapi.OntModelControls;
 import org.apache.jena.ontapi.model.OntClass;
 import org.apache.jena.ontapi.model.OntList;
 import org.apache.jena.ontapi.model.OntModel;
+import org.apache.jena.ontapi.model.OntObject;
 import org.apache.jena.ontapi.model.OntRelationalProperty;
 import org.apache.jena.ontapi.model.OntStatement;
 import org.apache.jena.ontapi.utils.OntModels;
@@ -74,6 +77,40 @@ public class HasKeyTranslator
     @Override
     Class<OntClass> getView() {
         return OntClass.class;
+    }
+
+    @Override
+    OntModelControls control() {
+        return OntModelControls.USE_OWL2_CLASS_HAS_KEY_FEATURE;
+    }
+
+    @Override
+    public void write(OWLHasKeyAxiom axiom, OntModel model) {
+        if (!isAxiomSupported(model)) {
+            throw new OntApiException.Unsupported(
+                    axiom + " cannot be added: prohibited by the profile " + TranslateHelper.profileName(model)
+            );
+        }
+        OntClass s = (OntClass) WriteHelper.addRDFNode(model, getSubject(axiom)).as(OntObject.class);
+        if (!s.canAsSubClass()) {
+            throw new OntApiException.Unsupported(
+                    axiom + " cannot be added: prohibited by the profile " + TranslateHelper.profileName(model)
+            );
+        }
+        WriteHelper.addAnnotations(
+                s.addStatement(getPredicate(), WriteHelper.addRDFList(model, getObjects(axiom))),
+                axiom.annotationsAsList()
+        );
+    }
+
+    @Override
+    protected boolean filter(OntStatement statement) {
+        if (!isAxiomSupported(statement.getModel())) {
+            return false;
+        }
+        return statement.getSubject().canAs(getView())
+                && statement.getSubject(getView()).canAsSubClass()
+                && statement.getObject().canAs(RDFList.class);
     }
 
     @Override

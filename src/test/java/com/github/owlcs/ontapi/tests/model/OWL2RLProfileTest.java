@@ -8,12 +8,14 @@ import com.github.owlcs.ontapi.OntologyManager;
 import org.apache.jena.ontapi.OntModelFactory;
 import org.apache.jena.ontapi.OntSpecification;
 import org.apache.jena.ontapi.model.OntModel;
+import org.apache.jena.vocabulary.XSD;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -94,5 +96,41 @@ public class OWL2RLProfileTest {
         ontology.add(ax4);
         Set<OWLAxiom> actual4 = ontology.axioms().collect(Collectors.toSet());
         Assertions.assertEquals(Set.of(ax2, ax4), actual4);
+    }
+
+    @Test
+    void testHasKey() {
+        OntModel data = OntModelFactory.createModel();
+        data.setID("ont");
+        data.createDataAllValuesFrom(data.createDataProperty("p1"), data.getDatatype(XSD.xstring))
+                .addHasKey(data.createDataProperty("p2"));
+
+        OntologyManager manager = OntManagers.createManager();
+        manager.getOntologyConfigurator().setSpecification(OntSpecification.OWL2_RL_MEM);
+        DataFactory df = manager.getOWLDataFactory();
+        Ontology ontology = manager.addOntology(data.getGraph());
+
+        List<? extends AxiomType<?>> actual1 = ontology.axioms().map(OWLAxiom::getAxiomType).toList();
+        Assertions.assertEquals(2, actual1.size());
+        Assertions.assertEquals(Set.of(AxiomType.DECLARATION), new HashSet<>(actual1));
+
+        OWLAxiom ax1 = df.getOWLHasKeyAxiom(
+                df.getOWLDataAllValuesFrom(df.getOWLDataProperty("P1"), df.getIntegerOWLDatatype()),
+                df.getOWLObjectProperty(df.getOWLClass("P2")));
+        OWLAxiom ax2 = df.getOWLHasKeyAxiom(
+                df.getOWLDataSomeValuesFrom(df.getOWLDataProperty("P1"), df.getIntegerOWLDatatype()),
+                df.getOWLObjectProperty(df.getOWLClass("P2")));
+
+        Assertions.assertThrows(OntApiException.class, () -> ontology.add(ax1));
+
+        List<? extends AxiomType<?>> actual2 = ontology.axioms().map(OWLAxiom::getAxiomType).toList();
+        Assertions.assertEquals(2, actual2.size());
+        Assertions.assertEquals(Set.of(AxiomType.DECLARATION), new HashSet<>(actual2));
+
+        ontology.add(ax2);
+
+        List<? extends AxiomType<?>> actual3 = ontology.axioms().map(OWLAxiom::getAxiomType).toList();
+        Assertions.assertEquals(3, actual3.size());
+        Assertions.assertEquals(Set.of(AxiomType.DECLARATION, AxiomType.HAS_KEY), new HashSet<>(actual3));
     }
 }

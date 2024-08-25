@@ -13,7 +13,9 @@ import org.junit.jupiter.api.Test;
 import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.OWLAxiom;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * @see <a href="https://www.w3.org/TR/owl2-profiles/#OWL_2_QL">OWL 2 QL</a>
@@ -35,7 +37,83 @@ public class OWL2QLProfileTest {
         Assertions.assertEquals(List.of(AxiomType.DECLARATION, AxiomType.DECLARATION), actual1);
 
         Assertions.assertThrows(OntApiException.class,
-                () -> ontology.add(df.getOWLSubClassOfAxiom(df.getOWLClass("A"), df.getOWLObjectUnionOf(df.getOWLClass("B")))));
+                () -> ontology.add(df.getOWLSubClassOfAxiom(df.getOWLClass("A"), df.getOWLObjectUnionOf(df.getOWLClass("B"))))
+        );
+    }
 
+    @Test
+    void testHasKey() {
+        OntModel data = OntModelFactory.createModel();
+        data.setID("ont");
+        data.createOntClass("a").addHasKey(data.createObjectProperty("p1"), data.createDataProperty("p2"));
+
+        OntologyManager manager = OntManagers.createManager();
+        manager.getOntologyConfigurator().setSpecification(OntSpecification.OWL2_QL_MEM);
+        DataFactory df = manager.getOWLDataFactory();
+        Ontology ontology = manager.addOntology(data.getGraph());
+
+        List<? extends AxiomType<?>> actual1 = ontology.axioms().map(OWLAxiom::getAxiomType).toList();
+        Assertions.assertEquals(3, actual1.size());
+        Assertions.assertEquals(Set.of(AxiomType.DECLARATION), new HashSet<>(actual1));
+
+        Assertions.assertThrows(OntApiException.class,
+                () -> ontology.add(
+                        df.getOWLHasKeyAxiom(df.getOWLClass("A"), df.getOWLObjectProperty(df.getOWLClass("P"))))
+        );
+
+        List<? extends AxiomType<?>> actual2 = ontology.axioms().map(OWLAxiom::getAxiomType).toList();
+        Assertions.assertEquals(3, actual2.size());
+        Assertions.assertEquals(Set.of(AxiomType.DECLARATION), new HashSet<>(actual2));
+    }
+
+    @Test
+    void testDisjointUnion() {
+        OntModel data = OntModelFactory.createModel();
+        data.setID("ont");
+        data.createOntClass("a")
+                .addDisjointUnion(data.createOntClass("b"));
+
+        OntologyManager manager = OntManagers.createManager();
+        DataFactory df = manager.getOWLDataFactory();
+        Ontology ontology = manager.addOntology(data.getGraph(),
+                manager.getOntologyLoaderConfiguration().setSpecification(OntSpecification.OWL2_QL_MEM));
+
+        List<? extends AxiomType<?>> actual1 = ontology.axioms().map(OWLAxiom::getAxiomType).toList();
+        Assertions.assertEquals(List.of(AxiomType.DECLARATION, AxiomType.DECLARATION), actual1);
+
+        Assertions.assertThrows(OntApiException.class,
+                () -> ontology.add(
+                        df.getOWLDisjointUnionAxiom(df.getOWLClass("A"), List.of(df.getOWLClass("B")))
+                )
+        );
+
+        List<? extends AxiomType<?>> actual2 = ontology.axioms().map(OWLAxiom::getAxiomType).toList();
+        Assertions.assertEquals(List.of(AxiomType.DECLARATION, AxiomType.DECLARATION), actual2);
+    }
+
+    @Test
+    void testPropertyChain() {
+        OntModel data = OntModelFactory.createModel();
+        data.setID("ont");
+        data.createObjectProperty("p1")
+                .addPropertyChain(data.createObjectProperty("p2"), data.createObjectProperty("p3"));
+
+        OntologyManager manager = OntManagers.createManager();
+        DataFactory df = manager.getOWLDataFactory();
+        Ontology ontology = manager.addOntology(data.getGraph(),
+                manager.getOntologyLoaderConfiguration().setSpecification(OntSpecification.OWL2_QL_MEM));
+
+        List<? extends AxiomType<?>> actual1 = ontology.axioms().map(OWLAxiom::getAxiomType).toList();
+        Assertions.assertEquals(3, actual1.size());
+        Assertions.assertEquals(Set.of(AxiomType.DECLARATION), new HashSet<>(actual1));
+
+        Assertions.assertThrows(OntApiException.class,
+                () -> ontology.add(
+                        df.getOWLSubPropertyChainOfAxiom(List.of(df.getOWLObjectProperty("B")), df.getOWLObjectProperty("A"))
+                )
+        );
+        List<? extends AxiomType<?>> actual2 = ontology.axioms().map(OWLAxiom::getAxiomType).toList();
+        Assertions.assertEquals(3, actual2.size());
+        Assertions.assertEquals(Set.of(AxiomType.DECLARATION), new HashSet<>(actual2));
     }
 }

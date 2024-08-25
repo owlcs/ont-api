@@ -22,6 +22,7 @@ import com.github.owlcs.ontapi.internal.ONTObject;
 import com.github.owlcs.ontapi.internal.ONTObjectFactory;
 import com.github.owlcs.ontapi.internal.objects.FactoryAccessor;
 import org.apache.jena.graph.Triple;
+import org.apache.jena.ontapi.OntModelControls;
 import org.apache.jena.ontapi.model.OntClass;
 import org.apache.jena.ontapi.model.OntList;
 import org.apache.jena.ontapi.model.OntModel;
@@ -77,6 +78,11 @@ public class DisjointUnionTranslator extends AbstractListBasedTranslator<OWLDisj
     @Override
     Class<OntClass.Named> getView() {
         return OntClass.Named.class;
+    }
+
+    @Override
+    OntModelControls control() {
+        return OntModelControls.USE_OWL2_NAMED_CLASS_DISJOINT_UNION_FEATURE;
     }
 
     @Override

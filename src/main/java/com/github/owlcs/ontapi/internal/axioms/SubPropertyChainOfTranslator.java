@@ -21,6 +21,7 @@ import com.github.owlcs.ontapi.internal.ONTObject;
 import com.github.owlcs.ontapi.internal.ONTObjectFactory;
 import com.github.owlcs.ontapi.internal.objects.FactoryAccessor;
 import org.apache.jena.graph.Triple;
+import org.apache.jena.ontapi.OntModelControls;
 import org.apache.jena.ontapi.model.OntList;
 import org.apache.jena.ontapi.model.OntModel;
 import org.apache.jena.ontapi.model.OntObjectProperty;
@@ -75,6 +76,11 @@ public class SubPropertyChainOfTranslator
     @Override
     Class<OntObjectProperty> getView() {
         return OntObjectProperty.class;
+    }
+
+    @Override
+    OntModelControls control() {
+        return OntModelControls.USE_OWL_PROPERTY_CHAIN_AXIOM_FEATURE;
     }
 
     @Override
