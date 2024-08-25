@@ -14,6 +14,7 @@
 
 package com.github.owlcs.ontapi.internal.axioms;
 
+import com.github.owlcs.ontapi.OntApiException;
 import com.github.owlcs.ontapi.config.AxiomsSettings;
 import com.github.owlcs.ontapi.internal.AxiomTranslator;
 import com.github.owlcs.ontapi.internal.InternalCache;
@@ -68,8 +69,14 @@ public class SubClassOfTranslator extends AxiomTranslator<OWLSubClassOfAxiom> {
 
     @Override
     public void write(OWLSubClassOfAxiom axiom, OntModel model) {
-        WriteHelper.writeTriple(model, axiom.getSubClass(), RDFS.subClassOf, axiom.getSuperClass(),
-                axiom.annotationsAsList());
+        OntClass s = (OntClass) WriteHelper.addRDFNode(model, axiom.getSubClass());
+        OntClass o = (OntClass) WriteHelper.addRDFNode(model, axiom.getSuperClass());
+        if (!s.canAsSubClass() || !o.canAsSuperClass()) {
+            throw new OntApiException.Unsupported(
+                    axiom + " cannot be added: prohibited by the profile " + TranslateHelper.profileName(model)
+            );
+        }
+        WriteHelper.addAnnotations(s.addStatement(RDFS.subClassOf, o), axiom.getAnnotations());
     }
 
     @Override

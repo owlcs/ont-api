@@ -25,6 +25,7 @@ import com.github.owlcs.ontapi.internal.objects.FactoryAccessor;
 import com.github.owlcs.ontapi.internal.objects.ONTEntityImpl;
 import com.github.owlcs.ontapi.internal.objects.ONTStatementImpl;
 import org.apache.jena.graph.Triple;
+import org.apache.jena.ontapi.OntModelControls;
 import org.apache.jena.ontapi.model.OntDataProperty;
 import org.apache.jena.ontapi.model.OntModel;
 import org.apache.jena.ontapi.model.OntStatement;
@@ -62,6 +63,11 @@ public class FunctionalDataPropertyTranslator
     @Override
     Class<OntDataProperty> getView() {
         return OntDataProperty.class;
+    }
+
+    @Override
+    OntModelControls control() {
+        return OntModelControls.USE_OWL_DATA_PROPERTY_FUNCTIONAL_FEATURE;
     }
 
     @Override

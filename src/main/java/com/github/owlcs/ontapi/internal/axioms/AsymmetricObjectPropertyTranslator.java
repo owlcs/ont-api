@@ -23,6 +23,7 @@ import com.github.owlcs.ontapi.internal.ONTWrapperImpl;
 import com.github.owlcs.ontapi.internal.objects.FactoryAccessor;
 import com.github.owlcs.ontapi.internal.objects.ONTStatementImpl;
 import org.apache.jena.graph.Triple;
+import org.apache.jena.ontapi.OntModelControls;
 import org.apache.jena.ontapi.model.OntModel;
 import org.apache.jena.ontapi.model.OntObjectProperty;
 import org.apache.jena.ontapi.model.OntStatement;
@@ -58,6 +59,11 @@ public class AsymmetricObjectPropertyTranslator
     @Override
     Class<OntObjectProperty> getView() {
         return OntObjectProperty.class;
+    }
+
+    @Override
+    OntModelControls control() {
+        return OntModelControls.USE_OWL_PROPERTY_ASYMMETRIC_FEATURE;
     }
 
     @Override

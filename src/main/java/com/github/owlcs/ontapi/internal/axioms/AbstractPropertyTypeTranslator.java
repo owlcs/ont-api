@@ -14,6 +14,7 @@
 
 package com.github.owlcs.ontapi.internal.axioms;
 
+import com.github.owlcs.ontapi.OntApiException;
 import com.github.owlcs.ontapi.config.AxiomsSettings;
 import com.github.owlcs.ontapi.internal.ModelObjectFactory;
 import com.github.owlcs.ontapi.internal.ONTObject;
@@ -23,12 +24,14 @@ import com.github.owlcs.ontapi.internal.objects.ONTEntityImpl;
 import com.github.owlcs.ontapi.internal.objects.ONTStatementImpl;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
+import org.apache.jena.ontapi.OntModelControls;
 import org.apache.jena.ontapi.model.OntModel;
 import org.apache.jena.ontapi.model.OntObjectProperty;
 import org.apache.jena.ontapi.model.OntProperty;
 import org.apache.jena.ontapi.model.OntStatement;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.util.iterator.ExtendedIterator;
+import org.apache.jena.util.iterator.NullIterator;
 import org.apache.jena.vocabulary.RDF;
 import org.semanticweb.owlapi.model.HasProperty;
 import org.semanticweb.owlapi.model.OWLAxiom;
@@ -65,18 +68,34 @@ public abstract class AbstractPropertyTypeTranslator<Axiom extends OWLAxiom & Ha
 
     abstract Class<P> getView();
 
+    OntModelControls control() {
+        return null;
+    }
+
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
+    private boolean isAxiomSupported(OntModel m) {
+        OntModelControls control = control();
+        return control == null || TranslateHelper.supports(m, control);
+    }
+
     P getSubject(OntStatement s) {
         return s.getSubject(getView());
     }
 
     @Override
     public ExtendedIterator<OntStatement> listStatements(OntModel model, AxiomsSettings config) {
+        if (!isAxiomSupported(model)) {
+            return NullIterator.instance();
+        }
         return listByPredicateAndObject(model, RDF.type, getType())
                 .filterKeep(s -> s.getSubject().canAs(getView()));
     }
 
     @Override
     public boolean testStatement(OntStatement statement, AxiomsSettings config) {
+        if (!isAxiomSupported(statement.getModel())) {
+            return false;
+        }
         return statement.getObject().equals(getType())
                 && statement.isDeclaration()
                 && statement.getSubject().canAs(getView());
@@ -84,6 +103,11 @@ public abstract class AbstractPropertyTypeTranslator<Axiom extends OWLAxiom & Ha
 
     @Override
     public void write(Axiom axiom, OntModel model) {
+        if (!isAxiomSupported(model)) {
+            throw new OntApiException.Unsupported(
+                    axiom + " cannot be added: prohibited by the profile " + TranslateHelper.profileName(model)
+            );
+        }
         WriteHelper.writeTriple(model, axiom.getProperty(), RDF.type, getType(), axiom.annotationsAsList());
     }
 
