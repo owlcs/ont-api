@@ -15,6 +15,7 @@
 package com.github.owlcs.ontapi.internal.axioms;
 
 import com.github.owlcs.ontapi.DataFactory;
+import com.github.owlcs.ontapi.OntApiException;
 import com.github.owlcs.ontapi.config.AxiomsSettings;
 import com.github.owlcs.ontapi.internal.InternalCache;
 import com.github.owlcs.ontapi.internal.ModelObjectFactory;
@@ -37,7 +38,6 @@ import org.apache.jena.ontapi.model.OntIndividual;
 import org.apache.jena.ontapi.model.OntModel;
 import org.apache.jena.ontapi.model.OntObject;
 import org.apache.jena.ontapi.model.OntStatement;
-import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.apache.jena.vocabulary.RDF;
 import org.semanticweb.owlapi.model.OWLAnnotation;
@@ -77,6 +77,11 @@ public class ClassAssertionTranslator extends AbstractSimpleTranslator<OWLClassA
     @Override
     public void write(OWLClassAssertionAxiom axiom, OntModel model) {
         OntClass ce = WriteHelper.addClassExpression(model, axiom.getClassExpression());
+        if (!ce.canAsAssertionClass()) {
+            throw new OntApiException.Unsupported(
+                    axiom + " cannot be added: prohibited by the profile " + TranslateHelper.profileName(model)
+            );
+        }
         OWLIndividual individual = axiom.getIndividual();
         OntObject subject = individual.isAnonymous() ?
                 WriteHelper.toResource(individual).inModel(model).as(OntObject.class) :
@@ -102,15 +107,9 @@ public class ClassAssertionTranslator extends AbstractSimpleTranslator<OWLClassA
     public boolean filter(OntStatement statement) {
         // first class then individual,
         // since anonymous individual has more sophisticated and time-consuming checking
-        return isClass(statement.getObject()) && isIndividual(statement.getSubject());
-    }
-
-    protected boolean isClass(RDFNode n) {
-        return n.canAs(OntClass.class);
-    }
-
-    protected boolean isIndividual(RDFNode n) {
-        return n.canAs(OntIndividual.class);
+        return statement.getObject().canAs(OntClass.class) &&
+                statement.getObject(OntClass.class).canAsAssertionClass() &&
+                statement.getSubject().canAs(OntIndividual.class);
     }
 
     @Override
