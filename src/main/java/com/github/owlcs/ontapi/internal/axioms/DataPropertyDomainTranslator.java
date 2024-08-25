@@ -15,12 +15,14 @@
 package com.github.owlcs.ontapi.internal.axioms;
 
 import com.github.owlcs.ontapi.DataFactory;
+import com.github.owlcs.ontapi.OntApiException;
 import com.github.owlcs.ontapi.config.AxiomsSettings;
 import com.github.owlcs.ontapi.internal.InternalCache;
 import com.github.owlcs.ontapi.internal.ModelObjectFactory;
 import com.github.owlcs.ontapi.internal.ONTObject;
 import com.github.owlcs.ontapi.internal.ONTObjectFactory;
 import com.github.owlcs.ontapi.internal.ONTWrapperImpl;
+import com.github.owlcs.ontapi.internal.WriteHelper;
 import com.github.owlcs.ontapi.internal.objects.FactoryAccessor;
 import com.github.owlcs.ontapi.internal.objects.ONTEntityImpl;
 import com.github.owlcs.ontapi.internal.objects.ONTStatementImpl;
@@ -28,7 +30,9 @@ import org.apache.jena.graph.Triple;
 import org.apache.jena.ontapi.model.OntClass;
 import org.apache.jena.ontapi.model.OntDataProperty;
 import org.apache.jena.ontapi.model.OntModel;
+import org.apache.jena.ontapi.model.OntObject;
 import org.apache.jena.ontapi.model.OntStatement;
+import org.apache.jena.vocabulary.RDFS;
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassExpression;
@@ -54,13 +58,27 @@ import java.util.stream.Stream;
 public class DataPropertyDomainTranslator extends AbstractPropertyDomainTranslator<OWLDataPropertyDomainAxiom, OntDataProperty> {
 
     @Override
+    public void write(OWLDataPropertyDomainAxiom axiom, OntModel model) {
+        OntClass d = (OntClass) WriteHelper.addRDFNode(model, axiom.getDomain());
+        if (!d.canAsSuperClass()) {
+            throw new OntApiException.Unsupported(
+                    axiom + " cannot be added: prohibited by the profile " + TranslateHelper.profileName(model)
+            );
+        }
+        OntObject p = WriteHelper.addRDFNode(model, axiom.getProperty()).as(OntObject.class);
+        WriteHelper.addAnnotations(p.addStatement(RDFS.domain, d), axiom.getAnnotations());
+    }
+
+    @Override
     Class<OntDataProperty> getView() {
         return OntDataProperty.class;
     }
 
     @Override
     protected boolean filter(OntStatement statement, AxiomsSettings config) {
-        return super.filter(statement, config) && statement.getObject().canAs(OntClass.class);
+        return super.filter(statement, config)
+                && statement.getObject().canAs(OntClass.class)
+                && statement.getObject(OntClass.class).canAsSuperClass();
     }
 
     @Override
@@ -140,7 +158,7 @@ public class DataPropertyDomainTranslator extends AbstractPropertyDomainTranslat
 
         /**
          * An {@link OWLDataPropertyDomainAxiom}
-         * that has named class expression ({@link OWLClass OWL Class}) as object and has no annotations.
+         * that has named class expression ({@link OWLClass OWL Class}) as an object and has no annotations.
          */
         public static class SimpleImpl extends AxiomImpl
                 implements Simple<OWLDataPropertyExpression, OWLClassExpression> {

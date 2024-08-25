@@ -67,6 +67,7 @@ import java.util.function.Supplier;
 public abstract class AbstractPropertyDomainTranslator<Axiom extends OWLAxiom
         & HasDomain<? extends OWLObject> & HasProperty<? extends OWLPropertyExpression>,
         P extends OntProperty> extends AbstractSimpleTranslator<Axiom> {
+
     @Override
     public void write(Axiom axiom, OntModel model) {
         WriteHelper.writeTriple(model, axiom.getProperty(), RDFS.domain, axiom.getDomain(), axiom.annotationsAsList());

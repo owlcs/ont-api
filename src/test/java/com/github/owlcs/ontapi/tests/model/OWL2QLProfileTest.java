@@ -116,4 +116,41 @@ public class OWL2QLProfileTest {
         Assertions.assertEquals(3, actual2.size());
         Assertions.assertEquals(Set.of(AxiomType.DECLARATION), new HashSet<>(actual2));
     }
+
+    @Test
+    void testPropertyDomainAxiom() {
+        OntModel data = OntModelFactory.createModel();
+        data.createObjectProperty("p1")
+                .addDomain(data.createObjectMaxCardinality(data.createObjectProperty("p2"), 42, data.createOntClass("C")));
+
+        OntologyManager manager = OntManagers.createManager();
+        manager.getOntologyConfigurator().setSpecification(OntSpecification.OWL2_QL_MEM);
+        DataFactory df = manager.getOWLDataFactory();
+        Ontology ontology = manager.addOntology(data.getGraph());
+
+        List<? extends AxiomType<?>> actual1 = ontology.axioms().map(OWLAxiom::getAxiomType).toList();
+        Assertions.assertEquals(3, actual1.size());
+        Assertions.assertEquals(Set.of(AxiomType.DECLARATION), new HashSet<>(actual1));
+
+        OWLAxiom ax1 = df.getOWLDataPropertyDomainAxiom(
+                df.getOWLDataProperty("P1"),
+                df.getOWLObjectAllValuesFrom(df.getOWLObjectProperty("P3"), df.getOWLThing())
+        );
+        OWLAxiom ax2 = df.getOWLObjectPropertyDomainAxiom(
+                df.getOWLObjectProperty("P2"),
+                df.getOWLClass("X")
+        );
+
+        Assertions.assertThrows(OntApiException.class, () -> ontology.add(ax1));
+
+        List<? extends AxiomType<?>> actual2 = ontology.axioms().map(OWLAxiom::getAxiomType).toList();
+        Assertions.assertEquals(3, actual2.size());
+        Assertions.assertEquals(Set.of(AxiomType.DECLARATION), new HashSet<>(actual2));
+
+        ontology.add(ax2);
+
+        List<? extends AxiomType<?>> actual3 = ontology.axioms().map(OWLAxiom::getAxiomType).toList();
+        Assertions.assertEquals(4, actual3.size());
+        Assertions.assertEquals(Set.of(AxiomType.DECLARATION, AxiomType.OBJECT_PROPERTY_DOMAIN), new HashSet<>(actual3));
+    }
 }
