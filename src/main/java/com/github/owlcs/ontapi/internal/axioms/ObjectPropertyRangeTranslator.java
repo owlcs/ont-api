@@ -15,20 +15,24 @@
 package com.github.owlcs.ontapi.internal.axioms;
 
 import com.github.owlcs.ontapi.DataFactory;
+import com.github.owlcs.ontapi.OntApiException;
 import com.github.owlcs.ontapi.config.AxiomsSettings;
 import com.github.owlcs.ontapi.internal.InternalCache;
 import com.github.owlcs.ontapi.internal.ModelObjectFactory;
 import com.github.owlcs.ontapi.internal.ONTObject;
 import com.github.owlcs.ontapi.internal.ONTObjectFactory;
 import com.github.owlcs.ontapi.internal.ONTWrapperImpl;
+import com.github.owlcs.ontapi.internal.WriteHelper;
 import com.github.owlcs.ontapi.internal.objects.FactoryAccessor;
 import com.github.owlcs.ontapi.internal.objects.ONTEntityImpl;
 import com.github.owlcs.ontapi.internal.objects.ONTStatementImpl;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.ontapi.model.OntClass;
 import org.apache.jena.ontapi.model.OntModel;
+import org.apache.jena.ontapi.model.OntObject;
 import org.apache.jena.ontapi.model.OntObjectProperty;
 import org.apache.jena.ontapi.model.OntStatement;
+import org.apache.jena.vocabulary.RDFS;
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassExpression;
@@ -55,13 +59,27 @@ public class ObjectPropertyRangeTranslator
         extends AbstractPropertyRangeTranslator<OWLObjectPropertyRangeAxiom, OntObjectProperty> {
 
     @Override
+    public void write(OWLObjectPropertyRangeAxiom axiom, OntModel model) {
+        OntClass d = (OntClass) WriteHelper.addRDFNode(model, axiom.getRange());
+        if (!d.canAsSuperClass()) {
+            throw new OntApiException.Unsupported(
+                    axiom + " cannot be added: prohibited by the profile " + TranslateHelper.profileName(model)
+            );
+        }
+        OntObject p = WriteHelper.addRDFNode(model, axiom.getProperty()).as(OntObject.class);
+        WriteHelper.addAnnotations(p.addStatement(RDFS.range, d), axiom.getAnnotations());
+    }
+
+    @Override
     Class<OntObjectProperty> getView() {
         return OntObjectProperty.class;
     }
 
     @Override
     public boolean filter(OntStatement statement, AxiomsSettings config) {
-        return super.filter(statement, config) && statement.getObject().canAs(OntClass.class);
+        return super.filter(statement, config)
+                && statement.getObject().canAs(OntClass.class)
+                && statement.getObject(OntClass.class).canAsSuperClass();
     }
 
     @Override

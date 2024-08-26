@@ -69,6 +69,7 @@ import java.util.function.Supplier;
 public abstract class AbstractPropertyRangeTranslator<Axiom extends OWLAxiom
         & HasRange<? extends OWLObject> & HasProperty<? extends OWLPropertyExpression>,
         P extends OntProperty> extends AbstractSimpleTranslator<Axiom> {
+
     @Override
     public void write(Axiom axiom, OntModel graph) {
         WriteHelper.writeTriple(graph, axiom.getProperty(), RDFS.range, axiom.getRange(), axiom.annotationsAsList());
