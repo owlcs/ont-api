@@ -87,7 +87,7 @@ public class OWL2ELProfileTest {
     }
 
     @Test
-    void testDifferentIndividuals() {
+    void testDifferentIndividualsAxiom() {
         OntModel data = OntModelFactory.createModel();
         data.createOntClass("A").createIndividual().addDifferentIndividual(data.createIndividual("i1"));
         data.createOntClass("B").createIndividual("i2").addDifferentIndividual(data.createIndividual("i3"));
@@ -131,7 +131,7 @@ public class OWL2ELProfileTest {
     }
 
     @Test
-    void testDisjointProperties() {
+    void testDisjointPropertiesAxioms() {
         OntModel data = OntModelFactory.createModel();
         data.createObjectProperty("p1").addDisjointProperty(data.createObjectProperty("p2"));
         data.createDisjointDataProperties(
@@ -149,6 +149,8 @@ public class OWL2ELProfileTest {
         Assertions.assertEquals(0, actual1.size());
 
         OWLAxiom ax1 = df.getOWLDisjointDataPropertiesAxiom(df.getOWLDataProperty("p6"));
+        OWLAxiom ax2 = df.getOWLDisjointDataPropertiesAxiom(df.getOWLDataProperty("p7"), df.getOWLDataProperty("p8"));
         Assertions.assertThrows(OntApiException.Unsupported.class, () -> ontology.add(ax1));
+        Assertions.assertThrows(OntApiException.Unsupported.class, () -> ontology.add(ax2));
     }
 }

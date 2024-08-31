@@ -25,6 +25,7 @@ import com.github.owlcs.ontapi.internal.objects.FactoryAccessor;
 import com.github.owlcs.ontapi.internal.objects.ONTEntityImpl;
 import com.github.owlcs.ontapi.internal.objects.ONTStatementImpl;
 import org.apache.jena.graph.Triple;
+import org.apache.jena.ontapi.OntModelControls;
 import org.apache.jena.ontapi.model.OntIndividual;
 import org.apache.jena.ontapi.model.OntModel;
 import org.apache.jena.ontapi.model.OntStatement;
@@ -61,6 +62,11 @@ public class SameIndividualTranslator
         extends AbstractNaryTranslator<OWLSameIndividualAxiom, OWLIndividual, OntIndividual> {
 
     private static final Property PREDICATE = OWL.sameAs;
+
+    @Override
+    OntModelControls control() {
+        return OntModelControls.USE_OWL_INDIVIDUAL_SAME_AS_FEATURE;
+    }
 
     @Override
     public Property getPredicate() {

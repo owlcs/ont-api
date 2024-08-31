@@ -133,6 +133,11 @@ public abstract class AbstractNaryTranslator<Axiom extends OWLAxiom & OWLNaryAxi
     @SuppressWarnings("unchecked")
     @Override
     public void write(Axiom axiom, OntModel model) {
+        if (!isAxiomSupported(model)) {
+            throw new OntApiException.Unsupported(
+                    axiom + " cannot be added: prohibited by the profile " + OntModelSupport.profileName(model)
+            );
+        }
         Collection<? extends OWLNaryAxiom<OWL>> axioms = toPairwiseAxioms(axiom);
         if (axioms.isEmpty()) {
             LOGGER.warn("Nothing to write, wrong axiom is given: {}", axiom);

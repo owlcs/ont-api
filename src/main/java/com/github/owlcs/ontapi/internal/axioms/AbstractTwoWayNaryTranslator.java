@@ -66,6 +66,11 @@ public abstract class AbstractTwoWayNaryTranslator<Axiom extends OWLAxiom & OWLN
     @SuppressWarnings("unchecked")
     @Override
     public void write(Axiom axiom, OntModel model) {
+        if (!isAxiomSupported(model)) {
+            throw new OntApiException.Unsupported(
+                    axiom + " cannot be added: prohibited by the profile " + OntModelSupport.profileName(model)
+            );
+        }
         List<OWL> operands = axiom.getOperandsAsList();
         List<OWLAnnotation> annotations = axiom.annotationsAsList();
         if (operands.isEmpty() && annotations.isEmpty()) { // nothing to write, skip

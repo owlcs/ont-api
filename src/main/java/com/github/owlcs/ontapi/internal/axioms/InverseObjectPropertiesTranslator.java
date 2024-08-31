@@ -15,12 +15,14 @@
 package com.github.owlcs.ontapi.internal.axioms;
 
 import com.github.owlcs.ontapi.DataFactory;
+import com.github.owlcs.ontapi.OntApiException;
 import com.github.owlcs.ontapi.config.AxiomsSettings;
 import com.github.owlcs.ontapi.internal.InternalCache;
 import com.github.owlcs.ontapi.internal.ModelObjectFactory;
 import com.github.owlcs.ontapi.internal.ONTObject;
 import com.github.owlcs.ontapi.internal.ONTObjectFactory;
 import com.github.owlcs.ontapi.internal.ONTWrapperImpl;
+import com.github.owlcs.ontapi.internal.OntModelSupport;
 import com.github.owlcs.ontapi.internal.WriteHelper;
 import com.github.owlcs.ontapi.internal.objects.FactoryAccessor;
 import com.github.owlcs.ontapi.internal.objects.ONTAxiomImpl;
@@ -29,11 +31,13 @@ import com.github.owlcs.ontapi.internal.objects.ONTStatementImpl;
 import javax.annotation.ParametersAreNonnullByDefault;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
+import org.apache.jena.ontapi.OntModelControls;
 import org.apache.jena.ontapi.model.OntModel;
 import org.apache.jena.ontapi.model.OntObjectProperty;
 import org.apache.jena.ontapi.model.OntStatement;
 import org.apache.jena.ontapi.utils.Iterators;
 import org.apache.jena.util.iterator.ExtendedIterator;
+import org.apache.jena.util.iterator.NullIterator;
 import org.apache.jena.vocabulary.OWL;
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLEntity;
@@ -64,14 +68,27 @@ import java.util.stream.Stream;
  */
 public class InverseObjectPropertiesTranslator extends AbstractSimpleTranslator<OWLInverseObjectPropertiesAxiom> {
 
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
+    private boolean isAxiomSupported(OntModel m) {
+        return OntModelSupport.supports(m, OntModelControls.USE_OWL_PROPERTY_INVERSE_OF_FEATURE);
+    }
+
     @Override
     public void write(OWLInverseObjectPropertiesAxiom axiom, OntModel model) {
+        if (!isAxiomSupported(model)) {
+            throw new OntApiException.Unsupported(
+                    axiom + " cannot be added: prohibited by the profile " + OntModelSupport.profileName(model)
+            );
+        }
         WriteHelper.writeTriple(model, axiom.getFirstProperty(), OWL.inverseOf, axiom.getSecondProperty(),
                 axiom.annotationsAsList());
     }
 
     @Override
     public ExtendedIterator<OntStatement> listStatements(OntModel model, AxiomsSettings config) {
+        if (!isAxiomSupported(model)) {
+            return NullIterator.instance();
+        }
         // NOTE as a precaution: the first (commented) way is not correct
         // since it includes anonymous object property expressions (based on owl:inverseOf),
         // which might be treated as separated axioms, but OWL-API doesn't think so.
@@ -85,9 +102,16 @@ public class InverseObjectPropertiesTranslator extends AbstractSimpleTranslator<
 
     @Override
     public boolean testStatement(OntStatement statement, AxiomsSettings config) {
-        if (!OWL.inverseOf.equals(statement.getPredicate())) return false;
+        if (!isAxiomSupported(statement.getModel())) {
+            return false;
+        }
+        if (!OWL.inverseOf.equals(statement.getPredicate())) {
+            return false;
+        }
         // skip {@code _:x owl:inverseOf PN} (inverse object property expression):
-        if (statement.getSubject().isAnon() && statement.getObject().isURIResource()) return false;
+        if (statement.getSubject().isAnon() && statement.getObject().isURIResource()) {
+            return false;
+        }
         return statement.getSubject().canAs(OntObjectProperty.class) && statement.getObject().canAs(OntObjectProperty.class);
     }
 

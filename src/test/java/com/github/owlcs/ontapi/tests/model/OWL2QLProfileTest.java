@@ -153,4 +153,57 @@ public class OWL2QLProfileTest {
         Assertions.assertEquals(4, actual3.size());
         Assertions.assertEquals(Set.of(AxiomType.DECLARATION, AxiomType.OBJECT_PROPERTY_DOMAIN), new HashSet<>(actual3));
     }
+
+    @Test
+    void testNegativePropertyAssertionAxioms() {
+        OntModel data = OntModelFactory.createModel();
+        data.createIndividual("i1").addNegativeAssertion(data.createObjectProperty("p1"), data.createIndividual("i2"));
+        data.createIndividual("i3").addNegativeAssertion(data.createDataProperty("p2"), data.createTypedLiteral(42));
+
+        OntologyManager manager = OntManagers.createManager();
+        manager.getOntologyConfigurator().setSpecification(OntSpecification.OWL2_QL_MEM);
+        DataFactory df = manager.getOWLDataFactory();
+        Ontology ontology = manager.addOntology(data.getGraph());
+
+        List<OWLAxiom> actual1 = ontology.axioms()
+                .filter(it -> !AxiomType.DECLARATION.equals(it.getAxiomType()))
+                .toList();
+        Assertions.assertEquals(0, actual1.size());
+
+        OWLAxiom ax1 = df.getOWLNegativeObjectPropertyAssertionAxiom(
+                df.getOWLObjectProperty("P2"),
+                df.getOWLNamedIndividual("i4"),
+                df.getOWLNamedIndividual("i5")
+        );
+        OWLAxiom ax2 = df.getOWLNegativeDataPropertyAssertionAxiom(
+                df.getOWLDataProperty("P2"),
+                df.getOWLNamedIndividual("i6"),
+                df.getOWLLiteral(42)
+        );
+
+        Assertions.assertThrows(OntApiException.Unsupported.class, () -> ontology.add(ax1));
+        Assertions.assertThrows(OntApiException.Unsupported.class, () -> ontology.add(ax2));
+    }
+
+    @Test
+    void testSameIndividualAxiom() {
+        OntModel data = OntModelFactory.createModel();
+        data.createIndividual("a").addSameIndividual(data.createIndividual("b"));
+
+        OntologyManager manager = OntManagers.createManager();
+        manager.getOntologyConfigurator().setSpecification(OntSpecification.OWL2_QL_MEM);
+        DataFactory df = manager.getOWLDataFactory();
+        Ontology ontology = manager.addOntology(data.getGraph());
+
+        List<OWLAxiom> actual1 = ontology.axioms()
+                .filter(it -> !AxiomType.DECLARATION.equals(it.getAxiomType()))
+                .toList();
+        Assertions.assertEquals(0, actual1.size());
+
+        OWLAxiom ax1 = df.getOWLSameIndividualAxiom(df.getOWLNamedIndividual("i1"));
+        OWLAxiom ax2 = df.getOWLSameIndividualAxiom(df.getOWLNamedIndividual("i1"), df.getOWLNamedIndividual("i2"));
+
+        Assertions.assertThrows(OntApiException.Unsupported.class, () -> ontology.add(ax1));
+        Assertions.assertThrows(OntApiException.Unsupported.class, () -> ontology.add(ax2));
+    }
 }
