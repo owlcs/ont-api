@@ -29,6 +29,7 @@ import com.github.owlcs.ontapi.internal.objects.WithContent;
 import com.github.owlcs.ontapi.owlapi.objects.AnonymousIndividualImpl;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
+import org.apache.jena.ontapi.common.OntEnhNodeFactories;
 import org.apache.jena.ontapi.model.OntClass;
 import org.apache.jena.ontapi.model.OntDataProperty;
 import org.apache.jena.ontapi.model.OntDisjoint;
@@ -117,7 +118,13 @@ public abstract class AbstractNaryTranslator<Axiom extends OWLAxiom & OWLNaryAxi
         if (operands.size() != 2) {
             throw new OntApiException.IllegalArgument(getClass().getSimpleName() + ": expected two operands. Axiom: " + axiom);
         }
-        WriteHelper.writeTriple(model, operands.get(0), getPredicate(), operands.get(1), annotations);
+        OntStatement s = WriteHelper.writeTriple(model, operands.get(0), getPredicate(), operands.get(1), annotations);
+        if (s.getSubject().canAs(getView()) && s.getObject().canAs(getView())) {
+            return;
+        }
+        throw new OntApiException.IllegalArgument(
+                getClass().getSimpleName() + ": both operands should be of type " + OntEnhNodeFactories.viewAsString(getView()) +
+                        ". Axiom: " + axiom);
     }
 
     @Override
@@ -164,7 +171,7 @@ public abstract class AbstractNaryTranslator<Axiom extends OWLAxiom & OWLNaryAxi
         return getPredicate().equals(statement.getPredicate()) && filter(statement);
     }
 
-    protected boolean filter(Statement statement) {
+    boolean filter(Statement statement) {
         return statement.getSubject().canAs(getView()) && statement.getObject().canAs(getView());
     }
 

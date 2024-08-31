@@ -19,6 +19,7 @@ import com.github.owlcs.ontapi.config.AxiomsSettings;
 import com.github.owlcs.ontapi.internal.ModelObjectFactory;
 import com.github.owlcs.ontapi.internal.ONTObject;
 import com.github.owlcs.ontapi.internal.ONTObjectFactory;
+import com.github.owlcs.ontapi.internal.OntModelSupport;
 import com.github.owlcs.ontapi.internal.WriteHelper;
 import com.github.owlcs.ontapi.internal.objects.FactoryAccessor;
 import org.apache.jena.graph.Triple;
@@ -88,13 +89,13 @@ public class HasKeyTranslator
     public void write(OWLHasKeyAxiom axiom, OntModel model) {
         if (!isAxiomSupported(model)) {
             throw new OntApiException.Unsupported(
-                    axiom + " cannot be added: prohibited by the profile " + TranslateHelper.profileName(model)
+                    axiom + " cannot be added: prohibited by the profile " + OntModelSupport.profileName(model)
             );
         }
         OntClass s = (OntClass) WriteHelper.addRDFNode(model, getSubject(axiom)).as(OntObject.class);
         if (!s.canAsSubClass()) {
             throw new OntApiException.Unsupported(
-                    axiom + " cannot be added: prohibited by the profile " + TranslateHelper.profileName(model)
+                    axiom + " cannot be added: prohibited by the profile " + OntModelSupport.profileName(model)
             );
         }
         WriteHelper.addAnnotations(

@@ -24,6 +24,7 @@ import com.github.owlcs.ontapi.internal.objects.ONTEntityImpl;
 import com.github.owlcs.ontapi.internal.objects.ONTStatementImpl;
 import org.apache.jena.graph.FrontsTriple;
 import org.apache.jena.graph.Triple;
+import org.apache.jena.ontapi.OntModelControls;
 import org.apache.jena.ontapi.model.OntDataProperty;
 import org.apache.jena.ontapi.model.OntDisjoint;
 import org.apache.jena.ontapi.model.OntModel;
@@ -68,6 +69,11 @@ public class DisjointDataPropertiesTranslator
     @Override
     Class<OntDataProperty> getView() {
         return OntDataProperty.class;
+    }
+
+    @Override
+    OntModelControls control() {
+        return OntModelControls.USE_OWL2_PROPERTY_DISJOINT_WITH_FEATURE;
     }
 
     @Override

@@ -17,6 +17,7 @@ import org.semanticweb.owlapi.model.OWLAxiom;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @see <a href="https://www.w3.org/TR/owl2-profiles/#OWL_2_EL">OWL 2 EL</a>
@@ -83,5 +84,71 @@ public class OWL2ELProfileTest {
         List<? extends AxiomType<?>> actual3 = ontology.axioms().map(OWLAxiom::getAxiomType).toList();
         Assertions.assertEquals(6, actual3.size());
         Assertions.assertEquals(Set.of(AxiomType.DECLARATION, AxiomType.REFLEXIVE_OBJECT_PROPERTY), new HashSet<>(actual3));
+    }
+
+    @Test
+    void testDifferentIndividuals() {
+        OntModel data = OntModelFactory.createModel();
+        data.createOntClass("A").createIndividual().addDifferentIndividual(data.createIndividual("i1"));
+        data.createOntClass("B").createIndividual("i2").addDifferentIndividual(data.createIndividual("i3"));
+
+        data.createDifferentIndividuals(
+                data.createIndividual("i4"),
+                data.createOntClass("C").createIndividual(),
+                data.createOntClass("D").createIndividual("i5"),
+                data.createOntClass("E").createIndividual()
+        );
+
+        OntologyManager manager = OntManagers.createManager();
+        manager.getOntologyConfigurator().setSpecification(OntSpecification.OWL2_EL_MEM);
+        DataFactory df = manager.getOWLDataFactory();
+        Ontology ontology = manager.addOntology(data.getGraph());
+
+        List<OWLAxiom> actual1 = ontology.axioms()
+                .filter(it -> !AxiomType.DECLARATION.equals(it.getAxiomType()) && !AxiomType.CLASS_ASSERTION.equals(it.getAxiomType()))
+                .toList();
+        Assertions.assertEquals(2, actual1.size());
+        Assertions.assertEquals(
+                Set.of("DifferentIndividuals(<i2> <i3>)", "DifferentIndividuals(<i4> <i5>)"),
+                actual1.stream().map(Object::toString).collect(Collectors.toSet())
+        );
+
+        OWLAxiom ax1 = df.getOWLDifferentIndividualsAxiom(df.getOWLNamedIndividual("i6"), df.getOWLAnonymousIndividual());
+        OWLAxiom ax2 = df.getOWLDifferentIndividualsAxiom(
+                df.getOWLNamedIndividual("i6"), df.getOWLNamedIndividual("i7"), df.getOWLNamedIndividual("i8"));
+        Assertions.assertThrows(OntApiException.Unsupported.class, () -> ontology.add(ax1));
+
+        ontology.add(ax2);
+
+        List<OWLAxiom> actual2 = ontology.axioms()
+                .filter(it -> !AxiomType.DECLARATION.equals(it.getAxiomType()) && !AxiomType.CLASS_ASSERTION.equals(it.getAxiomType()))
+                .toList();
+        Assertions.assertEquals(3, actual2.size());
+        Assertions.assertEquals(
+                Set.of("DifferentIndividuals(<i2> <i3>)", "DifferentIndividuals(<i4> <i5>)", "DifferentIndividuals(<i6> <i7> <i8>)"),
+                actual2.stream().map(Object::toString).collect(Collectors.toSet())
+        );
+    }
+
+    @Test
+    void testDisjointProperties() {
+        OntModel data = OntModelFactory.createModel();
+        data.createObjectProperty("p1").addDisjointProperty(data.createObjectProperty("p2"));
+        data.createDisjointDataProperties(
+                data.createDataProperty("p3"), data.createDataProperty("p4"), data.createDataProperty("p5")
+        );
+
+        OntologyManager manager = OntManagers.createManager();
+        manager.getOntologyConfigurator().setSpecification(OntSpecification.OWL2_EL_MEM);
+        DataFactory df = manager.getOWLDataFactory();
+        Ontology ontology = manager.addOntology(data.getGraph());
+
+        List<OWLAxiom> actual1 = ontology.axioms()
+                .filter(it -> !AxiomType.DECLARATION.equals(it.getAxiomType()))
+                .toList();
+        Assertions.assertEquals(0, actual1.size());
+
+        OWLAxiom ax1 = df.getOWLDisjointDataPropertiesAxiom(df.getOWLDataProperty("p6"));
+        Assertions.assertThrows(OntApiException.Unsupported.class, () -> ontology.add(ax1));
     }
 }

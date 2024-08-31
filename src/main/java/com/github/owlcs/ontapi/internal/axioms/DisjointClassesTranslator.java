@@ -14,16 +14,20 @@
 
 package com.github.owlcs.ontapi.internal.axioms;
 
+import com.github.owlcs.ontapi.OntApiException;
 import com.github.owlcs.ontapi.config.AxiomsSettings;
 import com.github.owlcs.ontapi.internal.InternalCache;
 import com.github.owlcs.ontapi.internal.ModelObjectFactory;
 import com.github.owlcs.ontapi.internal.ONTObject;
 import com.github.owlcs.ontapi.internal.ONTObjectFactory;
+import com.github.owlcs.ontapi.internal.OntModelSupport;
+import com.github.owlcs.ontapi.internal.WriteHelper;
 import com.github.owlcs.ontapi.internal.objects.FactoryAccessor;
 import com.github.owlcs.ontapi.internal.objects.ONTEntityImpl;
 import com.github.owlcs.ontapi.internal.objects.ONTStatementImpl;
 import org.apache.jena.graph.FrontsTriple;
 import org.apache.jena.graph.Triple;
+import org.apache.jena.ontapi.OntModelControls;
 import org.apache.jena.ontapi.model.OntClass;
 import org.apache.jena.ontapi.model.OntDisjoint;
 import org.apache.jena.ontapi.model.OntModel;
@@ -31,6 +35,7 @@ import org.apache.jena.ontapi.model.OntStatement;
 import org.apache.jena.ontapi.utils.OntModels;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.apache.jena.vocabulary.OWL;
 import org.semanticweb.owlapi.model.OWLAnnotation;
@@ -41,6 +46,7 @@ import org.semanticweb.owlapi.model.OWLEntity;
 import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Supplier;
@@ -71,6 +77,33 @@ public class DisjointClassesTranslator
     @Override
     Class<OntClass> getView() {
         return OntClass.class;
+    }
+
+    @Override
+    List<OWLClassExpression> operandsAsList(OWLDisjointClassesAxiom axiom, OntModel model) {
+        List<OWLClassExpression> operands = axiom.getOperandsAsList();
+        if (operands.isEmpty()) {
+            return operands;
+        }
+        List<OntClass> classes = operands.stream().map(it -> (OntClass)WriteHelper.addRDFNode(model, it)).toList();
+        if (classes.size() < 2 || !classes.stream().allMatch(OntClass::canAsDisjointClass)) {
+            throw new OntApiException.Unsupported(
+                    axiom + " cannot be added: prohibited by the profile " + OntModelSupport.profileName(model)
+            );
+        }
+        return operands;
+    }
+
+    @Override
+    OntModelControls control() {
+        return OntModelControls.USE_OWL_CLASS_DISJOINT_WITH_FEATURE;
+    }
+
+    @Override
+    boolean filter(Statement statement) {
+        return super.filter(statement) &&
+                statement.getSubject().as(OntClass.class).canAsDisjointClass() &&
+                statement.getObject().as(OntClass.class).canAsDisjointClass();
     }
 
     @Override

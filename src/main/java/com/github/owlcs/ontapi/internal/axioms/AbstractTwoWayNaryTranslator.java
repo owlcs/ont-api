@@ -14,11 +14,14 @@
 
 package com.github.owlcs.ontapi.internal.axioms;
 
+import com.github.owlcs.ontapi.OntApiException;
 import com.github.owlcs.ontapi.config.AxiomsSettings;
 import com.github.owlcs.ontapi.internal.ONTObject;
 import com.github.owlcs.ontapi.internal.ONTWrapperImpl;
+import com.github.owlcs.ontapi.internal.OntModelSupport;
 import com.github.owlcs.ontapi.internal.WriteHelper;
 import org.apache.jena.graph.Triple;
+import org.apache.jena.ontapi.OntModelControls;
 import org.apache.jena.ontapi.model.OntDisjoint;
 import org.apache.jena.ontapi.model.OntModel;
 import org.apache.jena.ontapi.model.OntObject;
@@ -27,6 +30,7 @@ import org.apache.jena.ontapi.utils.OntModels;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.util.iterator.ExtendedIterator;
+import org.apache.jena.util.iterator.NullIterator;
 import org.apache.jena.vocabulary.RDF;
 import org.semanticweb.owlapi.model.IsAnonymous;
 import org.semanticweb.owlapi.model.OWLAnnotation;
@@ -62,7 +66,7 @@ public abstract class AbstractTwoWayNaryTranslator<Axiom extends OWLAxiom & OWLN
 
     @Override
     public void write(Axiom axiom, OntModel model) {
-        List<OWL> operands = axiom.getOperandsAsList();
+        List<OWL> operands = operandsAsList(axiom, model);
         List<OWLAnnotation> annotations = axiom.annotationsAsList();
         if (operands.isEmpty() && annotations.isEmpty()) { // nothing to write, skip
             LOGGER.warn("Nothing to write, wrong axiom is given: {}", axiom);
@@ -74,13 +78,35 @@ public abstract class AbstractTwoWayNaryTranslator<Axiom extends OWLAxiom & OWLN
             Resource root = model.createResource();
             model.add(root, RDF.type, getMembersType());
             model.add(root, getMembersPredicate(), WriteHelper.addRDFList(model, operands));
+            if (!root.canAs(getDisjointView())) {
+                throw new OntApiException.Unsupported(
+                        axiom + " cannot be added: prohibited by the profile " + OntModelSupport.profileName(model)
+                );
+            }
             OntDisjoint<ONT> res = root.as(getDisjointView());
             WriteHelper.addAnnotations(res, annotations);
         }
     }
 
+    List<OWL> operandsAsList(Axiom axiom, OntModel model) {
+        return axiom.getOperandsAsList();
+    }
+
+    OntModelControls control() {
+        return null;
+    }
+
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
+    private boolean isAxiomSupported(OntModel m) {
+        OntModelControls control = control();
+        return control == null || OntModelSupport.supports(m, control);
+    }
+
     @Override
     public ExtendedIterator<OntStatement> listStatements(OntModel model, AxiomsSettings config) {
+        if (!isAxiomSupported(model)) {
+            return NullIterator.instance();
+        }
         return super.listStatements(model, config).andThen(listDisjointStatements(model));
     }
 
@@ -90,8 +116,9 @@ public abstract class AbstractTwoWayNaryTranslator<Axiom extends OWLAxiom & OWLN
 
     @Override
     public boolean testStatement(OntStatement statement, AxiomsSettings config) {
-        return super.testStatement(statement, config)
-                || (RDF.type.equals(statement.getPredicate()) && statement.getSubject().canAs(getDisjointView()));
+        return isAxiomSupported(statement.getModel()) &&
+                super.testStatement(statement, config) ||
+                (RDF.type.equals(statement.getPredicate()) && statement.getSubject().canAs(getDisjointView()));
     }
 
     abstract Resource getMembersType();

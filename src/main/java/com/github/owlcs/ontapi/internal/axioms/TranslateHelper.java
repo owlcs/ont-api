@@ -18,9 +18,6 @@ import com.github.owlcs.ontapi.internal.ONTObject;
 import com.github.owlcs.ontapi.internal.WriteHelper;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
-import org.apache.jena.ontapi.OntModelControls;
-import org.apache.jena.ontapi.common.OntEnhGraph;
-import org.apache.jena.ontapi.model.OntModel;
 import org.apache.jena.ontapi.utils.Graphs;
 import org.semanticweb.owlapi.model.HasIRI;
 import org.semanticweb.owlapi.model.IRI;
@@ -84,20 +81,6 @@ public class TranslateHelper {
             return WriteHelper.toNode((OWLLiteral) obj);
         }
         return null;
-    }
-
-    /**
-     * Answers {@code true} if the feature is supported.
-     * @param m {@link OntModel}
-     * @param control {@link  OntModelControls}
-     * @return boolean
-     */
-    static boolean supports(OntModel m, OntModelControls control) {
-        return OntEnhGraph.asPersonalityModel(m).getOntPersonality().getConfig().getBoolean(control);
-    }
-
-    static String profileName(OntModel model) {
-        return OntEnhGraph.asPersonalityModel(model).getOntPersonality().getName();
     }
 
     /**

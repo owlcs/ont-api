@@ -26,6 +26,7 @@ import com.github.owlcs.ontapi.internal.objects.ONTStatementImpl;
 import org.apache.jena.graph.BlankNodeId;
 import org.apache.jena.graph.FrontsTriple;
 import org.apache.jena.graph.Triple;
+import org.apache.jena.ontapi.OntModelControls;
 import org.apache.jena.ontapi.model.OntDisjoint;
 import org.apache.jena.ontapi.model.OntIndividual;
 import org.apache.jena.ontapi.model.OntModel;
@@ -85,13 +86,18 @@ public class DifferentIndividualsTranslator
     }
 
     @Override
+    OntModelControls control() {
+        return OntModelControls.USE_OWL_INDIVIDUAL_DIFFERENT_FROM_FEATURE;
+    }
+
+    @Override
     Resource getMembersType() {
         return OWL.AllDifferent;
     }
 
     @Override
     Property getMembersPredicate() {
-        return OWL.distinctMembers;
+        return OWL.members;
     }
 
     @Override

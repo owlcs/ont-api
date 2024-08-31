@@ -18,6 +18,7 @@ import com.github.owlcs.ontapi.OntApiException;
 import com.github.owlcs.ontapi.config.AxiomsSettings;
 import com.github.owlcs.ontapi.internal.ModelObjectFactory;
 import com.github.owlcs.ontapi.internal.ONTObject;
+import com.github.owlcs.ontapi.internal.OntModelSupport;
 import com.github.owlcs.ontapi.internal.WriteHelper;
 import com.github.owlcs.ontapi.internal.objects.ONTAxiomImpl;
 import com.github.owlcs.ontapi.internal.objects.ONTEntityImpl;
@@ -75,7 +76,7 @@ public abstract class AbstractPropertyTypeTranslator<Axiom extends OWLAxiom & Ha
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     private boolean isAxiomSupported(OntModel m) {
         OntModelControls control = control();
-        return control == null || TranslateHelper.supports(m, control);
+        return control == null || OntModelSupport.supports(m, control);
     }
 
     P getSubject(OntStatement s) {
@@ -105,7 +106,7 @@ public abstract class AbstractPropertyTypeTranslator<Axiom extends OWLAxiom & Ha
     public void write(Axiom axiom, OntModel model) {
         if (!isAxiomSupported(model)) {
             throw new OntApiException.Unsupported(
-                    axiom + " cannot be added: prohibited by the profile " + TranslateHelper.profileName(model)
+                    axiom + " cannot be added: prohibited by the profile " + OntModelSupport.profileName(model)
             );
         }
         WriteHelper.writeTriple(model, axiom.getProperty(), RDF.type, getType(), axiom.annotationsAsList());

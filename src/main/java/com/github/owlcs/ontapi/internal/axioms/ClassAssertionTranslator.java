@@ -22,6 +22,7 @@ import com.github.owlcs.ontapi.internal.ModelObjectFactory;
 import com.github.owlcs.ontapi.internal.ONTObject;
 import com.github.owlcs.ontapi.internal.ONTObjectFactory;
 import com.github.owlcs.ontapi.internal.ONTWrapperImpl;
+import com.github.owlcs.ontapi.internal.OntModelSupport;
 import com.github.owlcs.ontapi.internal.WriteHelper;
 import com.github.owlcs.ontapi.internal.objects.FactoryAccessor;
 import com.github.owlcs.ontapi.internal.objects.ONTAnnotationImpl;
@@ -79,7 +80,7 @@ public class ClassAssertionTranslator extends AbstractSimpleTranslator<OWLClassA
         OntClass ce = WriteHelper.addClassExpression(model, axiom.getClassExpression());
         if (!ce.canAsAssertionClass()) {
             throw new OntApiException.Unsupported(
-                    axiom + " cannot be added: prohibited by the profile " + TranslateHelper.profileName(model)
+                    axiom + " cannot be added: prohibited by the profile " + OntModelSupport.profileName(model)
             );
         }
         OWLIndividual individual = axiom.getIndividual();

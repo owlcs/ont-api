@@ -22,6 +22,7 @@ import com.github.owlcs.ontapi.internal.ModelObjectFactory;
 import com.github.owlcs.ontapi.internal.ONTObject;
 import com.github.owlcs.ontapi.internal.ONTObjectFactory;
 import com.github.owlcs.ontapi.internal.ONTWrapperImpl;
+import com.github.owlcs.ontapi.internal.OntModelSupport;
 import com.github.owlcs.ontapi.internal.WriteHelper;
 import com.github.owlcs.ontapi.internal.objects.FactoryAccessor;
 import com.github.owlcs.ontapi.internal.objects.ONTAxiomImpl;
@@ -82,14 +83,14 @@ public abstract class AbstractListBasedTranslator<Axiom extends OWLLogicalAxiom,
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     boolean isAxiomSupported(OntModel m) {
         OntModelControls control = control();
-        return control == null || TranslateHelper.supports(m, control);
+        return control == null || OntModelSupport.supports(m, control);
     }
 
     @Override
     public void write(Axiom axiom, OntModel model) {
         if (!isAxiomSupported(model)) {
             throw new OntApiException.Unsupported(
-                    axiom + " cannot be added: prohibited by the profile " + TranslateHelper.profileName(model)
+                    axiom + " cannot be added: prohibited by the profile " + OntModelSupport.profileName(model)
             );
         }
         WriteHelper.writeList(model, getSubject(axiom), getPredicate(), getObjects(axiom), axiom.annotationsAsList());

@@ -243,4 +243,44 @@ public class OWL2RLProfileTest {
         Assertions.assertEquals(4, actual3.size());
         Assertions.assertEquals(Set.of(AxiomType.DECLARATION, AxiomType.OBJECT_PROPERTY_RANGE), new HashSet<>(actual3));
     }
+
+    @Test
+    void testDisjointClasses() {
+        OntModel data = OntModelFactory.createModel();
+        data.createDisjointClasses(
+                data.createDataAllValuesFrom(data.createDataProperty("p1"), data.getDatatype(XSD.xstring)), // super
+                data.createOntClass("D"),
+                data.createObjectSomeValuesFrom(data.createObjectProperty("p2"), data.createOntClass("E")),
+                data.createObjectComplementOf(data.createOntClass("F")) // super
+        );
+        data.createOntClass("A")
+                .addDisjointClass(data.createDataAllValuesFrom(data.createDataProperty("p1"), data.getDatatype(XSD.xstring)));
+
+        OntologyManager manager = OntManagers.createManager();
+        manager.getOntologyConfigurator().setSpecification(OntSpecification.OWL2_RL_MEM);
+        DataFactory df = manager.getOWLDataFactory();
+        Ontology ontology = manager.addOntology(data.getGraph());
+
+        List<OWLAxiom> actual1 = ontology.axioms().filter(it -> !it.getAxiomType().equals(AxiomType.DECLARATION)).toList();
+        Assertions.assertEquals(1, actual1.size());
+        Assertions.assertEquals(
+                "DisjointClasses(<D> ObjectComplementOf(<F>) ObjectSomeValuesFrom(<p2> <E>) DataAllValuesFrom(<p1> xsd:string))",
+                actual1.get(0).toString()
+        );
+
+        OWLAxiom ax1 = df.getOWLDisjointClassesAxiom(
+                df.getOWLClass("A"), df.getOWLDataAllValuesFrom(df.getOWLDataProperty("p"), df.getIntegerOWLDatatype())
+        );
+        OWLAxiom ax2 = df.getOWLDisjointClassesAxiom(
+                df.getOWLClass("A"), df.getOWLObjectOneOf(df.getOWLNamedIndividual("i"))
+        );
+
+        Assertions.assertThrows(OntApiException.class, () -> ontology.add(ax1));
+
+        ontology.add(ax2);
+        List<? extends AxiomType<?>> actual2 = ontology.axioms().map(OWLAxiom::getAxiomType)
+                .filter(it -> !AxiomType.DECLARATION.equals(it)).toList();
+        Assertions.assertEquals(2, actual2.size());
+        Assertions.assertEquals(Set.of(AxiomType.DISJOINT_CLASSES), new HashSet<>(actual2));
+    }
 }

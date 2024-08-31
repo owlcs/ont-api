@@ -19,6 +19,7 @@ import com.github.owlcs.ontapi.owlapi.objects.AnonymousIndividualImpl;
 import com.github.owlcs.ontapi.owlapi.objects.LiteralImpl;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
+import org.apache.jena.ontapi.OntModelControls;
 import org.apache.jena.ontapi.model.OntAnnotationProperty;
 import org.apache.jena.ontapi.model.OntClass;
 import org.apache.jena.ontapi.model.OntDataProperty;
@@ -308,21 +309,23 @@ public class WriteHelper {
                 .inModel(model).addProperty(predicate, object).as(getEntityType(subject)).getMainStatement(), annotations);
     }
 
-    public static void writeTriple(OntModel model,
-                                   OWLObject subject,
-                                   Property predicate,
-                                   OWLObject object,
-                                   Collection<OWLAnnotation> annotations) {
-        writeTriple(model, subject, predicate, addRDFNode(model, object), annotations);
+    public static OntStatement writeTriple(OntModel model,
+                                           OWLObject subject,
+                                           Property predicate,
+                                           OWLObject object,
+                                           Collection<OWLAnnotation> annotations) {
+        return writeTriple(model, subject, predicate, addRDFNode(model, object), annotations);
     }
 
-    public static void writeTriple(OntModel model,
-                                   OWLObject subject,
-                                   Property predicate,
-                                   RDFNode object,
-                                   Collection<OWLAnnotation> annotations) {
+    public static OntStatement writeTriple(OntModel model,
+                                           OWLObject subject,
+                                           Property predicate,
+                                           RDFNode object,
+                                           Collection<OWLAnnotation> annotations) {
         OntObject s = addRDFNode(model, subject).as(OntObject.class);
-        addAnnotations(s.addStatement(predicate, object), annotations);
+        OntStatement res = s.addStatement(predicate, object);
+        addAnnotations(res, annotations);
+        return res;
     }
 
     /**
@@ -401,6 +404,11 @@ public class WriteHelper {
     }
 
     public static OntIndividual.Anonymous getAnonymousIndividual(OntModel model, OWLAnonymousIndividual ai) {
+        if (!OntModelSupport.supports(model, OntModelControls.ALLOW_ANONYMOUS_INDIVIDUALS)) {
+            throw new OntApiException.Unsupported(
+                    "AnonymousIndividual cannot be added: prohibited by the profile " + OntModelSupport.profileName(model)
+            );
+        }
         Resource res = toResource(OntApiException.notNull(ai, "Null anonymous individual.")).inModel(model);
         if (!res.canAs(OntIndividual.Anonymous.class)) {
             //throw new OntApiException("Anonymous individual should be created first: " + ai + ".");
