@@ -99,7 +99,7 @@ public class OWL2RLProfileTest {
     }
 
     @Test
-    void testHasKey() {
+    void testHasKeyAxiom() {
         OntModel data = OntModelFactory.createModel();
         data.setID("ont");
         data.createDataAllValuesFrom(data.createDataProperty("p1"), data.getDatatype(XSD.xstring))
@@ -135,7 +135,7 @@ public class OWL2RLProfileTest {
     }
 
     @Test
-    void testClassAssertions() {
+    void testClassAssertionAxiom() {
         OntModel data = OntModelFactory.createModel();
         data.setID("ont");
         data.createObjectOneOf(data.createIndividual("i1")).createIndividual("i2");
@@ -245,7 +245,7 @@ public class OWL2RLProfileTest {
     }
 
     @Test
-    void testDisjointClasses() {
+    void testDisjointClassesAxiom() {
         OntModel data = OntModelFactory.createModel();
         data.createDisjointClasses(
                 data.createDataAllValuesFrom(data.createDataProperty("p1"), data.getDatatype(XSD.xstring)), // super
@@ -282,5 +282,47 @@ public class OWL2RLProfileTest {
                 .filter(it -> !AxiomType.DECLARATION.equals(it)).toList();
         Assertions.assertEquals(2, actual2.size());
         Assertions.assertEquals(Set.of(AxiomType.DISJOINT_CLASSES), new HashSet<>(actual2));
+    }
+
+    @Test
+    void testEquivalentClassesAxiom() {
+        OntModel data = OntModelFactory.createModel();
+        data.createOntClass("A")
+                .addEquivalentClass(
+                        data.createDataSomeValuesFrom(data.createDataProperty("p1"), data.getDatatype(XSD.xstring))
+                );
+        data.createOntClass("B")
+                .addEquivalentClass(
+                        data.createObjectIntersectionOf(data.createOntClass("C"), data.createOntClass("D"))
+                );
+
+        OntologyManager manager = OntManagers.createManager();
+        manager.getOntologyConfigurator().setSpecification(OntSpecification.OWL2_RL_MEM);
+        DataFactory df = manager.getOWLDataFactory();
+        Ontology ontology = manager.addOntology(data.getGraph());
+
+        List<OWLAxiom> actual1 = ontology.axioms().filter(it -> !it.getAxiomType().equals(AxiomType.DECLARATION)).toList();
+        Assertions.assertEquals(1, actual1.size());
+        Assertions.assertEquals("EquivalentClasses(<B> ObjectIntersectionOf(<C> <D>))", actual1.get(0).toString());
+
+        OWLAxiom ax1 = df.getOWLEquivalentClassesAxiom(
+                df.getOWLClass("E"),
+                df.getOWLObjectOneOf(df.getOWLNamedIndividual("i1"))
+        );
+        OWLAxiom ax2 = df.getOWLEquivalentClassesAxiom(
+                df.getOWLClass("F"),
+                df.getOWLObjectIntersectionOf(
+                        df.getOWLObjectHasValue(df.getOWLObjectProperty("p2"), df.getOWLNamedIndividual("i1")),
+                        df.getOWLDataHasValue(df.getOWLDataProperty("p3"), df.getOWLLiteral(42))
+                )
+        );
+
+        Assertions.assertThrows(OntApiException.class, () -> ontology.add(ax1));
+
+        ontology.add(ax2);
+        List<? extends AxiomType<?>> actual2 = ontology.axioms().map(OWLAxiom::getAxiomType)
+                .filter(it -> !AxiomType.DECLARATION.equals(it)).toList();
+        Assertions.assertEquals(2, actual2.size());
+        Assertions.assertEquals(Set.of(AxiomType.EQUIVALENT_CLASSES), new HashSet<>(actual2));
     }
 }

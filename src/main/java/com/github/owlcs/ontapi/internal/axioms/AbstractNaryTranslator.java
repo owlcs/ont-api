@@ -20,6 +20,7 @@ import com.github.owlcs.ontapi.config.AxiomsSettings;
 import com.github.owlcs.ontapi.internal.AxiomTranslator;
 import com.github.owlcs.ontapi.internal.ModelObjectFactory;
 import com.github.owlcs.ontapi.internal.ONTObject;
+import com.github.owlcs.ontapi.internal.OntModelSupport;
 import com.github.owlcs.ontapi.internal.WriteHelper;
 import com.github.owlcs.ontapi.internal.objects.FactoryAccessor;
 import com.github.owlcs.ontapi.internal.objects.ONTAxiomImpl;
@@ -29,6 +30,7 @@ import com.github.owlcs.ontapi.internal.objects.WithContent;
 import com.github.owlcs.ontapi.owlapi.objects.AnonymousIndividualImpl;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
+import org.apache.jena.ontapi.OntModelControls;
 import org.apache.jena.ontapi.common.OntEnhNodeFactories;
 import org.apache.jena.ontapi.model.OntClass;
 import org.apache.jena.ontapi.model.OntDataProperty;
@@ -43,6 +45,7 @@ import org.apache.jena.ontapi.utils.Iterators;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.util.iterator.ExtendedIterator;
+import org.apache.jena.util.iterator.NullIterator;
 import org.semanticweb.owlapi.model.IsAnonymous;
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLAxiom;
@@ -109,7 +112,7 @@ public abstract class AbstractNaryTranslator<Axiom extends OWLAxiom & OWLNaryAxi
 
     private static final Comparator<OWLObject> URI_FIRST_COMPARATOR = Comparator.comparing(IsAnonymous::isAnonymous);
 
-    void writeTriple(OWLNaryAxiom<OWL> axiom, Collection<OWLAnnotation> annotations, OntModel model) {
+    void writeTriple(Axiom axiom, Collection<OWLAnnotation> annotations, OntModel model) {
         List<OWL> operands = axiom.operands().sorted(URI_FIRST_COMPARATOR).toList();
         if (operands.isEmpty() && annotations.isEmpty()) {
             LOGGER.warn("Nothing to write, an empty axiom is given: {}", axiom);
@@ -119,14 +122,15 @@ public abstract class AbstractNaryTranslator<Axiom extends OWLAxiom & OWLNaryAxi
             throw new OntApiException.IllegalArgument(getClass().getSimpleName() + ": expected two operands. Axiom: " + axiom);
         }
         OntStatement s = WriteHelper.writeTriple(model, operands.get(0), getPredicate(), operands.get(1), annotations);
-        if (s.getSubject().canAs(getView()) && s.getObject().canAs(getView())) {
-            return;
+        if (!s.getSubject().canAs(getView()) || !s.getObject().canAs(getView())) {
+            throw new OntApiException.IllegalArgument(
+                    getClass().getSimpleName() + ": both operands should be of type " + OntEnhNodeFactories.viewAsString(getView()) +
+                            ". Axiom: " + axiom);
         }
-        throw new OntApiException.IllegalArgument(
-                getClass().getSimpleName() + ": both operands should be of type " + OntEnhNodeFactories.viewAsString(getView()) +
-                        ". Axiom: " + axiom);
+        testOperands(List.of(s.getSubject(getView()), s.getObject(getView())), axiom, model);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public void write(Axiom axiom, OntModel model) {
         Collection<? extends OWLNaryAxiom<OWL>> axioms = toPairwiseAxioms(axiom);
@@ -135,7 +139,19 @@ public abstract class AbstractNaryTranslator<Axiom extends OWLAxiom & OWLNaryAxi
             return;
         }
         List<OWLAnnotation> annotations = axiom.annotationsAsList();
-        axioms.forEach(a -> writeTriple(a, annotations, model));
+        axioms.forEach(a -> writeTriple((Axiom) a, annotations, model));
+    }
+
+    void testOperands(List<ONT> operands, Axiom axiom, OntModel model) {
+    }
+
+    OntModelControls control() {
+        return null;
+    }
+
+    boolean isAxiomSupported(OntModel m) {
+        OntModelControls control = control();
+        return control == null || OntModelSupport.supports(m, control);
     }
 
     /**
@@ -163,12 +179,15 @@ public abstract class AbstractNaryTranslator<Axiom extends OWLAxiom & OWLNaryAxi
 
     @Override
     public ExtendedIterator<OntStatement> listStatements(OntModel model, AxiomsSettings config) {
+        if (!isAxiomSupported(model)) {
+            return NullIterator.instance();
+        }
         return listByPredicate(model, getPredicate()).filterKeep(this::filter);
     }
 
     @Override
     public boolean testStatement(OntStatement statement, AxiomsSettings config) {
-        return getPredicate().equals(statement.getPredicate()) && filter(statement);
+        return isAxiomSupported(statement.getModel()) && getPredicate().equals(statement.getPredicate()) && filter(statement);
     }
 
     boolean filter(Statement statement) {

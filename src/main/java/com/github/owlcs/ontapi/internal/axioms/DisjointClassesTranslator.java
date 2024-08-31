@@ -21,7 +21,6 @@ import com.github.owlcs.ontapi.internal.ModelObjectFactory;
 import com.github.owlcs.ontapi.internal.ONTObject;
 import com.github.owlcs.ontapi.internal.ONTObjectFactory;
 import com.github.owlcs.ontapi.internal.OntModelSupport;
-import com.github.owlcs.ontapi.internal.WriteHelper;
 import com.github.owlcs.ontapi.internal.objects.FactoryAccessor;
 import com.github.owlcs.ontapi.internal.objects.ONTEntityImpl;
 import com.github.owlcs.ontapi.internal.objects.ONTStatementImpl;
@@ -70,6 +69,16 @@ public class DisjointClassesTranslator
     private static final Property PREDICATE = OWL.disjointWith;
 
     @Override
+    void testOperands(List<OntClass> classes, OWLDisjointClassesAxiom axiom, OntModel model) {
+        if (classes.size() >= 2 && classes.stream().allMatch(OntClass::canAsDisjointClass)) {
+            return;
+        }
+        throw new OntApiException.Unsupported(
+                axiom + " cannot be added: prohibited by the profile " + OntModelSupport.profileName(model)
+        );
+    }
+
+    @Override
     Property getPredicate() {
         return PREDICATE;
     }
@@ -77,21 +86,6 @@ public class DisjointClassesTranslator
     @Override
     Class<OntClass> getView() {
         return OntClass.class;
-    }
-
-    @Override
-    List<OWLClassExpression> operandsAsList(OWLDisjointClassesAxiom axiom, OntModel model) {
-        List<OWLClassExpression> operands = axiom.getOperandsAsList();
-        if (operands.isEmpty()) {
-            return operands;
-        }
-        List<OntClass> classes = operands.stream().map(it -> (OntClass)WriteHelper.addRDFNode(model, it)).toList();
-        if (classes.size() < 2 || !classes.stream().allMatch(OntClass::canAsDisjointClass)) {
-            throw new OntApiException.Unsupported(
-                    axiom + " cannot be added: prohibited by the profile " + OntModelSupport.profileName(model)
-            );
-        }
-        return operands;
     }
 
     @Override

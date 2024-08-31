@@ -25,6 +25,7 @@ import com.github.owlcs.ontapi.internal.objects.FactoryAccessor;
 import com.github.owlcs.ontapi.internal.objects.ONTEntityImpl;
 import com.github.owlcs.ontapi.internal.objects.ONTStatementImpl;
 import org.apache.jena.graph.Triple;
+import org.apache.jena.ontapi.OntModelControls;
 import org.apache.jena.ontapi.model.OntModel;
 import org.apache.jena.ontapi.model.OntObjectProperty;
 import org.apache.jena.ontapi.model.OntStatement;
@@ -54,6 +55,11 @@ import java.util.stream.Stream;
  */
 public class EquivalentObjectPropertiesTranslator
         extends AbstractNaryTranslator<OWLEquivalentObjectPropertiesAxiom, OWLObjectPropertyExpression, OntObjectProperty> {
+
+    @Override
+    OntModelControls control() {
+        return OntModelControls.USE_OWL_PROPERTY_EQUIVALENT_FEATURE;
+    }
 
     @Override
     Property getPredicate() {

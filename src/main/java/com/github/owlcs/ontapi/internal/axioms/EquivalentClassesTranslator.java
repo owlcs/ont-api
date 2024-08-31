@@ -14,22 +14,26 @@
 
 package com.github.owlcs.ontapi.internal.axioms;
 
+import com.github.owlcs.ontapi.OntApiException;
 import com.github.owlcs.ontapi.config.AxiomsSettings;
 import com.github.owlcs.ontapi.internal.InternalCache;
 import com.github.owlcs.ontapi.internal.ModelObjectFactory;
 import com.github.owlcs.ontapi.internal.ONTObject;
 import com.github.owlcs.ontapi.internal.ONTObjectFactory;
 import com.github.owlcs.ontapi.internal.ONTWrapperImpl;
+import com.github.owlcs.ontapi.internal.OntModelSupport;
 import com.github.owlcs.ontapi.internal.objects.FactoryAccessor;
 import com.github.owlcs.ontapi.internal.objects.ONTEntityImpl;
 import com.github.owlcs.ontapi.internal.objects.ONTStatementImpl;
 import com.github.owlcs.ontapi.owlapi.axioms.EquivalentClassesAxiomImpl;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
+import org.apache.jena.ontapi.OntModelControls;
 import org.apache.jena.ontapi.model.OntClass;
 import org.apache.jena.ontapi.model.OntModel;
 import org.apache.jena.ontapi.model.OntStatement;
 import org.apache.jena.rdf.model.Property;
+import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.vocabulary.OWL;
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLClass;
@@ -42,6 +46,7 @@ import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Supplier;
@@ -63,6 +68,21 @@ import java.util.stream.Stream;
 public class EquivalentClassesTranslator extends AbstractNaryTranslator<OWLEquivalentClassesAxiom, OWLClassExpression, OntClass> {
 
     @Override
+    void testOperands(List<OntClass> classes, OWLEquivalentClassesAxiom axiom, OntModel model) {
+        if (classes.size() >= 2 && classes.stream().allMatch(OntClass::canAsEquivalentClass)) {
+            return;
+        }
+        throw new OntApiException.Unsupported(
+                axiom + " cannot be added: prohibited by the profile " + OntModelSupport.profileName(model)
+        );
+    }
+
+    @Override
+    OntModelControls control() {
+        return OntModelControls.USE_OWL_CLASS_EQUIVALENT_FEATURE;
+    }
+
+    @Override
     public Property getPredicate() {
         return OWL.equivalentClass;
     }
@@ -70,6 +90,13 @@ public class EquivalentClassesTranslator extends AbstractNaryTranslator<OWLEquiv
     @Override
     Class<OntClass> getView() {
         return OntClass.class;
+    }
+
+    @Override
+    boolean filter(Statement statement) {
+        return super.filter(statement) &&
+                statement.getSubject().as(OntClass.class).canAsEquivalentClass() &&
+                statement.getObject().as(OntClass.class).canAsEquivalentClass();
     }
 
     @Override
