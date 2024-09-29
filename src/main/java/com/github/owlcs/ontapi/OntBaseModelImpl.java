@@ -821,19 +821,16 @@ public abstract class OntBaseModelImpl implements OWLOntology, OntBaseModel {
 
     @Override
     public Stream<OWLAxiom> tboxAxioms(Imports imports) {
-        // WARNING: the class com.github.owlcs.ontapi.OWLOntologyWrapper has its own implementation that overrides this one
         return AxiomType.TBoxAxiomTypes.stream().flatMap(t -> axioms(t, imports));
     }
 
     @Override
     public Stream<OWLAxiom> aboxAxioms(Imports imports) {
-        // WARNING: the class com.github.owlcs.ontapi.OWLOntologyWrapper has its own implementation that overrides this one
         return AxiomType.ABoxAxiomTypes.stream().flatMap(t -> axioms(t, imports));
     }
 
     @Override
     public Stream<OWLAxiom> rboxAxioms(Imports imports) {
-        // WARNING: the class com.github.owlcs.ontapi.OWLOntologyWrapper has its own implementation that overrides this one
         return AxiomType.RBoxAxiomTypes.stream().flatMap(t -> axioms(t, imports));
     }
 
