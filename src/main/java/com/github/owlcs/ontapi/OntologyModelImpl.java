@@ -44,6 +44,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 /**
@@ -271,6 +272,27 @@ public class OntologyModelImpl extends OntBaseModelImpl implements Ontology, OWL
 
         public OntologyModelImpl delegate() {
             return (OntologyModelImpl) delegate;
+        }
+
+        private boolean useCaches() {
+            ModelConfig conf = delegate().getConfig();
+            return conf.useComponentCache() || conf.useContentCache();
+        }
+
+        @Override
+        protected <X> Stream<X> withReadLockToStream(@Nonnull Supplier<Stream<X>> op) {
+            if (!isConcurrent()) {
+                return op.get();
+            }
+            lock.readLock().lock();
+            try {
+                if (useCaches()) {
+                    return op.get();
+                }
+                return op.get().toList().stream();
+            } finally {
+                lock.readLock().unlock();
+            }
         }
 
         /**

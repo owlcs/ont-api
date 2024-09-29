@@ -37,7 +37,7 @@ public interface InternalConfig extends CacheSettings, AxiomsSettings {
      *
      * @return {@code true} if parallel mode is enabled
      */
-    default boolean parallel() {
+    default boolean concurrent() {
         return false;
     }
 
@@ -58,7 +58,7 @@ public interface InternalConfig extends CacheSettings, AxiomsSettings {
         private final boolean parallel;
 
         Snapshot(InternalConfig delegate) {
-            parallel = Objects.requireNonNull(delegate, "Null config").parallel();
+            parallel = Objects.requireNonNull(delegate, "Null config").concurrent();
             map.put(Key.LOAD_ANNOTATIONS, delegate.isLoadAnnotationAxioms());
             map.put(Key.ALLOW_DECLARATION_BULK_ANNOTATIONS, delegate.isAllowBulkAnnotationAssertions());
             map.put(Key.IGNORE_ANNOTATION_OVERLAPS, delegate.isIgnoreAnnotationAxiomOverlaps());
@@ -127,7 +127,7 @@ public interface InternalConfig extends CacheSettings, AxiomsSettings {
         }
 
         @Override
-        public boolean parallel() {
+        public boolean concurrent() {
             return parallel;
         }
 

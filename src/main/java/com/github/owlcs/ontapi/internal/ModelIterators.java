@@ -28,7 +28,7 @@ import java.util.stream.Stream;
  * Helper; a collection of auxiliary methods to work with {@link ExtendedIterator}s and {@code Stream}s
  * in the context of {@link InternalGraphModel}.
  * <p>
- * In case of {@link InternalConfig#parallel()} is {@code true}
+ * In case of {@link InternalConfig#concurrent()} is {@code true}
  * any stream\iterator providing by the model should have immutable base, in other words they cannot be try-lazy,
  * otherwise there is no possibility to guarantee thread-safety.
  * <p>
@@ -42,7 +42,7 @@ class ModelIterators {
      * Performs a final operation over the specified {@code stream} before releasing it out.
      * <p>
      * It is for ensuring safety in case of multithreading environment,
-     * as indicated by the parameter {@link InternalConfig#parallel()}.
+     * as indicated by the parameter {@link InternalConfig#concurrent()}.
      * If {@code parallel} is {@code true} and {@code stream} is unknown nature
      * then the collecting must not go beyond this method, otherwise it is allowed to be lazy.
      * Although the upper API uses {@code ReadWriteLock R/W lock} everywhere
@@ -63,7 +63,7 @@ class ModelIterators {
      */
     static <R> Stream<R> reduce(Stream<R> stream, InternalConfig conf) {
         // model is non-modifiable if cache is disabled
-        if (!conf.parallel() || !conf.useContentCache()) {
+        if (!conf.concurrent() || !conf.useContentCache()) {
             return stream;
         }
         // use ArrayList since it is faster while iterating,
@@ -84,7 +84,7 @@ class ModelIterators {
      * @return a {@code Stream} of {@link R}s
      */
     static <R> Stream<R> reduce(ExtendedIterator<R> stream, InternalConfig conf) {
-        if (!conf.parallel() || !conf.useContentCache()) {
+        if (!conf.concurrent() || !conf.useContentCache()) {
             return Iterators.asStream(stream);
         }
         ArrayList<R> res = new ArrayList<>(1024);
@@ -108,7 +108,7 @@ class ModelIterators {
             return Iterators.asStream(stream);
         }
         // make the result to be distinct:
-        if (conf.parallel()) {
+        if (conf.concurrent()) {
             // no calculations should go beyond this method in case of parallel usage
             return Iterators.addAll(stream, new LinkedHashSet<>()).stream();
         }
@@ -129,7 +129,7 @@ class ModelIterators {
         if (!conf.useContentCache()) {
             return stream;
         }
-        if (conf.parallel()) {
+        if (conf.concurrent()) {
             // snapshot:
             return stream.collect(Collectors.toCollection(LinkedHashSet::new)).stream();
         }
@@ -152,7 +152,7 @@ class ModelIterators {
      */
     @SuppressWarnings("DataFlowIssue")
     static <R, X> Stream<R> flatMap(Stream<X> stream, Function<X, Stream<? extends R>> map, InternalConfig conf) {
-        if (!conf.parallel() || !conf.useContentCache()) {
+        if (!conf.concurrent() || !conf.useContentCache()) {
             return stream.flatMap(map);
         }
         // force put everything into cache (memory) and get data snapshot

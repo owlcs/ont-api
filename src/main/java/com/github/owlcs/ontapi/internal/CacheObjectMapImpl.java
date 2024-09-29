@@ -20,6 +20,7 @@ import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLObject;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -155,14 +156,18 @@ public class CacheObjectMapImpl<X extends OWLObject> implements ObjectMap<X> {
      * @return {@link Map}
      */
     protected <K, V> Map<K, V> createMap() {
-        if (parallel && !fastIterator) {
-            // use ConcurrentMap to ensure the objects list will not be broken by some mutation
+        if (parallel) {
+            // use ConcurrentMap to ensure the objects' list will not be broken by some mutation
             return new ConcurrentHashMap<>();
         }
+        if (!fastIterator) {
+            return new HashMap<>();
+        }
         // Iteration over LHM is a little faster than iteration over HashMap.
-        // On the other hand LHM requires more memory -
-        // but memory consumption doesn't really bother me since all important things contains in the very Graph
-        // and this is just a temporary storage which is always free for GC.
+        // On the other hand, LHM requires more memory -
+        // but memory consumption doesn't really bother me
+        // since all important things contain in the very Graph
+        // and this is just a temporary storage that is always free for GC.
         return new LinkedHashMap<>();
     }
 
@@ -262,6 +267,7 @@ public class CacheObjectMapImpl<X extends OWLObject> implements ObjectMap<X> {
      * An internal map-object that holds true-{@code Map} with {@link K}-keys and {@link V}-values.
      * It has the dedicated cache implemented as {@link java.lang.ref.SoftReference}
      * for the map keys to provide fast iteration, this is the only difference with the standard map.
+     *
      * @param <K> the type of keys maintained by this map
      * @param <V> the type of mapped values
      */

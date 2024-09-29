@@ -173,7 +173,7 @@ public class ModelConfig implements InternalConfig, Serializable {
     }
 
     @Override
-    public boolean parallel() {
+    public boolean concurrent() {
         return manager.isConcurrent();
     }
 

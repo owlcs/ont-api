@@ -294,7 +294,7 @@ abstract class InternalReadGraphModel extends OntGraphModelImpl implements ListA
             return new InternalObjectFactory(df, model);
         }
         long size = conf.getLoadObjectsCacheSize();
-        boolean parallel = conf.parallel();
+        boolean parallel = conf.concurrent();
         Map<Class<? extends OWLPrimitive>, InternalCache<?, ?>> map = external == null ? Collections.emptyMap() : external;
         return new CacheObjectFactory(df, model, map, () -> InternalCache.createBounded(parallel, size));
     }
@@ -975,7 +975,7 @@ abstract class InternalReadGraphModel extends OntGraphModelImpl implements ListA
             }
             return new DirectObjectMapImpl<>(loader, toFinder(searcher), toTester(searcher));
         }
-        boolean parallel = conf.parallel();
+        boolean parallel = conf.concurrent();
         boolean fastIterator = conf.useIteratorCache();
         return new CacheObjectMapImpl<>(loader, false, parallel, fastIterator);
     }
@@ -1176,7 +1176,7 @@ abstract class InternalReadGraphModel extends OntGraphModelImpl implements ListA
         if (!conf.useContentCache()) {
             return new DirectObjectMapImpl<>(toLoader(searcher), toFinder(searcher), toTester(searcher));
         }
-        boolean parallel = conf.parallel();
+        boolean parallel = conf.concurrent();
         boolean fastIterator = conf.useIteratorCache();
         boolean withMerge = !key.isDistinct();
         if (!LOGGER.isDebugEnabled()) {
