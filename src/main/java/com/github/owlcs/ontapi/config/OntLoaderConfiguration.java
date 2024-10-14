@@ -436,6 +436,29 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration imple
     }
 
     /**
+     * An ONT-API manager's load config getter.
+     * {@inheritDoc}
+     *
+     * @return {@code true} if underlying graph must be distinct
+     */
+    @Override
+    public boolean isUseDistinctUnionGraph() {
+        return get(OntSettings.ONT_API_LOAD_CONF_USE_DISTINCT_UNION_GRAPH);
+    }
+
+    /**
+     * An ONT-API config setter.
+     * {@inheritDoc}
+     *
+     * @param b {@code true} to use distinct underlying graph.
+     * @return {@link OntLoaderConfiguration}, a copied (new) or this instance in case no changes are made
+     */
+    @Override
+    public OntLoaderConfiguration setUseDistinctUnionGraph(boolean b) {
+        return set(OntSettings.ONT_API_LOAD_CONF_USE_DISTINCT_UNION_GRAPH, b);
+    }
+
+    /**
      * An ONT-API config getter.
      * {@inheritDoc}
      */

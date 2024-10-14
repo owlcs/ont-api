@@ -629,6 +629,7 @@ public class OntConfig extends OntologyConfigurator
         return get(OntSettings.ONT_API_LOAD_CONF_USE_OWL_PARSERS_TO_LOAD);
     }
 
+
     /**
      * An ONT-API manager's load config setter.
      * {@inheritDoc}
@@ -639,6 +640,29 @@ public class OntConfig extends OntologyConfigurator
     @Override
     public OntConfig setUseOWLParsersToLoad(boolean b) {
         return put(OntSettings.ONT_API_LOAD_CONF_USE_OWL_PARSERS_TO_LOAD, b);
+    }
+
+    /**
+     * An ONT-API manager's load config getter.
+     * {@inheritDoc}
+     *
+     * @return {@code true} if underlying graph must be distinct
+     */
+    @Override
+    public boolean isUseDistinctUnionGraph() {
+        return get(OntSettings.ONT_API_LOAD_CONF_USE_DISTINCT_UNION_GRAPH);
+    }
+
+    /**
+     * An ONT-API manager's load config setter.
+     * {@inheritDoc}
+     *
+     * @param b boolean to enable/ disable this config parameter
+     * @return this instance
+     */
+    @Override
+    public OntConfig setUseDistinctUnionGraph(boolean b) {
+        return put(OntSettings.ONT_API_LOAD_CONF_USE_DISTINCT_UNION_GRAPH, b);
     }
 
     /**

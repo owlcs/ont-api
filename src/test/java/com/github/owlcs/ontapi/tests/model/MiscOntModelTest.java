@@ -51,6 +51,7 @@ import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
 import org.semanticweb.owlapi.search.EntitySearcher;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -376,5 +377,45 @@ public class MiscOntModelTest extends OntModelTestBase {
         OWLIOUtils.print(m);
         Assertions.assertEquals(6, o.axioms().count());
         Assertions.assertEquals(18, m.size());
+    }
+
+    @Test
+    public void testDistinctUnionGraph() {
+        OntologyManager man = OntManagers.createManager();
+        man.getOntologyConfigurator().setUseDistinctUnionGraph(true);
+
+        OntModel A = man.createGraphModel("A");
+        OntModel B = man.createGraphModel("B");
+        A.addImport(B);
+
+        B.getBaseModel().createResource("X", OWL.Class);
+        B.getBaseModel().createResource("Q", OWL.Class);
+        A.getBaseModel().createResource("Y", OWL.Class);
+        A.getBaseModel().createResource("X", OWL.Class);
+
+        List<OntStatement> statementList = A.statements().toList();
+        Assertions.assertEquals(6, statementList.size());
+        List<OntClass.Named> classes = A.classes().toList();
+        Assertions.assertEquals(3, classes.size());
+    }
+
+    @Test
+    public void testNonDistinctUnionGraph() {
+        OntologyManager man = OntManagers.createManager();
+        man.getOntologyConfigurator().setUseDistinctUnionGraph(false);
+
+        OntModel A = man.createGraphModel("A");
+        OntModel B = man.createGraphModel("B");
+        A.addImport(B);
+
+        B.getBaseModel().createResource("X", OWL.Class);
+        B.getBaseModel().createResource("Q", OWL.Class);
+        A.getBaseModel().createResource("Y", OWL.Class);
+        A.getBaseModel().createResource("X", OWL.Class);
+
+        List<OntStatement> statementList = A.statements().toList();
+        Assertions.assertEquals(7, statementList.size());
+        List<OntClass.Named> classes = A.classes().toList();
+        Assertions.assertEquals(4, classes.size());
     }
 }

@@ -22,6 +22,7 @@ import com.github.owlcs.ontapi.OntologyManager;
 import com.github.owlcs.ontapi.transforms.GraphFilter;
 import com.github.owlcs.ontapi.transforms.GraphTransformers;
 import org.apache.jena.graph.Graph;
+import org.apache.jena.graph.Node;
 import org.apache.jena.ontapi.OntSpecification;
 import org.apache.jena.ontapi.model.OntModel;
 import org.semanticweb.owlapi.model.IRI;
@@ -144,6 +145,22 @@ public interface LoadSettings {
      * @see OntSettings#ONT_API_LOAD_CONF_USE_OWL_PARSERS_TO_LOAD
      */
     boolean isUseOWLParsersToLoad();
+
+    /**
+     * Answers {@code true} if union graph must be distinct.
+     * A non-distinct graph does not prevent data duplication when querying
+     * (see generic query method {@link Graph#find(Node, Node, Node)}).
+     * The data duplication may happen if a subgraph contains the same triples as the base graph.
+     * Note that distinct graphs require additional memory.
+     * A non-distinct graphs, for example, can be used when axioms/content cache is disabled
+     * to list raw/inferred entities and axioms.
+     *
+     * @return boolean, ({@code false} by default)
+     * @see org.apache.jena.ontapi.UnionGraph#isDistinct()
+     * @see LoadControl#setUseDistinctUnionGraph(boolean)
+     * @see OntSettings#ONT_API_LOAD_CONF_USE_DISTINCT_UNION_GRAPH
+     */
+    boolean isUseDistinctUnionGraph();
 
     /**
      * Answers a {@code Collection} of allowed {@link Scheme}-controllers.

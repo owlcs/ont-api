@@ -85,8 +85,7 @@ public interface OntologyCreator {
      * @since 1.4.2
      */
     default UnionGraph createUnionGraph(Graph graph, OntLoaderConfiguration config) {
-        // TODO: parameter 'distinct' must be configurable
-        return new UnionGraphImpl(Objects.requireNonNull(graph), true);
+        return new UnionGraphImpl(Objects.requireNonNull(graph), config.isUseDistinctUnionGraph());
     }
 
 }

@@ -88,6 +88,17 @@ interface LoadControl<R> extends LoadSettings {
     R setUseOWLParsersToLoad(boolean b);
 
     /**
+     * Disables or enables the behavior of {@link org.apache.jena.ontapi.UnionGraph}:
+     * if the parameter is {@code true}, the graph is distinct,
+     * meaning there will be no duplicates in the query data.
+     *
+     * @param b boolean
+     * @return {@link R} (this or copied instance)
+     * @see LoadSettings#isUseDistinctUnionGraph()
+     */
+    R setUseDistinctUnionGraph(boolean b);
+
+    /**
      * Sets a new collection of {@link Scheme}-controllers.
      *
      * @param schemes List of {@link Scheme}s
