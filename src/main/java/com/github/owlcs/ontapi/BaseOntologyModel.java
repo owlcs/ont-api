@@ -38,7 +38,7 @@ import java.util.Map;
  * <p>
  * Created by @ssz on 07.04.2017.
  */
-public interface OntBaseModel {
+public interface BaseOntologyModel {
 
     /**
      * Returns an encapsulated {@link InternalGraphModel} instance -
@@ -46,7 +46,7 @@ public interface OntBaseModel {
      *
      * @return {@link InternalGraphModel}
      */
-    InternalGraphModel getGraphModel();
+    InternalGraphModel getBaseGraphModel();
 
     /**
      * Sets new internals.
@@ -54,7 +54,7 @@ public interface OntBaseModel {
      *
      * @param m {@link InternalGraphModel}, not {@code null}
      */
-    void setGraphModel(InternalGraphModel m);
+    void setBaseGraphModel(InternalGraphModel m);
 
     /**
      * Returns a model config instance, that is a collection of settings and, also,

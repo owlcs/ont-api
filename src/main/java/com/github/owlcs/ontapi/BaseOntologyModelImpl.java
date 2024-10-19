@@ -20,6 +20,7 @@ import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.GraphMemFactory;
+import org.apache.jena.ontapi.impl.UnionGraphImpl;
 import org.apache.jena.ontapi.model.OntModel;
 import org.apache.jena.ontapi.utils.Graphs;
 import org.apache.jena.riot.RDFDataMgr;
@@ -120,7 +121,7 @@ import java.util.stream.Stream;
  */
 @SuppressWarnings("WeakerAccess")
 @ParametersAreNonnullByDefault
-public abstract class OntBaseModelImpl implements OWLOntology, OntBaseModel {
+public abstract class BaseOntologyModelImpl implements OWLOntology, BaseOntologyModel {
     // binary format to provide serialization:
     public static final OntFormat DEFAULT_SERIALIZATION_FORMAT = OntFormat.RDF_THRIFT;
     @Serial
@@ -131,19 +132,31 @@ public abstract class OntBaseModelImpl implements OWLOntology, OntBaseModel {
 
     protected int hashCode;
 
-    protected OntBaseModelImpl(Graph graph, ModelConfig conf) {
+    protected BaseOntologyModelImpl(Graph graph, ModelConfig conf) {
         this.config = Objects.requireNonNull(conf);
-        this.base = OntBaseModel.createInternalGraphModel(graph, conf.getSpecification(), conf,
+        this.base = BaseOntologyModel.createInternalGraphModel(graph, conf.getSpecification(), conf,
                 conf.getManager().getOWLDataFactory(), conf.getManagerCaches());
     }
 
     @Override
-    public InternalGraphModel getGraphModel() {
+    public InternalGraphModel getBaseGraphModel() {
         return base;
     }
 
+    /**
+     * A helper which is used in methods with {@link Imports#INCLUDED} and if model's cache is disabled.
+     * It wraps {@link OntModel#getGraph()}, which can be {@link org.apache.jena.reasoner.InfGraph}.
+     *
+     * @return {@link InternalGraphModel}
+     */
+    public InternalGraphModel getFullGraphModel() {
+        var graph = new UnionGraphImpl(base.getGraph(), false);
+        return BaseOntologyModel.createInternalGraphModel(graph, config.getSpecification(), config,
+                config.getManager().getOWLDataFactory(), config.getManagerCaches());
+    }
+
     @Override
-    public void setGraphModel(InternalGraphModel m) {
+    public void setBaseGraphModel(InternalGraphModel m) {
         this.base = Objects.requireNonNull(m);
     }
 
@@ -1172,6 +1185,14 @@ public abstract class OntBaseModelImpl implements OWLOntology, OntBaseModel {
         return base.listOWLDifferentIndividualsAxioms(individual);
     }
 
+    @Override
+    public Stream<OWLAxiom> axioms(Imports imports) {
+        if (imports == Imports.INCLUDED && !config.useContentCache()) {
+            return getFullGraphModel().listOWLAxioms();
+        }
+        return imports.stream(this).flatMap(OWLOntology::axioms);
+    }
+
     /**
      * Reads the object while serialization.
      * Note: only the base graph is serialized.
@@ -1188,7 +1209,7 @@ public abstract class OntBaseModelImpl implements OWLOntology, OntBaseModel {
         Graph base = GraphMemFactory.createDefaultGraph();
         RDFDataMgr.read(base, in, DEFAULT_SERIALIZATION_FORMAT.getLang());
         // set temporary model with default personality, it will be reset inside manager while its #readObject
-        setGraphModel(OntBaseModel.createInternalGraphModel(base));
+        setBaseGraphModel(BaseOntologyModel.createInternalGraphModel(base));
     }
 
     /**
@@ -1243,7 +1264,7 @@ public abstract class OntBaseModelImpl implements OWLOntology, OntBaseModel {
             return false;
         }
         OntModel right = ((Ontology) obj).asGraphModel();
-        OntModel left = getGraphModel();
+        OntModel left = getBaseGraphModel();
         return left.id().filter(id -> right.id().filter(id::sameAs).isPresent()).isPresent();
     }
 }

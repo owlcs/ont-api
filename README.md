@@ -41,13 +41,14 @@ import org.apache.jena.query.ResultSet;
 import org.apache.jena.vocabulary.OWL;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLDataFactory;
+import org.semanticweb.owlapi.model.parameters.Imports;
 
 public class Examples {
     public static void main(String... args) {
         String iri = "https://github.com/owlcs/ont-api";
 
         OWLDataFactory df = OntManagers.getDataFactory();
-        OntologyManager om = OntManagers.createManager();
+        OntologyManager om = OntManagers.createDirectManager();
 
         // set ontology specification, see jena-owl2 for more details
         om.getOntologyConfigurator().setSpecification(OntSpecification.OWL2_EL_MEM_RULES_INF);
@@ -62,8 +63,8 @@ public class Examples {
         // add OWL class declaration
         jena.createResource(iri + "#Class2", OWL.Class);
 
-        // lists axioms (finds axioms from base graph, inferred by Jena Reasoner are not included)
-        owlapi.axioms().forEach(System.out::println);
+        // lists all axioms inferred by Jena Reasoner
+        owlapi.axioms(Imports.INCLUDED).forEach(System.out::println);
 
         // and print to stdout in turtle format
         jena.write(System.out, "ttl");

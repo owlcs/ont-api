@@ -14,9 +14,9 @@
 
 package com.github.owlcs.ontapi.tests.model;
 
+import com.github.owlcs.ontapi.BaseOntologyModel;
 import com.github.owlcs.ontapi.DataFactory;
 import com.github.owlcs.ontapi.OWLAdapter;
-import com.github.owlcs.ontapi.OntBaseModel;
 import com.github.owlcs.ontapi.OntGraphDocumentSource;
 import com.github.owlcs.ontapi.OntManagers;
 import com.github.owlcs.ontapi.Ontology;
@@ -314,19 +314,19 @@ public class ImportsOntModelTest extends OntModelTestBase {
         Assertions.assertEquals(0, b.imports().count());
         Assertions.assertEquals(1, ((UnionGraph) (a.asGraphModel().getGraph())).subGraphs().count());
         Assertions.assertEquals(0, ((UnionGraph) (b.asGraphModel().getGraph())).subGraphs().count());
-        Assertions.assertEquals(1, ((UnionGraph) (ad.asBaseModel(a).getGraphModel().getGraph())).subGraphs().count());
+        Assertions.assertEquals(1, ((UnionGraph) (ad.asBaseModel(a).getBaseGraphModel().getGraph())).subGraphs().count());
         Assertions.assertEquals(Stream.of(a, b)
                         .map(ad::asBaseModel)
-                        .map(OntBaseModel::getGraphModel)
+                        .map(BaseOntologyModel::getBaseGraphModel)
                         .map(OntModel::getBaseGraph).collect(Collectors.toSet()),
-                Graphs.dataGraphs(ad.asBaseModel(a).getGraphModel().getGraph()).collect(Collectors.toSet()));
+                Graphs.dataGraphs(ad.asBaseModel(a).getBaseGraphModel().getGraph()).collect(Collectors.toSet()));
 
         m.applyChange(new RemoveImport(a, d.getOWLImportsDeclaration(iri_b)));
         Assertions.assertEquals(0, a.imports().count());
         Assertions.assertEquals(0, b.imports().count());
         Assertions.assertEquals(0, ((UnionGraph) (a.asGraphModel().getGraph())).subGraphs().count());
         Assertions.assertEquals(0, ((UnionGraph) (b.asGraphModel().getGraph())).subGraphs().count());
-        Assertions.assertEquals(0, ((UnionGraph) (ad.asBaseModel(a).getGraphModel().getGraph())).subGraphs().count());
+        Assertions.assertEquals(0, ((UnionGraph) (ad.asBaseModel(a).getBaseGraphModel().getGraph())).subGraphs().count());
 
     }
 

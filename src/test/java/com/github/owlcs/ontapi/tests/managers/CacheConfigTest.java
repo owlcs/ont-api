@@ -14,10 +14,10 @@
 
 package com.github.owlcs.ontapi.tests.managers;
 
+import com.github.owlcs.ontapi.BaseOntologyModel;
 import com.github.owlcs.ontapi.DataFactory;
 import com.github.owlcs.ontapi.OWLAdapter;
 import com.github.owlcs.ontapi.OntApiException;
-import com.github.owlcs.ontapi.OntBaseModel;
 import com.github.owlcs.ontapi.OntFormat;
 import com.github.owlcs.ontapi.OntManagers;
 import com.github.owlcs.ontapi.Ontology;
@@ -80,7 +80,7 @@ public class CacheConfigTest {
     private static final Logger LOGGER = LoggerFactory.getLogger(CacheConfigTest.class);
 
     static InternalGraphModelImpl getBase(Ontology o) {
-        return ((InternalGraphModelImpl) ((OntBaseModel) o).getGraphModel());
+        return ((InternalGraphModelImpl) ((BaseOntologyModel) o).getBaseGraphModel());
     }
 
     private static void testConfigureIRICacheSize(OntologyManager m) {
@@ -296,7 +296,7 @@ public class CacheConfigTest {
         OntologyManager m1 = OntManagers.createManager();
         Ontology o1 = m1.loadOntologyFromOntologyDocument(src,
                 m1.getOntologyLoaderConfiguration().setModelCacheLevel(CacheSettings.CACHE_CONTENT, true));
-        InternalGraphModelImpl im1 = (InternalGraphModelImpl) adapter.asBaseModel(o1).getGraphModel();
+        InternalGraphModelImpl im1 = (InternalGraphModelImpl) adapter.asBaseModel(o1).getBaseGraphModel();
         InternalCache.Loading c1 = getInternalCache(im1, OWLTopObjectType.class);
         Assertions.assertNotNull(c1);
         Map map1 = (Map) c1.get(im1);
@@ -418,7 +418,7 @@ public class CacheConfigTest {
         OntologyManager m2 = OntManagers.createManager();
         Ontology o2 = m2.loadOntologyFromOntologyDocument(src,
                 m2.getOntologyLoaderConfiguration().setModelCacheLevel(CacheSettings.CACHE_COMPONENT, false));
-        InternalGraphModelImpl im2 = (InternalGraphModelImpl) adapter.asBaseModel(o2).getGraphModel();
+        InternalGraphModelImpl im2 = (InternalGraphModelImpl) adapter.asBaseModel(o2).getBaseGraphModel();
         InternalCache.Loading c2 = getInternalCache(im2, OWLComponentType.class);
         Assertions.assertNotNull(c2);
         Map map2 = (Map) c2.get(im2);

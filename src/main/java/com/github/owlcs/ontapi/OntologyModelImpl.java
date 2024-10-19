@@ -54,11 +54,11 @@ import java.util.stream.Stream;
  * Created by @ssz on 27.09.2016.
  *
  * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyImpl</a>
- * @see OntBaseModelImpl
+ * @see BaseOntologyModelImpl
  * @see Ontology
  */
 @SuppressWarnings("WeakerAccess")
-public class OntologyModelImpl extends OntBaseModelImpl implements Ontology, OWLMutableOntology {
+public class OntologyModelImpl extends BaseOntologyModelImpl implements Ontology, OWLMutableOntology {
 
     @Serial
     private static final long serialVersionUID = -2882895355499914294L;
@@ -91,7 +91,7 @@ public class OntologyModelImpl extends OntBaseModelImpl implements Ontology, OWL
 
     @Override
     public void clearCache() {
-        getGraphModel().clearCache();
+        getBaseGraphModel().clearCache();
     }
 
     /**
@@ -101,7 +101,7 @@ public class OntologyModelImpl extends OntBaseModelImpl implements Ontology, OWL
      */
     @Override
     public OntModel asGraphModel() {
-        return getGraphModel();
+        return getBaseGraphModel();
     }
 
     @Override
@@ -124,7 +124,7 @@ public class OntologyModelImpl extends OntBaseModelImpl implements Ontology, OWL
             if (containsAxiom(axiom)) {
                 return ChangeApplied.NO_OPERATION;
             }
-            getGraphModel().add(axiom);
+            getBaseGraphModel().add(axiom);
             return ChangeApplied.SUCCESSFULLY;
         }
 
@@ -133,7 +133,7 @@ public class OntologyModelImpl extends OntBaseModelImpl implements Ontology, OWL
             beforeChange();
             OWLAxiom axiom = change.getAxiom();
             if (containsAxiom(axiom)) {
-                getGraphModel().remove(axiom);
+                getBaseGraphModel().remove(axiom);
                 return ChangeApplied.SUCCESSFULLY;
             }
             return ChangeApplied.NO_OPERATION;
@@ -163,10 +163,10 @@ public class OntologyModelImpl extends OntBaseModelImpl implements Ontology, OWL
         public ChangeApplied visit(@Nonnull AddOntologyAnnotation change) {
             beforeChange();
             OWLAnnotation annotation = change.getAnnotation();
-            if (getGraphModel().contains(annotation)) {
+            if (getBaseGraphModel().contains(annotation)) {
                 return ChangeApplied.NO_OPERATION;
             }
-            getGraphModel().add(annotation);
+            getBaseGraphModel().add(annotation);
             return ChangeApplied.SUCCESSFULLY;
         }
 
@@ -175,7 +175,7 @@ public class OntologyModelImpl extends OntBaseModelImpl implements Ontology, OWL
             beforeChange();
             OWLAnnotation annotation = change.getAnnotation();
             if (annotations().anyMatch(annotation::equals)) {
-                getGraphModel().remove(annotation);
+                getBaseGraphModel().remove(annotation);
                 return ChangeApplied.SUCCESSFULLY;
             }
             return ChangeApplied.NO_OPERATION;
@@ -211,7 +211,7 @@ public class OntologyModelImpl extends OntBaseModelImpl implements Ontology, OWL
             if (!getConfig().useContentCache()) {
                 throw new OntApiException.ModificationDenied("Direct mutations through OWL-API interface are not allowed");
             }
-            getGraphModel().forceLoad();
+            getBaseGraphModel().forceLoad();
         }
 
         /**
@@ -226,10 +226,10 @@ public class OntologyModelImpl extends OntBaseModelImpl implements Ontology, OWL
             // either ontology IRI or specified declaration IRI.
             Ontology ont = getOWLOntologyManager().getImportedOntology(declaration);
             if (ont == null) {
-                getGraphModel().getID().addImport(declaration.getIRI().getIRIString());
+                getBaseGraphModel().getID().addImport(declaration.getIRI().getIRIString());
                 return;
             }
-            getGraphModel().addImport(getAdapter().asBaseModel(ont).getGraphModel());
+            getBaseGraphModel().addImport(getAdapter().asBaseModel(ont).getBaseGraphModel());
         }
 
         /**
@@ -244,9 +244,9 @@ public class OntologyModelImpl extends OntBaseModelImpl implements Ontology, OWL
             // (could be different in case of renaming)
             Ontology ont = getOWLOntologyManager().getImportedOntology(declaration);
             if (ont != null) {
-                getGraphModel().removeImport(getAdapter().asBaseModel(ont).getGraphModel());
+                getBaseGraphModel().removeImport(getAdapter().asBaseModel(ont).getBaseGraphModel());
             }
-            getGraphModel().getID().removeImport(declaration.getIRI().getIRIString());
+            getBaseGraphModel().getID().removeImport(declaration.getIRI().getIRIString());
         }
 
         @Override
@@ -261,7 +261,7 @@ public class OntologyModelImpl extends OntBaseModelImpl implements Ontology, OWL
      * Created @ssz on 22.12.2016.
      */
     @SuppressWarnings("WeakerAccess")
-    public static class Concurrent extends OWLOntologyWrapper implements Ontology, OntBaseModel {
+    public static class Concurrent extends OWLOntologyWrapper implements Ontology, BaseOntologyModel {
 
         @Serial
         private static final long serialVersionUID = 5823394836022970162L;
@@ -297,7 +297,7 @@ public class OntologyModelImpl extends OntBaseModelImpl implements Ontology, OWL
 
         /**
          * Creates a concurrent version of Ontology Graph Model with R/W Lock inside, backed by the given model.
-         * The internal Jena model, which is provided by the method {@link #getGraphModel()}, does not contain any lock.
+         * The internal Jena model, which is provided by the method {@link #getBaseGraphModel()}, does not contain any lock.
          * This is due to the danger of deadlock or livelock,
          * which are possible when working with a (caffeine) cache and a locked graph simultaneously.
          *
@@ -307,7 +307,7 @@ public class OntologyModelImpl extends OntBaseModelImpl implements Ontology, OWL
         public OntModel asGraphModel() {
             lock.readLock().lock();
             try {
-                InternalGraphModel base = getGraphModel();
+                InternalGraphModel base = getBaseGraphModel();
                 return asConcurrent(base.getUnionGraph(), base.getOntPersonality(), lock);
             } finally {
                 lock.readLock().unlock();
@@ -334,13 +334,13 @@ public class OntologyModelImpl extends OntBaseModelImpl implements Ontology, OWL
         }
 
         @Override
-        public InternalGraphModel getGraphModel() {
-            return delegate().getGraphModel();
+        public InternalGraphModel getBaseGraphModel() {
+            return delegate().getBaseGraphModel();
         }
 
         @Override
-        public void setGraphModel(InternalGraphModel m) {
-            delegate().setGraphModel(m);
+        public void setBaseGraphModel(InternalGraphModel m) {
+            delegate().setBaseGraphModel(m);
         }
 
         @Override

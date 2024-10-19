@@ -14,7 +14,7 @@
 
 package com.github.owlcs.ontapi.tests.internal;
 
-import com.github.owlcs.ontapi.OntBaseModel;
+import com.github.owlcs.ontapi.BaseOntologyModel;
 import com.github.owlcs.ontapi.OntFormat;
 import com.github.owlcs.ontapi.OntManagers;
 import com.github.owlcs.ontapi.TestOntSpecifications;
@@ -114,7 +114,7 @@ public class InternalGraphModelTest {
     public void testOntologyAnnotations() {
         OWLDataFactory factory = OntManagers.getDataFactory();
 
-        InternalGraphModel model = OntBaseModel.createInternalGraphModel(OWLIOUtils.loadResourceAsModel("/ontapi/pizza.ttl", Lang.TURTLE).getGraph());
+        InternalGraphModel model = BaseOntologyModel.createInternalGraphModel(OWLIOUtils.loadResourceAsModel("/ontapi/pizza.ttl", Lang.TURTLE).getGraph());
 
         Set<OWLAnnotation> annotations = model.listOWLAnnotations().collect(Collectors.toSet());
         annotations.forEach(x -> LOGGER.debug("{}", x));
@@ -265,7 +265,7 @@ public class InternalGraphModelTest {
         LOGGER.debug("Load jena model from {}", file);
         Model init = OWLIOUtils.loadResourceAsModel(file, Objects.requireNonNull(format.getLang()));
         Graph graph = GraphTransformers.convert(init.getGraph());
-        return OntBaseModel.createInternalGraphModel(graph,
+        return BaseOntologyModel.createInternalGraphModel(graph,
                 TestOntSpecifications.OWL2_DL_WEAK_NO_INF,
                 InternalConfig.DEFAULT,
                 OntManagers.getDataFactory(),

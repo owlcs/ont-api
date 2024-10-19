@@ -14,7 +14,7 @@
 
 package com.github.owlcs.ontapi.tests.model;
 
-import com.github.owlcs.ontapi.OntBaseModelImpl;
+import com.github.owlcs.ontapi.BaseOntologyModelImpl;
 import com.github.owlcs.ontapi.OntManagers;
 import com.github.owlcs.ontapi.Ontology;
 import org.junit.jupiter.api.Assertions;
@@ -57,14 +57,14 @@ import java.util.stream.Stream;
 /**
  * To test following {@link OWLAxiomCollection}#axioms methods:
  * <ul>
- * <li>{@link OntBaseModelImpl#axioms(OWLClass)}</li>
- * <li>{@link OntBaseModelImpl#axioms(OWLDatatype)}</li>
- * <li>{@link OntBaseModelImpl#axioms(OWLIndividual)}</li>
- * <li>{@link OntBaseModelImpl#axioms(OWLAnnotationProperty)}</li>
- * <li>{@link OntBaseModelImpl#axioms(OWLDataProperty)}</li>
- * <li>{@link OntBaseModelImpl#axioms(OWLObjectPropertyExpression)}</li>
+ * <li>{@link BaseOntologyModelImpl#axioms(OWLClass)}</li>
+ * <li>{@link BaseOntologyModelImpl#axioms(OWLDatatype)}</li>
+ * <li>{@link BaseOntologyModelImpl#axioms(OWLIndividual)}</li>
+ * <li>{@link BaseOntologyModelImpl#axioms(OWLAnnotationProperty)}</li>
+ * <li>{@link BaseOntologyModelImpl#axioms(OWLDataProperty)}</li>
+ * <li>{@link BaseOntologyModelImpl#axioms(OWLObjectPropertyExpression)}</li>
  * </ul>
- * Also, to test {@link OntBaseModelImpl#referencingAxioms(OWLPrimitive)} and
+ * Also, to test {@link BaseOntologyModelImpl#referencingAxioms(OWLPrimitive)} and
  * {@link OWLAxiomCollection}#signature methods.
  * <p>
  * Created by @ssz on 20.02.2018.

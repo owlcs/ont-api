@@ -199,18 +199,18 @@ public class OWLFactoryWrapper implements OntologyFactory.Loader {
                             @Override
                             public ChangeApplied visit(SetOntologyID change) {
                                 ChangeApplied res = super.visit(change);
-                                getGraphModel().forceLoad();
+                                getBaseGraphModel().forceLoad();
                                 return res;
                             }
 
                             @Override
                             public ChangeApplied visit(AddAxiom change) {
-                                return of(getGraphModel().add(change.getAxiom()));
+                                return of(getBaseGraphModel().add(change.getAxiom()));
                             }
 
                             @Override
                             public ChangeApplied visit(AddOntologyAnnotation change) {
-                                return of(getGraphModel().add(change.getAnnotation()));
+                                return of(getBaseGraphModel().add(change.getAnnotation()));
                             }
 
                             @Override
@@ -219,13 +219,13 @@ public class OWLFactoryWrapper implements OntologyFactory.Loader {
                                 // I observe this situation only when there are grammatical mistakes in the document,
                                 // so it cannot be loaded by Jena.
                                 LOGGER.warn("Suspicious: {}", change);
-                                return of(getGraphModel().remove(change.getAxiom()));
+                                return of(getBaseGraphModel().remove(change.getAxiom()));
                             }
 
                             @Override
                             public ChangeApplied visit(RemoveOntologyAnnotation change) {
                                 LOGGER.warn("Suspicious: {}", change);
-                                return of(getGraphModel().remove(change.getAnnotation()));
+                                return of(getBaseGraphModel().remove(change.getAnnotation()));
                             }
 
                             private ChangeApplied of(boolean res) {
