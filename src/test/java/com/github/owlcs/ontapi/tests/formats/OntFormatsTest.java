@@ -65,7 +65,11 @@ public class OntFormatsTest {
     private static final Logger LOGGER = LoggerFactory.getLogger(OntFormatsTest.class);
 
     private OWLOntologyManager newOntologyManager() {
-        return OntManagers.createOWLAPIImplManager();
+        OWLOntologyManager res = OntManagers.createOWLAPIImplManager();
+        // TRIX is banned since OWL-API:5.5.1;
+        // here, we test OntFormats, so clear list of banned types
+        res.getOntologyConfigurator().withBannedParsers("");
+        return res;
     }
 
     @Test
@@ -127,7 +131,9 @@ public class OntFormatsTest {
         ont.add(df.getOWLSubClassOfAxiom(c2, c1));
 
         for (OntFormat type : OntFormat.values()) {
-            if (type.isJenaOnly()) continue;
+            if (type.isJenaOnly()) {
+                continue;
+            }
             OWLDocumentFormat format = type.createOwlFormat();
             LOGGER.debug("Write test. Format: {}", format.getClass().getSimpleName());
             ByteArrayOutputStream out = new ByteArrayOutputStream();

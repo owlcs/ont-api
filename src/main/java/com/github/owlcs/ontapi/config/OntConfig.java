@@ -77,6 +77,7 @@ import java.util.stream.Stream;
  * <li>{@link #isControlImports()} and {@link #setControlImports(boolean)} </li>
  * <li>{@link #isIgnoreAxiomsReadErrors()} and {@link #setIgnoreAxiomsReadErrors(boolean)} (<b>since 1.1.0</b>)</li>
  * <li>{@link #isSplitAxiomAnnotations()} and {@link #setSplitAxiomAnnotations(boolean)} (<b>since 1.3.0</b>)</li>
+ * <li>{@link #isUseDistinctUnionGraph()} and {@link #setUseDistinctUnionGraph(boolean)} (<b>since 4.0.1</b>)</li>
  * </ul>
  * <p>
  * Created @ssz on 27.02.2017.

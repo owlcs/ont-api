@@ -47,7 +47,7 @@ public interface ObjectsSearcher<K extends OWLObject> {
      *
      * @param object  {@link K} - an object to search, not {@code null}
      * @param model   {@link OntModel} - a model to search for, not {@code null}
-     * @param factory {@link ONTObjectFactory - to produce ONT-API Objects, not {@code null}}
+     * @param factory {@link ONTObjectFactory} - to produce ONT-API Objects, not {@code null}
      * @param config  {@link AxiomsSettings} - to configure the process, not {@code null}
      * @return boolean
      */

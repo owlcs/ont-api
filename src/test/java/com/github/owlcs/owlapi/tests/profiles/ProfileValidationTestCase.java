@@ -42,7 +42,6 @@ import org.semanticweb.owlapi.profiles.OWL2RLProfile;
 import org.semanticweb.owlapi.profiles.OWLProfile;
 import org.semanticweb.owlapi.profiles.OWLProfileReport;
 import org.semanticweb.owlapi.search.Searcher;
-import org.semanticweb.owlapi.vocab.OWL2Datatype;
 
 import java.util.Collection;
 import java.util.List;
@@ -84,7 +83,7 @@ public class ProfileValidationTestCase extends TestBase {
         OWLAnnotationProperty fsPremiseOntologyProperty = df.getOWLAnnotationProperty(IRI.create(ALL_NS, "fsPremiseOntology"));
 
         int count = 0;
-        List<OWLClassAssertionAxiom> axioms = testCasesOntology.classAssertionAxioms(profileIdentificationTestClass).collect(Collectors.toList());
+        List<OWLClassAssertionAxiom> axioms = testCasesOntology.classAssertionAxioms(profileIdentificationTestClass).toList();
         for (OWLClassAssertionAxiom ax : axioms) {
             LOGGER.debug(String.valueOf(ax));
             OWLNamedIndividual ind = ax.getIndividual().asOWLNamedIndividual();
@@ -92,7 +91,7 @@ public class ProfileValidationTestCase extends TestBase {
                     .filter(a -> Stream.of(rdfXMLPremiseOntologyProperty, fsPremiseOntologyProperty).anyMatch(p -> p.equals(a.getProperty())))
                     .map(a -> a.getValue().asLiteral())
                     .filter(Optional::isPresent)
-                    .map(Optional::get).collect(Collectors.toList());
+                    .map(Optional::get).toList();
 
             Assertions.assertFalse(values.isEmpty());
             IRI iri = ind.asOWLNamedIndividual().getIRI();
@@ -172,7 +171,7 @@ public class ProfileValidationTestCase extends TestBase {
         OWLOntology o = getOWLOntology();
         OWLAnnotation ann = df.getRDFSLabel(df.getOWLLiteral(true));
         OWLAnnotationAssertionAxiom ax = df.getOWLAnnotationAssertionAxiom(IRI.create("urn:test#", "ELProfile"), ann);
-        o.add(ax, df.getOWLDeclarationAxiom(OWL2Datatype.XSD_BOOLEAN.getDatatype(df)));
+        o.add(ax);
         checkProfile(o, new OWL2ELProfile(), true);
     }
 }

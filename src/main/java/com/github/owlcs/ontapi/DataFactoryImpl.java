@@ -155,7 +155,6 @@ import static com.github.owlcs.ontapi.owlapi.InternalizedEntities.TRUE_LITERAL;
  * Also, this implementation is capable to produce
  * {@link OWLLiteral}s and {@link OWLAnonymousIndividual} based on Jena RDF terms:
  * {@link LiteralLabel} and {@link BlankNodeId} respectively.
- * <p>
  *
  * @author Matthew Horridge, The University Of Manchester, Bio-Health Informatics Group
  * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLDataFactoryImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLDataFactoryImpl</a>

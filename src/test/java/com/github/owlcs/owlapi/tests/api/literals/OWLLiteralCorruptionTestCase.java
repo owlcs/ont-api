@@ -18,6 +18,7 @@ import com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory;
 import com.github.owlcs.owlapi.OWLManager;
 import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.semanticweb.owlapi.formats.FunctionalSyntaxDocumentFormat;
 import org.semanticweb.owlapi.formats.RDFXMLDocumentFormat;
@@ -98,14 +99,7 @@ public class OWLLiteralCorruptionTestCase extends TestBase {
         }
     }
 
-    /**
-     * In case of OWL-API there is an exception while serialize ontology as RDF/XML
-     * In case of ONT-API there is no exception and after reloading literal would be the same.
-     * In last case there is Jena mechanism working.
-     * I believe it is more correct than OWL-API
-     *
-     * @throws Exception
-     */
+    @Disabled("should be fixed in Jena-5.2.0") // TODO: enable
     @Test
     public void testShouldFailOnMalformedXMLLiteral() throws Exception {
         String literal = "<ncicp:ComplexDefinition>" +

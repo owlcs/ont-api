@@ -15,6 +15,7 @@
 package com.github.owlcs.owlapi.tests.api.syntax.rdf;
 
 import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.semanticweb.owlapi.io.ReaderDocumentSource;
@@ -97,6 +98,7 @@ public class BOMSafeInputStreamAndParseTestCase extends TestBase {
         m.loadOntologyFromOntologyDocument(in(b, input));
     }
 
+    @Disabled("see owlcs/OWLAPI/#1156") // TODO: enable
     @ParameterizedTest
     @MethodSource("data")
     public void testBOMError32bigReader(String input) throws OWLOntologyCreationException, IOException {
@@ -104,6 +106,7 @@ public class BOMSafeInputStreamAndParseTestCase extends TestBase {
         m.loadOntologyFromOntologyDocument(new ReaderDocumentSource(new InputStreamReader(in(b, input))));
     }
 
+    @Disabled("see owlcs/OWLAPI/#1156") // TODO: enable
     @ParameterizedTest
     @MethodSource("data")
     public void testBOMError32Reader(String input) throws OWLOntologyCreationException, IOException {
@@ -111,6 +114,7 @@ public class BOMSafeInputStreamAndParseTestCase extends TestBase {
         m.loadOntologyFromOntologyDocument(new ReaderDocumentSource(new InputStreamReader(in(b, input))));
     }
 
+    @Disabled("see owlcs/OWLAPI/#1156") // TODO: enable
     @ParameterizedTest
     @MethodSource("data")
     public void testBOMError16Reader(String input) throws OWLOntologyCreationException, IOException {
@@ -118,6 +122,7 @@ public class BOMSafeInputStreamAndParseTestCase extends TestBase {
         m.loadOntologyFromOntologyDocument(new ReaderDocumentSource(new InputStreamReader(in(b, input))));
     }
 
+    @Disabled("see owlcs/OWLAPI/#1156") // TODO: enable
     @ParameterizedTest
     @MethodSource("data")
     public void testBOMError16smallReader(String input) throws OWLOntologyCreationException, IOException {
