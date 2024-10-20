@@ -268,6 +268,14 @@ public abstract class BaseOntologyModelImpl implements OWLOntology, BaseOntology
     }
 
     @Override
+    public Stream<OWLClass> classesInSignature(Imports imports) {
+        if (imports == Imports.INCLUDED && !config.useComponentCache()) {
+            return getFullGraphModel().listOWLClasses();
+        }
+        return imports.stream(this).flatMap(OWLOntology::classesInSignature).distinct().sorted();
+    }
+
+    @Override
     public Stream<OWLClassExpression> nestedClassExpressions() {
         return base.listOWLClassExpressions();
     }
@@ -288,8 +296,24 @@ public abstract class BaseOntologyModelImpl implements OWLOntology, BaseOntology
     }
 
     @Override
+    public Stream<OWLNamedIndividual> individualsInSignature(Imports imports) {
+        if (imports == Imports.INCLUDED && !config.useComponentCache()) {
+            return getFullGraphModel().listOWLNamedIndividuals();
+        }
+        return imports.stream(this).flatMap(OWLOntology::individualsInSignature).distinct().sorted();
+    }
+
+    @Override
     public Stream<OWLDataProperty> dataPropertiesInSignature() {
         return base.listOWLDataProperties();
+    }
+
+    @Override
+    public Stream<OWLDataProperty> dataPropertiesInSignature(Imports imports) {
+        if (imports == Imports.INCLUDED && !config.useComponentCache()) {
+            return getFullGraphModel().listOWLDataProperties();
+        }
+        return imports.stream(this).flatMap(OWLOntology::dataPropertiesInSignature).distinct().sorted();
     }
 
     @Override
@@ -298,8 +322,24 @@ public abstract class BaseOntologyModelImpl implements OWLOntology, BaseOntology
     }
 
     @Override
+    public Stream<OWLObjectProperty> objectPropertiesInSignature(Imports imports) {
+        if (imports == Imports.INCLUDED && !config.useComponentCache()) {
+            return getFullGraphModel().listOWLObjectProperties();
+        }
+        return imports.stream(this).flatMap(OWLOntology::objectPropertiesInSignature).distinct().sorted();
+    }
+
+    @Override
     public Stream<OWLAnnotationProperty> annotationPropertiesInSignature() {
         return base.listOWLAnnotationProperties();
+    }
+
+    @Override
+    public Stream<OWLAnnotationProperty> annotationPropertiesInSignature(Imports imports) {
+        if (imports == Imports.INCLUDED && !config.useComponentCache()) {
+            return getFullGraphModel().listOWLAnnotationProperties();
+        }
+        return imports.stream(this).flatMap(OWLOntology::annotationPropertiesInSignature).distinct().sorted();
     }
 
     @Override
@@ -308,9 +348,32 @@ public abstract class BaseOntologyModelImpl implements OWLOntology, BaseOntology
     }
 
     @Override
+    public Stream<OWLDatatype> datatypesInSignature(Imports imports) {
+        if (imports == Imports.INCLUDED && !config.useComponentCache()) {
+            return getFullGraphModel().listOWLDatatypes();
+        }
+        return imports.stream(this).flatMap(OWLOntology::datatypesInSignature).distinct().sorted();
+    }
+
+    @Override
     public Stream<OWLEntity> signature() {
-        return Stream.of(classesInSignature(), objectPropertiesInSignature(), dataPropertiesInSignature(),
-                        individualsInSignature(), datatypesInSignature(), annotationPropertiesInSignature())
+        return Stream.of(classesInSignature(),
+                        objectPropertiesInSignature(),
+                        dataPropertiesInSignature(),
+                        individualsInSignature(),
+                        datatypesInSignature(),
+                        annotationPropertiesInSignature())
+                .flatMap(Function.identity());
+    }
+
+    @Override
+    public Stream<OWLEntity> signature(Imports imports) {
+        return Stream.of(classesInSignature(imports),
+                        objectPropertiesInSignature(imports),
+                        dataPropertiesInSignature(imports),
+                        individualsInSignature(imports),
+                        datatypesInSignature(imports),
+                        annotationPropertiesInSignature(imports))
                 .flatMap(Function.identity());
     }
 
@@ -429,6 +492,14 @@ public abstract class BaseOntologyModelImpl implements OWLOntology, BaseOntology
     @Override
     public Stream<OWLAxiom> axioms() {
         return base.listOWLAxioms();
+    }
+
+    @Override
+    public Stream<OWLAxiom> axioms(Imports imports) {
+        if (imports == Imports.INCLUDED && !config.useContentCache()) {
+            return getFullGraphModel().listOWLAxioms();
+        }
+        return imports.stream(this).flatMap(OWLOntology::axioms);
     }
 
     @Override
@@ -1183,14 +1254,6 @@ public abstract class BaseOntologyModelImpl implements OWLOntology, BaseOntology
     @Override
     public Stream<OWLDifferentIndividualsAxiom> differentIndividualAxioms(OWLIndividual individual) {
         return base.listOWLDifferentIndividualsAxioms(individual);
-    }
-
-    @Override
-    public Stream<OWLAxiom> axioms(Imports imports) {
-        if (imports == Imports.INCLUDED && !config.useContentCache()) {
-            return getFullGraphModel().listOWLAxioms();
-        }
-        return imports.stream(this).flatMap(OWLOntology::axioms);
     }
 
     /**
