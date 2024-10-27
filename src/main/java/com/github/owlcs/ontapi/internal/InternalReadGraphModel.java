@@ -462,8 +462,17 @@ abstract class InternalReadGraphModel extends OntGraphModelImpl implements ListA
         return listOWLAxioms(OWLDeclarationAxiom.class).anyMatch(x -> x.getEntity().equals(e));
     }
 
-    public Stream<OWLAnonymousIndividual> listOWLAnonymousIndividuals() {
+    public Stream<OWLAnonymousIndividual> listComponentOWLAnonymousIndividuals() {
         return listComponents(OWLComponentType.ANONYMOUS_INDIVIDUAL);
+    }
+
+    public Stream<OWLAnonymousIndividual> listGraphOWLAnonymousIndividuals() {
+        ModelObjectFactory factory = getObjectFactory();
+        InternalConfig config = getConfig();
+        return individuals()
+                .filter(RDFNode::isAnon)
+                .map(it -> (OWLAnonymousIndividual) (factory.getIndividual(it).getOWLObject()))
+                .map(it -> strip(it, config));
     }
 
     public Stream<OWLClassExpression> listOWLClassExpressions() {
@@ -471,8 +480,17 @@ abstract class InternalReadGraphModel extends OntGraphModelImpl implements ListA
                 .flatMap(OWLObject::nestedClassExpressions), getConfig());
     }
 
-    public Stream<OWLNamedIndividual> listOWLNamedIndividuals() {
+    public Stream<OWLNamedIndividual> listComponentOWLNamedIndividuals() {
         return listComponents(OWLComponentType.NAMED_INDIVIDUAL);
+    }
+
+    public Stream<OWLNamedIndividual> listGraphOWLNamedIndividuals() {
+        ModelObjectFactory factory = getObjectFactory();
+        InternalConfig config = getConfig();
+        return individuals()
+                .filter(RDFNode::isURIResource)
+                .map(it -> (OWLNamedIndividual) (factory.getIndividual(it).getOWLObject()))
+                .map(it -> strip(it, config));
     }
 
     public Stream<OWLClass> listOWLClasses() {

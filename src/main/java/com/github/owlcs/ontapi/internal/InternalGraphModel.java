@@ -99,18 +99,44 @@ public interface InternalGraphModel extends OntModel, OntEnhGraph, HasOntologyID
     Stream<OWLClassExpression> listOWLClassExpressions();
 
     /**
-     * Lists all anonymous individuals in the form of OWL-API objects.
+     * Lists all (component) anonymous individuals in the form of OWL-API objects.
+     * The difference with the method {@link #listGraphOWLAnonymousIndividuals()} is that
+     * this method retrieves individuals from components' cache collected from base graph,
+     * while the method {@link #listGraphOWLAnonymousIndividuals()} uses {@link OntModel#individuals()}.
      *
      * @return a {@code Stream} of {@link OWLAnonymousIndividual}s
      */
-    Stream<OWLAnonymousIndividual> listOWLAnonymousIndividuals();
+    Stream<OWLAnonymousIndividual> listComponentOWLAnonymousIndividuals();
 
     /**
-     * Lists all named individuals in the form of OWL-API objects.
+     * Lists all (graph) anonymous individuals in the form of OWL-API objects.
+     * This method uses {@link OntModel#individuals()} method,
+     * while the method {@link #listComponentOWLAnonymousIndividuals()} parses individuals from components'
+     * cache collected from base graph.
      *
      * @return a {@code Stream} of {@link OWLNamedIndividual}s
      */
-    Stream<OWLNamedIndividual> listOWLNamedIndividuals();
+    Stream<OWLAnonymousIndividual> listGraphOWLAnonymousIndividuals();
+
+    /**
+     * Lists all (component) named individuals in the form of OWL-API objects.
+     * The difference with the method {@link #listGraphOWLNamedIndividuals()} is that
+     * this method retrieves individuals from components' cache collected from base graph,
+     * while the method {@link #listGraphOWLNamedIndividuals()} uses {@link OntModel#individuals()}.
+     *
+     * @return a {@code Stream} of {@link OWLNamedIndividual}s
+     */
+    Stream<OWLNamedIndividual> listComponentOWLNamedIndividuals();
+
+    /**
+     * Lists all (graph) named individuals in the form of OWL-API objects.
+     * This method uses {@link OntModel#individuals()} method,
+     * while the method {@link #listComponentOWLNamedIndividuals()} parses individuals from components'
+     * cache collected from base graph.
+     *
+     * @return a {@code Stream} of {@link OWLNamedIndividual}s
+     */
+    Stream<OWLNamedIndividual> listGraphOWLNamedIndividuals();
 
     /**
      * Lists all OWL classes in the form of OWL-API objects.

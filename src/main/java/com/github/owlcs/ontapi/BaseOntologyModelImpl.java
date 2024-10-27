@@ -282,7 +282,7 @@ public abstract class BaseOntologyModelImpl implements OWLOntology, BaseOntology
 
     @Override
     public Stream<OWLAnonymousIndividual> anonymousIndividuals() {
-        return base.listOWLAnonymousIndividuals();
+        return base.listComponentOWLAnonymousIndividuals();
     }
 
     @Override
@@ -291,14 +291,22 @@ public abstract class BaseOntologyModelImpl implements OWLOntology, BaseOntology
     }
 
     @Override
+    public Stream<OWLAnonymousIndividual> referencedAnonymousIndividuals(Imports imports) {
+        if (imports == Imports.INCLUDED && !config.useComponentCache()) {
+            return getFullGraphModel().listGraphOWLAnonymousIndividuals();
+        }
+        return imports.stream(this).flatMap(OWLOntology::referencedAnonymousIndividuals).distinct().sorted();
+    }
+
+    @Override
     public Stream<OWLNamedIndividual> individualsInSignature() {
-        return base.listOWLNamedIndividuals();
+        return base.listComponentOWLNamedIndividuals();
     }
 
     @Override
     public Stream<OWLNamedIndividual> individualsInSignature(Imports imports) {
         if (imports == Imports.INCLUDED && !config.useComponentCache()) {
-            return getFullGraphModel().listOWLNamedIndividuals();
+            return getFullGraphModel().listGraphOWLNamedIndividuals();
         }
         return imports.stream(this).flatMap(OWLOntology::individualsInSignature).distinct().sorted();
     }
@@ -996,31 +1004,49 @@ public abstract class BaseOntologyModelImpl implements OWLOntology, BaseOntology
 
     @Override
     public boolean containsClassInSignature(IRI iri, Imports imports) {
+        if (imports == Imports.INCLUDED && !config.useComponentCache()) {
+            return getFullGraphModel().containsOWLEntity(getDataFactory().getOWLClass(iri));
+        }
         return imports.stream(this).anyMatch(o -> o.containsClassInSignature(iri));
     }
 
     @Override
     public boolean containsObjectPropertyInSignature(IRI iri, Imports imports) {
+        if (imports == Imports.INCLUDED && !config.useComponentCache()) {
+            return getFullGraphModel().containsOWLEntity(getDataFactory().getOWLObjectProperty(iri));
+        }
         return imports.stream(this).anyMatch(o -> o.containsObjectPropertyInSignature(iri));
     }
 
     @Override
     public boolean containsDataPropertyInSignature(IRI iri, Imports imports) {
+        if (imports == Imports.INCLUDED && !config.useComponentCache()) {
+            return getFullGraphModel().containsOWLEntity(getDataFactory().getOWLDataProperty(iri));
+        }
         return imports.stream(this).anyMatch(o -> o.containsDataPropertyInSignature(iri));
     }
 
     @Override
     public boolean containsAnnotationPropertyInSignature(IRI iri, Imports imports) {
+        if (imports == Imports.INCLUDED && !config.useComponentCache()) {
+            return getFullGraphModel().containsOWLEntity(getDataFactory().getOWLAnnotationProperty(iri));
+        }
         return imports.stream(this).anyMatch(o -> o.containsAnnotationPropertyInSignature(iri));
     }
 
     @Override
     public boolean containsDatatypeInSignature(IRI iri, Imports imports) {
+        if (imports == Imports.INCLUDED && !config.useComponentCache()) {
+            return getFullGraphModel().containsOWLEntity(getDataFactory().getOWLDatatype(iri));
+        }
         return imports.stream(this).anyMatch(o -> o.containsDatatypeInSignature(iri));
     }
 
     @Override
     public boolean containsIndividualInSignature(IRI iri, Imports imports) {
+        if (imports == Imports.INCLUDED && !config.useComponentCache()) {
+            return getFullGraphModel().containsOWLEntity(getDataFactory().getOWLNamedIndividual(iri));
+        }
         return imports.stream(this).anyMatch(o -> o.containsIndividualInSignature(iri));
     }
 
