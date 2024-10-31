@@ -12,6 +12,7 @@ import org.apache.jena.vocabulary.XSD;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.semanticweb.owlapi.model.AxiomType;
+import org.semanticweb.owlapi.model.EntityType;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAnnotationProperty;
 import org.semanticweb.owlapi.model.OWLAnnotationPropertyRangeAxiom;
@@ -141,6 +142,14 @@ public class InfOntModelTest {
         Assertions.assertEquals(2, o1.entitiesInSignature(IRI.create("http://b#p1"), Imports.INCLUDED).count());
         // annotation property + named individual
         Assertions.assertEquals(2, o1.entitiesInSignature(IRI.create("http://a#p2"), Imports.INCLUDED).count());
+
+        Assertions.assertEquals(68, o1.getPunnedIRIs(Imports.INCLUDED).size());
+        Assertions.assertTrue(o1.getPunnedIRIs(Imports.INCLUDED).contains(IRI.create("http://b#C2")));
+        Assertions.assertTrue(o1.getPunnedIRIs(Imports.INCLUDED).contains(IRI.create(XSD.xstring.getURI())));
+        Assertions.assertFalse(o1.getPunnedIRIs(Imports.INCLUDED).contains(IRI.create("http://b#i2")));
+        Assertions.assertTrue(o1.getPunnedIRIs(Imports.INCLUDED).contains(IRI.create(OWL.disjointWith.getURI())));
+        Assertions.assertTrue(o1.getPunnedIRIs(Imports.INCLUDED).contains(IRI.create("http://b#p1")));
+        Assertions.assertTrue(o1.getPunnedIRIs(Imports.INCLUDED).contains(IRI.create("http://a#p2")));
     }
 
     @Test
@@ -208,11 +217,13 @@ public class InfOntModelTest {
         Assertions.assertTrue(o1.containsClassInSignature(IRI.create("http://b#C1"), Imports.INCLUDED));
         Assertions.assertTrue(o1.containsClassInSignature(df.getOWLThing().getIRI(), Imports.INCLUDED));
         Assertions.assertTrue(o1.containsEntityInSignature(df.getOWLThing().getIRI(), Imports.INCLUDED));
+        Assertions.assertTrue(o1.containsEntityInSignature(df.getOWLThing(), Imports.INCLUDED));
         Assertions.assertFalse(o1.containsClassInSignature(IRI.create("http://a#C3"), Imports.INCLUDED));
         Assertions.assertFalse(o1.containsEntityInSignature(IRI.create("http://a#C3"), Imports.INCLUDED));
 
         Assertions.assertTrue(o1.containsDatatypeInSignature(IRI.create(XSD.unsignedInt.getURI()), Imports.INCLUDED));
         Assertions.assertTrue(o1.containsEntityInSignature(IRI.create(XSD.unsignedInt.getURI()), Imports.INCLUDED));
+        Assertions.assertTrue(o1.containsEntityInSignature(df.getOWLDatatype(XSD.unsignedInt.getURI()), Imports.INCLUDED));
         Assertions.assertFalse(o1.containsDatatypeInSignature(IRI.create(OWL.Nothing.getURI()), Imports.INCLUDED));
         Assertions.assertTrue(o1.containsEntityInSignature(IRI.create(OWL.Nothing.getURI()), Imports.INCLUDED));
 
@@ -221,23 +232,34 @@ public class InfOntModelTest {
         Assertions.assertTrue(o1.containsIndividualInSignature(IRI.create(OWL.NamedIndividual.getURI()), Imports.INCLUDED));
         Assertions.assertTrue(o1.containsIndividualInSignature(IRI.create(OWL.Thing.getURI()), Imports.INCLUDED));
         Assertions.assertTrue(o1.containsEntityInSignature(IRI.create("http://b#i1"), Imports.INCLUDED));
+        Assertions.assertTrue(o1.containsEntityInSignature(df.getOWLNamedIndividual("http://b#i1"), Imports.INCLUDED));
         Assertions.assertTrue(o1.containsEntityInSignature(IRI.create("http://a#i2"), Imports.INCLUDED));
         Assertions.assertTrue(o1.containsEntityInSignature(IRI.create(OWL.NamedIndividual.getURI()), Imports.INCLUDED));
         Assertions.assertTrue(o1.containsEntityInSignature(IRI.create(OWL.Thing.getURI()), Imports.INCLUDED));
 
         Assertions.assertTrue(o1.containsDataPropertyInSignature(IRI.create("http://b#p1"), Imports.INCLUDED));
         Assertions.assertTrue(o1.containsEntityInSignature(IRI.create("http://b#p1"), Imports.INCLUDED));
+        Assertions.assertTrue(o1.containsEntityInSignature(df.getOWLDataProperty("http://b#p1"), Imports.INCLUDED));
         Assertions.assertFalse(o1.containsDatatypeInSignature(IRI.create(OWL.bottomDataProperty.getURI()), Imports.INCLUDED));
         Assertions.assertFalse(o1.containsEntityInSignature(IRI.create(OWL.bottomDataProperty.getURI()), Imports.INCLUDED));
 
         Assertions.assertTrue(o1.containsObjectPropertyInSignature(IRI.create(OWL.disjointWith.getURI()), Imports.INCLUDED));
         Assertions.assertTrue(o1.containsEntityInSignature(IRI.create(OWL.disjointWith.getURI()), Imports.INCLUDED));
+        Assertions.assertTrue(o1.containsEntityInSignature(df.getOWLObjectProperty(OWL.disjointWith.getURI()), Imports.INCLUDED));
         Assertions.assertFalse(o1.containsObjectPropertyInSignature(IRI.create(OWL.topObjectProperty.getURI()), Imports.INCLUDED));
         Assertions.assertFalse(o1.containsEntityInSignature(IRI.create(OWL.topObjectProperty.getURI()), Imports.INCLUDED));
 
         Assertions.assertTrue(o1.containsAnnotationPropertyInSignature(IRI.create(RDFS.isDefinedBy.getURI()), Imports.INCLUDED));
         Assertions.assertTrue(o1.containsEntityInSignature(IRI.create(RDFS.isDefinedBy.getURI()), Imports.INCLUDED));
+        Assertions.assertTrue(o1.containsEntityInSignature(df.getOWLAnnotationProperty(RDFS.isDefinedBy.getURI()), Imports.INCLUDED));
         Assertions.assertFalse(o1.containsAnnotationPropertyInSignature(IRI.create(OWL.topObjectProperty.getURI()), Imports.INCLUDED));
         Assertions.assertFalse(o1.containsEntityInSignature(IRI.create(OWL.topObjectProperty.getURI()), Imports.INCLUDED));
+
+        Assertions.assertTrue(o1.containsEntitiesOfTypeInSignature(EntityType.CLASS, Imports.INCLUDED));
+        Assertions.assertTrue(o1.containsEntitiesOfTypeInSignature(EntityType.DATATYPE, Imports.INCLUDED));
+        Assertions.assertTrue(o1.containsEntitiesOfTypeInSignature(EntityType.NAMED_INDIVIDUAL, Imports.INCLUDED));
+        Assertions.assertTrue(o1.containsEntitiesOfTypeInSignature(EntityType.OBJECT_PROPERTY, Imports.INCLUDED));
+        Assertions.assertTrue(o1.containsEntitiesOfTypeInSignature(EntityType.DATA_PROPERTY, Imports.INCLUDED));
+        Assertions.assertTrue(o1.containsEntitiesOfTypeInSignature(EntityType.ANNOTATION_PROPERTY, Imports.INCLUDED));
     }
 }

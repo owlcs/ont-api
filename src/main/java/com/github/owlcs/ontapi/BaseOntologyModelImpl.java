@@ -226,9 +226,9 @@ public abstract class BaseOntologyModelImpl implements OWLOntology, BaseOntology
     }
 
     /*
-     * =============================
-     * Methods to work with imports:
-     * =============================
+     * =================================
+     * Methods for working with imports:
+     * =================================
      */
 
     @Override
@@ -257,9 +257,9 @@ public abstract class BaseOntologyModelImpl implements OWLOntology, BaseOntology
     }
 
     /*
-     * ==========================
-     * To work with OWL-entities:
-     * ==========================
+     * ======================================
+     * Methods for working with OWL-entities:
+     * ======================================
      */
 
     @Override
@@ -400,6 +400,9 @@ public abstract class BaseOntologyModelImpl implements OWLOntology, BaseOntology
 
     @Override
     public Set<IRI> getPunnedIRIs(Imports imports) {
+        if (imports == Imports.INCLUDED && !config.useComponentCache()) {
+            return getFullGraphModel().listPunningIRIs(false).collect(Collectors.toSet());
+        }
         return base.listPunningIRIs(Imports.INCLUDED == imports).collect(Collectors.toSet());
     }
 
@@ -419,8 +422,24 @@ public abstract class BaseOntologyModelImpl implements OWLOntology, BaseOntology
     }
 
     @Override
+    public boolean containsClassInSignature(IRI iri, Imports imports) {
+        if (imports == Imports.INCLUDED && !config.useComponentCache()) {
+            return getFullGraphModel().containsOWLEntity(getDataFactory().getOWLClass(iri));
+        }
+        return imports.stream(this).anyMatch(o -> o.containsClassInSignature(iri));
+    }
+
+    @Override
     public boolean containsObjectPropertyInSignature(IRI iri) {
         return base.containsOWLEntity(getDataFactory().getOWLObjectProperty(iri));
+    }
+
+    @Override
+    public boolean containsObjectPropertyInSignature(IRI iri, Imports imports) {
+        if (imports == Imports.INCLUDED && !config.useComponentCache()) {
+            return getFullGraphModel().containsOWLEntity(getDataFactory().getOWLObjectProperty(iri));
+        }
+        return imports.stream(this).anyMatch(o -> o.containsObjectPropertyInSignature(iri));
     }
 
     @Override
@@ -429,8 +448,24 @@ public abstract class BaseOntologyModelImpl implements OWLOntology, BaseOntology
     }
 
     @Override
+    public boolean containsDataPropertyInSignature(IRI iri, Imports imports) {
+        if (imports == Imports.INCLUDED && !config.useComponentCache()) {
+            return getFullGraphModel().containsOWLEntity(getDataFactory().getOWLDataProperty(iri));
+        }
+        return imports.stream(this).anyMatch(o -> o.containsDataPropertyInSignature(iri));
+    }
+
+    @Override
     public boolean containsAnnotationPropertyInSignature(IRI iri) {
         return base.containsOWLEntity(getDataFactory().getOWLAnnotationProperty(iri));
+    }
+
+    @Override
+    public boolean containsAnnotationPropertyInSignature(IRI iri, Imports imports) {
+        if (imports == Imports.INCLUDED && !config.useComponentCache()) {
+            return getFullGraphModel().containsOWLEntity(getDataFactory().getOWLAnnotationProperty(iri));
+        }
+        return imports.stream(this).anyMatch(o -> o.containsAnnotationPropertyInSignature(iri));
     }
 
     @Override
@@ -439,8 +474,24 @@ public abstract class BaseOntologyModelImpl implements OWLOntology, BaseOntology
     }
 
     @Override
+    public boolean containsDatatypeInSignature(IRI iri, Imports imports) {
+        if (imports == Imports.INCLUDED && !config.useComponentCache()) {
+            return getFullGraphModel().containsOWLEntity(getDataFactory().getOWLDatatype(iri));
+        }
+        return imports.stream(this).anyMatch(o -> o.containsDatatypeInSignature(iri));
+    }
+
+    @Override
     public boolean containsIndividualInSignature(IRI iri) {
         return base.containsOWLEntity(getDataFactory().getOWLNamedIndividual(iri));
+    }
+
+    @Override
+    public boolean containsIndividualInSignature(IRI iri, Imports imports) {
+        if (imports == Imports.INCLUDED && !config.useComponentCache()) {
+            return getFullGraphModel().containsOWLEntity(getDataFactory().getOWLNamedIndividual(iri));
+        }
+        return imports.stream(this).anyMatch(o -> o.containsIndividualInSignature(iri));
     }
 
     @Override
@@ -451,6 +502,16 @@ public abstract class BaseOntologyModelImpl implements OWLOntology, BaseOntology
                 || containsIndividualInSignature(iri)
                 || containsDatatypeInSignature(iri)
                 || containsAnnotationPropertyInSignature(iri);
+    }
+
+    @Override
+    public boolean containsEntityInSignature(IRI entityIRI, Imports imports) {
+        return containsClassInSignature(entityIRI, imports)
+                || containsObjectPropertyInSignature(entityIRI, imports)
+                || containsDataPropertyInSignature(entityIRI, imports)
+                || containsIndividualInSignature(entityIRI, imports)
+                || containsDatatypeInSignature(entityIRI, imports)
+                || containsAnnotationPropertyInSignature(entityIRI, imports);
     }
 
     @Override
@@ -472,6 +533,29 @@ public abstract class BaseOntologyModelImpl implements OWLOntology, BaseOntology
         }
         if (entity.isOWLDataProperty()) {
             return containsDataPropertyInSignature(entity.getIRI());
+        }
+        throw new OntApiException.IllegalArgument("Unsupported entity: " + entity);
+    }
+
+    @Override
+    public boolean containsEntityInSignature(OWLEntity entity, Imports imports) {
+        if (entity.isOWLClass()) {
+            return containsClassInSignature(entity.getIRI(), imports);
+        }
+        if (entity.isOWLDatatype()) {
+            return containsDatatypeInSignature(entity.getIRI(), imports);
+        }
+        if (entity.isOWLNamedIndividual()) {
+            return containsIndividualInSignature(entity.getIRI(), imports);
+        }
+        if (entity.isOWLAnnotationProperty()) {
+            return containsAnnotationPropertyInSignature(entity.getIRI(), imports);
+        }
+        if (entity.isOWLObjectProperty()) {
+            return containsObjectPropertyInSignature(entity.getIRI(), imports);
+        }
+        if (entity.isOWLDataProperty()) {
+            return containsDataPropertyInSignature(entity.getIRI(), imports);
         }
         throw new OntApiException.IllegalArgument("Unsupported entity: " + entity);
     }
@@ -499,10 +583,33 @@ public abstract class BaseOntologyModelImpl implements OWLOntology, BaseOntology
         throw new IllegalArgumentException("Entity type " + type + " is not valid for entity presence check");
     }
 
+    @Override
+    public boolean containsEntitiesOfTypeInSignature(EntityType<?> type, Imports imports) {
+        if (EntityType.CLASS.equals(type)) {
+            return classesInSignature(imports).findFirst().isPresent();
+        }
+        if (EntityType.DATA_PROPERTY.equals(type)) {
+            return dataPropertiesInSignature(imports).findFirst().isPresent();
+        }
+        if (EntityType.OBJECT_PROPERTY.equals(type)) {
+            return objectPropertiesInSignature(imports).findFirst().isPresent();
+        }
+        if (EntityType.ANNOTATION_PROPERTY.equals(type)) {
+            return annotationPropertiesInSignature(imports).findFirst().isPresent();
+        }
+        if (EntityType.DATATYPE.equals(type)) {
+            return datatypesInSignature(imports).findFirst().isPresent();
+        }
+        if (EntityType.NAMED_INDIVIDUAL.equals(type)) {
+            return individualsInSignature(imports).findFirst().isPresent();
+        }
+        throw new IllegalArgumentException("Entity type " + type + " is not valid for entity presence check");
+    }
+
     /*
-     * =======================
-     * To work with OWL-Axioms
-     * =======================
+     * ===================================
+     * Methods for working with OWL-Axioms
+     * ===================================
      */
 
     @Override
@@ -1051,64 +1158,6 @@ public abstract class BaseOntologyModelImpl implements OWLOntology, BaseOntology
     }
 
     @Override
-    public boolean containsClassInSignature(IRI iri, Imports imports) {
-        if (imports == Imports.INCLUDED && !config.useComponentCache()) {
-            return getFullGraphModel().containsOWLEntity(getDataFactory().getOWLClass(iri));
-        }
-        return imports.stream(this).anyMatch(o -> o.containsClassInSignature(iri));
-    }
-
-    @Override
-    public boolean containsObjectPropertyInSignature(IRI iri, Imports imports) {
-        if (imports == Imports.INCLUDED && !config.useComponentCache()) {
-            return getFullGraphModel().containsOWLEntity(getDataFactory().getOWLObjectProperty(iri));
-        }
-        return imports.stream(this).anyMatch(o -> o.containsObjectPropertyInSignature(iri));
-    }
-
-    @Override
-    public boolean containsDataPropertyInSignature(IRI iri, Imports imports) {
-        if (imports == Imports.INCLUDED && !config.useComponentCache()) {
-            return getFullGraphModel().containsOWLEntity(getDataFactory().getOWLDataProperty(iri));
-        }
-        return imports.stream(this).anyMatch(o -> o.containsDataPropertyInSignature(iri));
-    }
-
-    @Override
-    public boolean containsAnnotationPropertyInSignature(IRI iri, Imports imports) {
-        if (imports == Imports.INCLUDED && !config.useComponentCache()) {
-            return getFullGraphModel().containsOWLEntity(getDataFactory().getOWLAnnotationProperty(iri));
-        }
-        return imports.stream(this).anyMatch(o -> o.containsAnnotationPropertyInSignature(iri));
-    }
-
-    @Override
-    public boolean containsDatatypeInSignature(IRI iri, Imports imports) {
-        if (imports == Imports.INCLUDED && !config.useComponentCache()) {
-            return getFullGraphModel().containsOWLEntity(getDataFactory().getOWLDatatype(iri));
-        }
-        return imports.stream(this).anyMatch(o -> o.containsDatatypeInSignature(iri));
-    }
-
-    @Override
-    public boolean containsIndividualInSignature(IRI iri, Imports imports) {
-        if (imports == Imports.INCLUDED && !config.useComponentCache()) {
-            return getFullGraphModel().containsOWLEntity(getDataFactory().getOWLNamedIndividual(iri));
-        }
-        return imports.stream(this).anyMatch(o -> o.containsIndividualInSignature(iri));
-    }
-
-    @Override
-    public boolean containsEntityInSignature(IRI entityIRI, Imports imports) {
-        return containsClassInSignature(entityIRI, imports)
-                || containsObjectPropertyInSignature(entityIRI, imports)
-                || containsDataPropertyInSignature(entityIRI, imports)
-                || containsIndividualInSignature(entityIRI, imports)
-                || containsDatatypeInSignature(entityIRI, imports)
-                || containsAnnotationPropertyInSignature(entityIRI, imports);
-    }
-
-    @Override
     public boolean containsAxiom(OWLAxiom axiom, Imports imports, AxiomAnnotations ignoreAnnotations) {
         return imports.stream(this).anyMatch(o -> ignoreAnnotations.contains(o, axiom));
     }
@@ -1347,8 +1396,8 @@ public abstract class BaseOntologyModelImpl implements OWLOntology, BaseOntology
     /**
      * Writes the object while serialization.
      * Note: only the base graph is serialized,
-     * so if you serialize and then de-serialize standalone ontology it will lose all its references,
-     * please use managers serialization, it will restore any links.
+     * so if you serialize and then deserialize standalone ontology, it will lose all its references,
+     * please use manager's serialization, it will restore any links.
      * Also, please note: an exception is expected if the encapsulated graph is not {@code  GraphMem}.
      *
      * @param out {@link ObjectOutputStream}
@@ -1368,7 +1417,6 @@ public abstract class BaseOntologyModelImpl implements OWLOntology, BaseOntology
 
     /**
      * Overridden {@link OWLObjectImpl#toString()} in order not to force the axioms loading.
-     * For brief information there should be a separate method and the original implementation of toString is not very good idea in our case.
      *
      * @return String
      */
