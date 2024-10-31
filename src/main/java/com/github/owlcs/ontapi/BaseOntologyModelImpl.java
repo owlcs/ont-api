@@ -391,6 +391,14 @@ public abstract class BaseOntologyModelImpl implements OWLOntology, BaseOntology
     }
 
     @Override
+    public Stream<OWLEntity> entitiesInSignature(IRI iri, Imports imports) {
+        if (imports == Imports.INCLUDED && !config.useComponentCache()) {
+            return getFullGraphModel().listOWLEntities(iri);
+        }
+        return imports.stream(this).flatMap(o -> o.entitiesInSignature(iri)).distinct().sorted();
+    }
+
+    @Override
     public Set<IRI> getPunnedIRIs(Imports imports) {
         return base.listPunningIRIs(Imports.INCLUDED == imports).collect(Collectors.toSet());
     }
@@ -1088,6 +1096,16 @@ public abstract class BaseOntologyModelImpl implements OWLOntology, BaseOntology
             return getFullGraphModel().containsOWLEntity(getDataFactory().getOWLNamedIndividual(iri));
         }
         return imports.stream(this).anyMatch(o -> o.containsIndividualInSignature(iri));
+    }
+
+    @Override
+    public boolean containsEntityInSignature(IRI entityIRI, Imports imports) {
+        return containsClassInSignature(entityIRI, imports)
+                || containsObjectPropertyInSignature(entityIRI, imports)
+                || containsDataPropertyInSignature(entityIRI, imports)
+                || containsIndividualInSignature(entityIRI, imports)
+                || containsDatatypeInSignature(entityIRI, imports)
+                || containsAnnotationPropertyInSignature(entityIRI, imports);
     }
 
     @Override

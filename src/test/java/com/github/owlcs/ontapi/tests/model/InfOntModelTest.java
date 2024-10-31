@@ -111,18 +111,36 @@ public class InfOntModelTest {
 
         Assertions.assertEquals(34, actual.stream().filter(it -> it instanceof OWLClass).count());
         Assertions.assertEquals(34, o1.classesInSignature(Imports.INCLUDED).count());
+
         Assertions.assertEquals(32, actual.stream().filter(it -> it instanceof OWLDatatype).count());
         Assertions.assertEquals(32, o1.datatypesInSignature(Imports.INCLUDED).count());
+
         Assertions.assertEquals(94, actual.stream().filter(it -> it instanceof OWLNamedIndividual).count());
         Assertions.assertEquals(94, o1.individualsInSignature(Imports.INCLUDED).count());
+
         Assertions.assertEquals(3, actual.stream().filter(it -> it instanceof OWLObjectProperty).count());
         Assertions.assertEquals(3, o1.objectPropertiesInSignature(Imports.INCLUDED).count());
+
         Assertions.assertEquals(2, actual.stream().filter(it -> it instanceof OWLDataProperty).count());
         Assertions.assertEquals(2, o1.dataPropertiesInSignature(Imports.INCLUDED).count());
+
         Assertions.assertEquals(7, actual.stream().filter(it -> it instanceof OWLAnnotationProperty).count());
         Assertions.assertEquals(7, o1.annotationPropertiesInSignature(Imports.INCLUDED).count());
 
         Assertions.assertEquals(2, o1.referencedAnonymousIndividuals(Imports.INCLUDED).count());
+
+        // class and named individual
+        Assertions.assertEquals(2, o1.entitiesInSignature(IRI.create("http://b#C2"), Imports.INCLUDED).count());
+        // datatype and named individual
+        Assertions.assertEquals(2, o1.entitiesInSignature(IRI.create(XSD.date.getURI()), Imports.INCLUDED).count());
+        // 1 named individual
+        Assertions.assertEquals(1, o1.entitiesInSignature(IRI.create("http://b#i2"), Imports.INCLUDED).count());
+        // object property + named individual
+        Assertions.assertEquals(2, o1.entitiesInSignature(IRI.create(OWL.sameAs.getURI()), Imports.INCLUDED).count());
+        // data property + named individual
+        Assertions.assertEquals(2, o1.entitiesInSignature(IRI.create("http://b#p1"), Imports.INCLUDED).count());
+        // annotation property + named individual
+        Assertions.assertEquals(2, o1.entitiesInSignature(IRI.create("http://a#p2"), Imports.INCLUDED).count());
     }
 
     @Test
@@ -189,23 +207,37 @@ public class InfOntModelTest {
 
         Assertions.assertTrue(o1.containsClassInSignature(IRI.create("http://b#C1"), Imports.INCLUDED));
         Assertions.assertTrue(o1.containsClassInSignature(df.getOWLThing().getIRI(), Imports.INCLUDED));
+        Assertions.assertTrue(o1.containsEntityInSignature(df.getOWLThing().getIRI(), Imports.INCLUDED));
         Assertions.assertFalse(o1.containsClassInSignature(IRI.create("http://a#C3"), Imports.INCLUDED));
+        Assertions.assertFalse(o1.containsEntityInSignature(IRI.create("http://a#C3"), Imports.INCLUDED));
 
         Assertions.assertTrue(o1.containsDatatypeInSignature(IRI.create(XSD.unsignedInt.getURI()), Imports.INCLUDED));
+        Assertions.assertTrue(o1.containsEntityInSignature(IRI.create(XSD.unsignedInt.getURI()), Imports.INCLUDED));
         Assertions.assertFalse(o1.containsDatatypeInSignature(IRI.create(OWL.Nothing.getURI()), Imports.INCLUDED));
+        Assertions.assertTrue(o1.containsEntityInSignature(IRI.create(OWL.Nothing.getURI()), Imports.INCLUDED));
 
         Assertions.assertTrue(o1.containsIndividualInSignature(IRI.create("http://b#i1"), Imports.INCLUDED));
         Assertions.assertTrue(o1.containsIndividualInSignature(IRI.create("http://a#i2"), Imports.INCLUDED));
         Assertions.assertTrue(o1.containsIndividualInSignature(IRI.create(OWL.NamedIndividual.getURI()), Imports.INCLUDED));
         Assertions.assertTrue(o1.containsIndividualInSignature(IRI.create(OWL.Thing.getURI()), Imports.INCLUDED));
+        Assertions.assertTrue(o1.containsEntityInSignature(IRI.create("http://b#i1"), Imports.INCLUDED));
+        Assertions.assertTrue(o1.containsEntityInSignature(IRI.create("http://a#i2"), Imports.INCLUDED));
+        Assertions.assertTrue(o1.containsEntityInSignature(IRI.create(OWL.NamedIndividual.getURI()), Imports.INCLUDED));
+        Assertions.assertTrue(o1.containsEntityInSignature(IRI.create(OWL.Thing.getURI()), Imports.INCLUDED));
 
         Assertions.assertTrue(o1.containsDataPropertyInSignature(IRI.create("http://b#p1"), Imports.INCLUDED));
+        Assertions.assertTrue(o1.containsEntityInSignature(IRI.create("http://b#p1"), Imports.INCLUDED));
         Assertions.assertFalse(o1.containsDatatypeInSignature(IRI.create(OWL.bottomDataProperty.getURI()), Imports.INCLUDED));
+        Assertions.assertFalse(o1.containsEntityInSignature(IRI.create(OWL.bottomDataProperty.getURI()), Imports.INCLUDED));
 
         Assertions.assertTrue(o1.containsObjectPropertyInSignature(IRI.create(OWL.disjointWith.getURI()), Imports.INCLUDED));
+        Assertions.assertTrue(o1.containsEntityInSignature(IRI.create(OWL.disjointWith.getURI()), Imports.INCLUDED));
         Assertions.assertFalse(o1.containsObjectPropertyInSignature(IRI.create(OWL.topObjectProperty.getURI()), Imports.INCLUDED));
+        Assertions.assertFalse(o1.containsEntityInSignature(IRI.create(OWL.topObjectProperty.getURI()), Imports.INCLUDED));
 
         Assertions.assertTrue(o1.containsAnnotationPropertyInSignature(IRI.create(RDFS.isDefinedBy.getURI()), Imports.INCLUDED));
+        Assertions.assertTrue(o1.containsEntityInSignature(IRI.create(RDFS.isDefinedBy.getURI()), Imports.INCLUDED));
         Assertions.assertFalse(o1.containsAnnotationPropertyInSignature(IRI.create(OWL.topObjectProperty.getURI()), Imports.INCLUDED));
+        Assertions.assertFalse(o1.containsEntityInSignature(IRI.create(OWL.topObjectProperty.getURI()), Imports.INCLUDED));
     }
 }
