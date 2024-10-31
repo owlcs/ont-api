@@ -515,6 +515,14 @@ public abstract class BaseOntologyModelImpl implements OWLOntology, BaseOntology
         return base.listOWLAxioms(axiomType);
     }
 
+    @Override
+    public <T extends OWLAxiom> Stream<T> axioms(AxiomType<T> axiomType, Imports imports) {
+        if (imports == Imports.INCLUDED && !config.useContentCache()) {
+            return getFullGraphModel().listOWLAxioms(axiomType);
+        }
+        return imports.stream(this).flatMap(o -> o.axioms(axiomType));
+    }
+
     /**
      * Gets the axioms that form the definition/description of a class.
      * The results include:
@@ -932,6 +940,14 @@ public abstract class BaseOntologyModelImpl implements OWLOntology, BaseOntology
     }
 
     @Override
+    public Stream<OWLLogicalAxiom> logicalAxioms(Imports imports) {
+        if (imports == Imports.INCLUDED && !config.useContentCache()) {
+            return getFullGraphModel().listOWLLogicalAxioms();
+        }
+        return imports.stream(this).flatMap(OWLOntology::logicalAxioms);
+    }
+
+    @Override
     public Stream<OWLClassAxiom> generalClassAxioms() {
         Stream<OWLSubClassOfAxiom> subClassOfAxioms = base.listOWLAxioms(OWLSubClassOfAxiom.class)
                 .filter(a -> a.getSubClass().isAnonymous());
@@ -978,13 +994,37 @@ public abstract class BaseOntologyModelImpl implements OWLOntology, BaseOntology
     }
 
     @Override
+    public int getAxiomCount(Imports imports) {
+        if (imports == Imports.INCLUDED && !config.useContentCache()) {
+            return (int) getFullGraphModel().getOWLAxiomCount();
+        }
+        return imports.stream(this).mapToInt(OWLAxiomCollection::getAxiomCount).sum();
+    }
+
+    @Override
     public <T extends OWLAxiom> int getAxiomCount(AxiomType<T> axiomType) {
         return (int) axioms(axiomType).count();
     }
 
     @Override
+    public <T extends OWLAxiom> int getAxiomCount(AxiomType<T> axiomType, Imports imports) {
+        if (imports == Imports.INCLUDED && !config.useContentCache()) {
+            return (int) getFullGraphModel().listOWLAxioms(axiomType).count();
+        }
+        return imports.stream(this).mapToInt(o -> o.getAxiomCount(axiomType)).sum();
+    }
+
+    @Override
     public int getLogicalAxiomCount() {
         return (int) logicalAxioms().count();
+    }
+
+    @Override
+    public int getLogicalAxiomCount(Imports imports) {
+        if (imports == Imports.INCLUDED && !config.useContentCache()) {
+            return (int) getFullGraphModel().listOWLLogicalAxioms().count();
+        }
+        return imports.stream(this).mapToInt(OWLAxiomCollection::getLogicalAxiomCount).sum();
     }
 
     @Override
@@ -1074,21 +1114,6 @@ public abstract class BaseOntologyModelImpl implements OWLOntology, BaseOntology
             return axiomsIgnoreAnnotations(axiom);
         }
         return imports.stream(this).flatMap(o -> o.axiomsIgnoreAnnotations(axiom));
-    }
-
-    @Override
-    public int getAxiomCount(Imports imports) {
-        return imports.stream(this).mapToInt(OWLAxiomCollection::getAxiomCount).sum();
-    }
-
-    @Override
-    public <T extends OWLAxiom> int getAxiomCount(AxiomType<T> axiomType, Imports imports) {
-        return imports.stream(this).mapToInt(o -> o.getAxiomCount(axiomType)).sum();
-    }
-
-    @Override
-    public int getLogicalAxiomCount(Imports imports) {
-        return imports.stream(this).mapToInt(OWLAxiomCollection::getLogicalAxiomCount).sum();
     }
 
     /*

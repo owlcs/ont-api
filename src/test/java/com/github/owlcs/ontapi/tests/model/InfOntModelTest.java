@@ -11,6 +11,7 @@ import org.apache.jena.vocabulary.RDFS;
 import org.apache.jena.vocabulary.XSD;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAnnotationProperty;
 import org.semanticweb.owlapi.model.OWLAnnotationPropertyRangeAxiom;
@@ -20,6 +21,8 @@ import org.semanticweb.owlapi.model.OWLDataProperty;
 import org.semanticweb.owlapi.model.OWLDatatype;
 import org.semanticweb.owlapi.model.OWLDeclarationAxiom;
 import org.semanticweb.owlapi.model.OWLEntity;
+import org.semanticweb.owlapi.model.OWLEquivalentClassesAxiom;
+import org.semanticweb.owlapi.model.OWLLogicalAxiom;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
 import org.semanticweb.owlapi.model.OWLSubAnnotationPropertyOfAxiom;
@@ -31,7 +34,7 @@ import java.util.Objects;
 public class InfOntModelTest {
 
     @Test
-    void testListAllAxioms() {
+    void testListAllAxiomsAndGetCounts() {
         OntologyManager om = OntManagers.createDirectManager();
         om.getOntologyConfigurator().setSpecification(OntSpecification.OWL2_FULL_MEM_RDFS_INF);
 
@@ -39,8 +42,10 @@ public class InfOntModelTest {
         OntModel m2 = om.createGraphModel("http://b#B");
         m1.addImport(m2);
 
-        m2.createOntClass("http://b#C1");
-        m2.createOntClass("http://b#C2");
+        m2.createOntClass("http://b#C1")
+                .addEquivalentClass(
+                        m2.createOntClass("http://b#C2")
+                );
         m1.createOntClass("http://a#C1");
 
         Ontology o1 = Objects.requireNonNull(om.getOntology(IRI.create("http://a#A")));
@@ -49,16 +54,34 @@ public class InfOntModelTest {
         // Declaration(Class(<http://b#C2>))
         // Declaration(Class(<http://b#C1>))
         // Declaration(Datatype(rdf:XMLLiteral))
+        // EquivalentClasses(<http://b#C1> <http://b#C2>)
         // SubAnnotationPropertyOf(rdfs:isDefinedBy rdfs:isDefinedBy)
         // SubAnnotationPropertyOf(rdfs:isDefinedBy rdfs:seeAlso)
         // SubAnnotationPropertyOf(rdfs:seeAlso rdfs:seeAlso)
         // AnnotationPropertyRange(rdfs:label <http://www.w3.org/2000/01/rdf-schema#Literal>)
         // AnnotationPropertyRange(rdfs:comment <http://www.w3.org/2000/01/rdf-schema#Literal>)
-        List<OWLAxiom> actual = o1.axioms(Imports.INCLUDED).toList();
-        Assertions.assertEquals(9, actual.size());
-        Assertions.assertEquals(4, actual.stream().filter(it -> it instanceof OWLDeclarationAxiom).count());
-        Assertions.assertEquals(3, actual.stream().filter(it -> it instanceof OWLSubAnnotationPropertyOfAxiom).count());
-        Assertions.assertEquals(2, actual.stream().filter(it -> it instanceof OWLAnnotationPropertyRangeAxiom).count());
+        List<OWLAxiom> actual1 = o1.axioms(Imports.INCLUDED).toList();
+        Assertions.assertEquals(10, actual1.size());
+        Assertions.assertEquals(4, actual1.stream().filter(it -> it instanceof OWLDeclarationAxiom).count());
+        Assertions.assertEquals(3, actual1.stream().filter(it -> it instanceof OWLSubAnnotationPropertyOfAxiom).count());
+        Assertions.assertEquals(2, actual1.stream().filter(it -> it instanceof OWLAnnotationPropertyRangeAxiom).count());
+        Assertions.assertEquals(1, actual1.stream().filter(it -> it instanceof OWLEquivalentClassesAxiom).count());
+
+        Assertions.assertEquals(4, o1.axioms(AxiomType.DECLARATION, Imports.INCLUDED).count());
+        Assertions.assertEquals(3, o1.axioms(AxiomType.SUB_ANNOTATION_PROPERTY_OF, Imports.INCLUDED).count());
+        Assertions.assertEquals(2, o1.axioms(AxiomType.ANNOTATION_PROPERTY_RANGE, Imports.INCLUDED).count());
+        Assertions.assertEquals(1, o1.axioms(AxiomType.EQUIVALENT_CLASSES, Imports.INCLUDED).count());
+
+        List<OWLLogicalAxiom> actual2 = o1.logicalAxioms(Imports.INCLUDED).toList();
+        Assertions.assertEquals(1, actual2.size());
+
+        Assertions.assertEquals(10, o1.getAxiomCount(Imports.INCLUDED));
+        Assertions.assertEquals(1, o1.getLogicalAxiomCount(Imports.INCLUDED));
+
+        Assertions.assertEquals(4, o1.getAxiomCount(AxiomType.DECLARATION, Imports.INCLUDED));
+        Assertions.assertEquals(3, o1.getAxiomCount(AxiomType.SUB_ANNOTATION_PROPERTY_OF, Imports.INCLUDED));
+        Assertions.assertEquals(2, o1.getAxiomCount(AxiomType.ANNOTATION_PROPERTY_RANGE, Imports.INCLUDED));
+        Assertions.assertEquals(1, o1.getAxiomCount(AxiomType.EQUIVALENT_CLASSES, Imports.INCLUDED));
     }
 
     @Test
