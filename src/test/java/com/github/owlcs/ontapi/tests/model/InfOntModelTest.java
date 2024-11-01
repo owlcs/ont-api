@@ -1,10 +1,13 @@
 package com.github.owlcs.ontapi.tests.model;
 
+import com.github.owlcs.ontapi.BlankNodeId;
 import com.github.owlcs.ontapi.DataFactory;
 import com.github.owlcs.ontapi.OntManagers;
 import com.github.owlcs.ontapi.Ontology;
 import com.github.owlcs.ontapi.OntologyManager;
 import org.apache.jena.ontapi.OntSpecification;
+import org.apache.jena.ontapi.model.OntDataRange;
+import org.apache.jena.ontapi.model.OntIndividual;
 import org.apache.jena.ontapi.model.OntModel;
 import org.apache.jena.vocabulary.OWL;
 import org.apache.jena.vocabulary.RDFS;
@@ -83,6 +86,78 @@ public class InfOntModelTest {
         Assertions.assertEquals(3, o1.getAxiomCount(AxiomType.SUB_ANNOTATION_PROPERTY_OF, Imports.INCLUDED));
         Assertions.assertEquals(2, o1.getAxiomCount(AxiomType.ANNOTATION_PROPERTY_RANGE, Imports.INCLUDED));
         Assertions.assertEquals(1, o1.getAxiomCount(AxiomType.EQUIVALENT_CLASSES, Imports.INCLUDED));
+    }
+
+    @Test
+    void testListAxiomsByObject() {
+        OntologyManager om = OntManagers.createDirectManager();
+        DataFactory df = om.getOWLDataFactory();
+        om.getOntologyConfigurator().setSpecification(OntSpecification.OWL2_FULL_MEM_MICRO_RULES_INF);
+
+        OntModel m1 = om.createGraphModel("http://a#A");
+        OntModel m2 = om.createGraphModel("http://b#B");
+        m1.addImport(m2);
+
+        m2.createOntClass("http://b#C1")
+                .addEquivalentClass(
+                        m2.createOntClass("http://b#C2")
+                );
+        m1.createOntClass("http://a#C1");
+
+        m2.createIndividual("http://b#i1");
+        m1.createOntClass("http://a#C1");
+        m1.createObjectProperty("http://a#p2");
+        m1.createAnnotationProperty("http://a#p3").addSubProperty(
+                m1.createAnnotationProperty("http://a#p4")
+        );
+        m1.createDataProperty("http://a#p3").addSubProperty(
+                m2.createDataProperty("http://b#p1")
+        );
+        OntIndividual i1 = m1.createIndividual("http://b#i1", m2.getOntClass("http://b#C2"));
+        OntIndividual i2 = m2.createIndividual(null, m2.getOntClass("http://b#C1"));
+        i1.addSameAsStatement(i2);
+        OntDataRange d1 = m2.createDataOneOf(m2.createTypedLiteral(1), m2.createTypedLiteral(2));
+        OntDataRange d2 = m1.createDatatype("1&2").addEquivalentClass(d1);
+
+        Ontology o1 = Objects.requireNonNull(om.getOntology(IRI.create("http://a#A")));
+
+        // SubClassOf(<http://b#C2> <http://b#C1>)
+        // SubClassOf(<http://b#C2> owl:Thing)
+        // SubClassOf(<http://b#C2> <http://b#C2>)
+        // SubClassOf(<http://b#C2> rdfs:Resource)
+        // EquivalentClasses(<http://b#C1> <http://b#C2>)
+        // EquivalentClasses(<http://b#C2>)
+        // EquivalentClasses(<http://b#C1> <http://b#C2>)
+        // EquivalentClasses(<http://b#C2>)
+        Assertions.assertEquals(8, o1.axioms(df.getOWLClass("http://b#C2"), Imports.INCLUDED).count());
+
+        // ObjectPropertyDomain(<http://a#p2> owl:Thing)
+        // ObjectPropertyDomain(<http://a#p2> rdfs:Resource)
+        // ObjectPropertyRange(<http://a#p2> owl:Thing)
+        // ObjectPropertyRange(<http://a#p2> rdfs:Resource)
+        Assertions.assertEquals(4, o1.axioms(df.getOWLObjectProperty("http://a#p2"), Imports.INCLUDED).count());
+
+        // SubDataPropertyOf(<http://b#p1> <http://a#p3>)
+        // SubDataPropertyOf(<http://b#p1> <http://b#p1>)
+        // EquivalentDataProperties(<http://b#p1>)
+        Assertions.assertEquals(3, o1.axioms(df.getOWLDataProperty("http://b#p1"), Imports.INCLUDED).count());
+
+        // SubAnnotationPropertyOf(<http://a#p4> <http://a#p3>)
+        // SubAnnotationPropertyOf(<http://a#p4> <http://a#p4>)
+        Assertions.assertEquals(2, o1.axioms(df.getOWLAnnotationProperty("http://a#p4"), Imports.INCLUDED).count());
+
+        // ClassAssertion(<http://b#C1> _:c9613ce1-e0bd-4e2c-8855-cffc04961da4)
+        // ClassAssertion(<http://b#C2> _:c9613ce1-e0bd-4e2c-8855-cffc04961da4)
+        // ClassAssertion(owl:Thing _:c9613ce1-e0bd-4e2c-8855-cffc04961da4)
+        // ClassAssertion(rdfs:Resource _:c9613ce1-e0bd-4e2c-8855-cffc04961da4)
+        // SameIndividual(<http://b#i1> _:c9613ce1-e0bd-4e2c-8855-cffc04961da4)
+        // SameIndividual(<http://b#i1> _:c9613ce1-e0bd-4e2c-8855-cffc04961da4)
+        // ObjectPropertyAssertion(owl:sameAs _:c9613ce1-e0bd-4e2c-8855-cffc04961da4 <http://b#i1>)
+        Assertions.assertEquals(7, o1.axioms(df.getOWLAnonymousIndividual(BlankNodeId.of(i2.asNode())), Imports.INCLUDED).count());
+
+        // DatatypeDefinition(<1&2> DataOneOf("1"^^xsd:int "2"^^xsd:int))
+        // DatatypeDefinition(<1&2> <1&2>)
+        Assertions.assertEquals(2, o1.axioms(df.getOWLDatatype(d2.getURI()), Imports.INCLUDED).count());
     }
 
     @Test

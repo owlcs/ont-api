@@ -654,10 +654,22 @@ public abstract class BaseOntologyModelImpl implements OWLOntology, BaseOntology
      */
     @Override
     public Stream<OWLClassAxiom> axioms(OWLClass clazz) {
-        Stream<? extends OWLClassAxiom> subClassOf = base.listOWLSubClassOfAxiomsBySubject(clazz);
-        Stream<? extends OWLClassAxiom> disjointUnion = base.listOWLDisjointUnionAxioms(clazz);
-        Stream<? extends OWLClassAxiom> disjoint = base.listOWLDisjointClassesAxioms(clazz);
-        Stream<? extends OWLClassAxiom> equivalent = base.listOWLEquivalentClassesAxioms(clazz);
+        return listOWLAxioms(base, clazz);
+    }
+
+    @Override
+    public Stream<OWLClassAxiom> axioms(OWLClass clazz, Imports imports) {
+        if (imports == Imports.INCLUDED && !config.useContentCache()) {
+            return listOWLAxioms(getFullGraphModel(), clazz);
+        }
+        return imports.stream(this).flatMap(o -> o.axioms(clazz));
+    }
+
+    private static Stream<OWLClassAxiom> listOWLAxioms(InternalGraphModel model, OWLClass clazz) {
+        Stream<? extends OWLClassAxiom> subClassOf = model.listOWLSubClassOfAxiomsBySubject(clazz);
+        Stream<? extends OWLClassAxiom> disjointUnion = model.listOWLDisjointUnionAxioms(clazz);
+        Stream<? extends OWLClassAxiom> disjoint = model.listOWLDisjointClassesAxioms(clazz);
+        Stream<? extends OWLClassAxiom> equivalent = model.listOWLEquivalentClassesAxioms(clazz);
         return Stream.of(subClassOf, disjointUnion, disjoint, equivalent).flatMap(Function.identity());
     }
 
@@ -674,28 +686,39 @@ public abstract class BaseOntologyModelImpl implements OWLOntology, BaseOntology
      * <li>7) Any property characteristic axiom (i.e. Functional, Symmetric, Reflexive etc.) whose subject is the specified property</li>
      * <li>8) Inverse properties axioms that contain the specified property</li>
      * </ul>
-     * <b>Note: either condition *3* or OWL-API-5.1.4 implementation (owlapi-impl) are wrong as shown by tests.</b>
      *
      * @param property The property whose defining axioms are to be retrieved
      * @return A {@code Stream} of object property axioms that describe the specified property
      */
     @Override
     public Stream<OWLObjectPropertyAxiom> axioms(OWLObjectPropertyExpression property) {
-        Stream<? extends OWLObjectPropertyAxiom> subPropertyOf = base.listOWLSubObjectPropertyOfAxiomsBySubject(property);
+        return listOWLAxioms(base, property);
+    }
+
+    @Override
+    public Stream<OWLObjectPropertyAxiom> axioms(OWLObjectPropertyExpression property, Imports imports) {
+        if (imports == Imports.INCLUDED && !config.useContentCache()) {
+            return listOWLAxioms(getFullGraphModel(), property);
+        }
+        return imports.stream(this).flatMap(o -> o.axioms(property));
+    }
+
+    private static Stream<OWLObjectPropertyAxiom> listOWLAxioms(InternalGraphModel model, OWLObjectPropertyExpression property) {
+        Stream<? extends OWLObjectPropertyAxiom> subPropertyOf = model.listOWLSubObjectPropertyOfAxiomsBySubject(property);
         Stream<? extends OWLObjectPropertyAxiom> nary = Stream.of(
-                base.listOWLEquivalentObjectPropertiesAxioms(property),
-                base.listOWLDisjointObjectPropertiesAxioms(property),
-                base.listOWLInverseObjectPropertiesAxioms(property)).flatMap(Function.identity());
+                model.listOWLEquivalentObjectPropertiesAxioms(property),
+                model.listOWLDisjointObjectPropertiesAxioms(property),
+                model.listOWLInverseObjectPropertiesAxioms(property)).flatMap(Function.identity());
         Stream<? extends OWLObjectPropertyAxiom> unary = Stream.of(
-                base.listOWLObjectPropertyDomainAxioms(property),
-                base.listOWLObjectPropertyRangeAxioms(property),
-                base.listOWLTransitiveObjectPropertyAxioms(property),
-                base.listOWLIrreflexiveObjectPropertyAxioms(property),
-                base.listOWLReflexiveObjectPropertyAxioms(property),
-                base.listOWLSymmetricObjectPropertyAxioms(property),
-                base.listOWLAsymmetricObjectPropertyAxioms(property),
-                base.listOWLFunctionalObjectPropertyAxioms(property),
-                base.listOWLInverseFunctionalObjectPropertyAxioms(property)).flatMap(Function.identity());
+                model.listOWLObjectPropertyDomainAxioms(property),
+                model.listOWLObjectPropertyRangeAxioms(property),
+                model.listOWLTransitiveObjectPropertyAxioms(property),
+                model.listOWLIrreflexiveObjectPropertyAxioms(property),
+                model.listOWLReflexiveObjectPropertyAxioms(property),
+                model.listOWLSymmetricObjectPropertyAxioms(property),
+                model.listOWLAsymmetricObjectPropertyAxioms(property),
+                model.listOWLFunctionalObjectPropertyAxioms(property),
+                model.listOWLInverseFunctionalObjectPropertyAxioms(property)).flatMap(Function.identity());
         return Stream.of(subPropertyOf, nary, unary).flatMap(Function.identity());
     }
 
@@ -716,14 +739,26 @@ public abstract class BaseOntologyModelImpl implements OWLOntology, BaseOntology
      */
     @Override
     public Stream<OWLDataPropertyAxiom> axioms(OWLDataProperty property) {
-        Stream<? extends OWLDataPropertyAxiom> subPropertyOf = base.listOWLSubDataPropertyOfAxiomsBySubject(property);
+        return listOWLAxioms(base, property);
+    }
+
+    @Override
+    public Stream<OWLDataPropertyAxiom> axioms(OWLDataProperty property, Imports imports) {
+        if (imports == Imports.INCLUDED && !config.useContentCache()) {
+            return listOWLAxioms(getFullGraphModel(), property);
+        }
+        return imports.stream(this).flatMap(o -> o.axioms(property));
+    }
+
+    private static Stream<OWLDataPropertyAxiom> listOWLAxioms(InternalGraphModel model, OWLDataProperty property) {
+        Stream<? extends OWLDataPropertyAxiom> subPropertyOf = model.listOWLSubDataPropertyOfAxiomsBySubject(property);
         Stream<? extends OWLDataPropertyAxiom> nary = Stream.of(
-                base.listOWLEquivalentDataPropertiesAxioms(property),
-                base.listOWLDisjointDataPropertiesAxioms(property)).flatMap(Function.identity());
+                model.listOWLEquivalentDataPropertiesAxioms(property),
+                model.listOWLDisjointDataPropertiesAxioms(property)).flatMap(Function.identity());
         Stream<? extends OWLDataPropertyAxiom> unary = Stream.of(
-                base.listOWLDataPropertyDomainAxioms(property),
-                base.listOWLDataPropertyRangeAxioms(property),
-                base.listOWLFunctionalDataPropertyAxioms(property)).flatMap(Function.identity());
+                model.listOWLDataPropertyDomainAxioms(property),
+                model.listOWLDataPropertyRangeAxioms(property),
+                model.listOWLFunctionalDataPropertyAxioms(property)).flatMap(Function.identity());
         return Stream.of(subPropertyOf, nary, unary).flatMap(Function.identity());
     }
 
@@ -741,10 +776,22 @@ public abstract class BaseOntologyModelImpl implements OWLOntology, BaseOntology
      */
     @Override
     public Stream<OWLAnnotationAxiom> axioms(OWLAnnotationProperty property) {
+        return listOWLAxioms(base, property);
+    }
+
+    @Override
+    public Stream<OWLAnnotationAxiom> axioms(OWLAnnotationProperty property, Imports imports) {
+        if (imports == Imports.INCLUDED && !config.useContentCache()) {
+            return listOWLAxioms(getFullGraphModel(), property);
+        }
+        return imports.stream(this).flatMap(o -> o.axioms(property));
+    }
+
+    private static Stream<OWLAnnotationAxiom> listOWLAxioms(InternalGraphModel model, OWLAnnotationProperty property) {
         return Stream.of(
-                base.listOWLSubAnnotationPropertyOfAxiomsBySubject(property),
-                base.listOWLAnnotationPropertyDomainAxioms(property),
-                base.listOWLAnnotationPropertyRangeAxioms(property)).flatMap(Function.identity());
+                model.listOWLSubAnnotationPropertyOfAxiomsBySubject(property),
+                model.listOWLAnnotationPropertyDomainAxioms(property),
+                model.listOWLAnnotationPropertyRangeAxioms(property)).flatMap(Function.identity());
     }
 
     /**
@@ -765,20 +812,40 @@ public abstract class BaseOntologyModelImpl implements OWLOntology, BaseOntology
      */
     @Override
     public Stream<OWLIndividualAxiom> axioms(OWLIndividual individual) {
-        Stream<? extends OWLIndividualAxiom> classAssertion = base.listOWLClassAssertionAxioms(individual);
-        Stream<? extends OWLIndividualAxiom> nary = Stream.concat(base.listOWLSameIndividualAxioms(individual),
-                base.listOWLDifferentIndividualsAxioms(individual));
+        return listOWLAxioms(base, individual);
+    }
+
+    @Override
+    public Stream<OWLIndividualAxiom> axioms(OWLIndividual individual, Imports imports) {
+        if (imports == Imports.INCLUDED && !config.useContentCache()) {
+            return listOWLAxioms(getFullGraphModel(), individual);
+        }
+        return imports.stream(this).flatMap(o -> o.axioms(individual));
+    }
+
+    private static Stream<OWLIndividualAxiom> listOWLAxioms(InternalGraphModel model, OWLIndividual individual) {
+        Stream<? extends OWLIndividualAxiom> classAssertion = model.listOWLClassAssertionAxioms(individual);
+        Stream<? extends OWLIndividualAxiom> nary = Stream.concat(model.listOWLSameIndividualAxioms(individual),
+                model.listOWLDifferentIndividualsAxioms(individual));
         Stream<? extends OWLIndividualAxiom> propertyAssertion = Stream.of(
-                base.listOWLObjectPropertyAssertionAxioms(individual),
-                base.listOWLDataPropertyAssertionAxioms(individual),
-                base.listOWLNegativeObjectPropertyAssertionAxioms(individual),
-                base.listOWLNegativeDataPropertyAssertionAxioms(individual)).flatMap(Function.identity());
+                model.listOWLObjectPropertyAssertionAxioms(individual),
+                model.listOWLDataPropertyAssertionAxioms(individual),
+                model.listOWLNegativeObjectPropertyAssertionAxioms(individual),
+                model.listOWLNegativeDataPropertyAssertionAxioms(individual)).flatMap(Function.identity());
         return Stream.of(classAssertion, nary, propertyAssertion).flatMap(Function.identity());
     }
 
     @Override
     public Stream<OWLDatatypeDefinitionAxiom> axioms(OWLDatatype datatype) {
         return base.listOWLDatatypeDefinitionAxioms(datatype);
+    }
+
+    @Override
+    public Stream<OWLDatatypeDefinitionAxiom> axioms(OWLDatatype datatype, Imports imports) {
+        if (imports == Imports.INCLUDED && !config.useContentCache()) {
+            return getFullGraphModel().listOWLDatatypeDefinitionAxioms(datatype);
+        }
+        return imports.stream(this).flatMap(o -> o.axioms(datatype));
     }
 
     @SuppressWarnings("unchecked")
@@ -791,7 +858,7 @@ public abstract class BaseOntologyModelImpl implements OWLOntology, BaseOntology
      * The generic search method: results all axioms which refer the given object.
      * This method may walk over the whole axiom cache in the {@link #base internal model} or read graph directly,
      * as it sees fit.
-     * Functionally it differs from the original OWL-API method: it can handle a wider class of cases.
+     * Functionally, it differs from the original OWL-API method: it can handle a wider class of cases.
      * For internal usage only.
      *
      * @param type     {@link Class Class&lt;OWLAxiom&gt;}, not null, type of axiom
