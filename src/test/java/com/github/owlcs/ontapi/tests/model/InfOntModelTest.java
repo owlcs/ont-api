@@ -30,7 +30,10 @@ import org.semanticweb.owlapi.model.OWLLogicalAxiom;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
 import org.semanticweb.owlapi.model.OWLSubAnnotationPropertyOfAxiom;
+import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
 import org.semanticweb.owlapi.model.parameters.Imports;
+import org.semanticweb.owlapi.model.parameters.Navigation;
+import org.semanticweb.owlapi.search.Filters;
 
 import java.util.List;
 import java.util.Objects;
@@ -158,6 +161,94 @@ public class InfOntModelTest {
         // DatatypeDefinition(<1&2> DataOneOf("1"^^xsd:int "2"^^xsd:int))
         // DatatypeDefinition(<1&2> <1&2>)
         Assertions.assertEquals(2, o1.axioms(df.getOWLDatatype(d2.getURI()), Imports.INCLUDED).count());
+    }
+
+    @Test
+    void testListAxiomsByFilter() {
+        OntologyManager om = OntManagers.createDirectManager();
+        DataFactory df = om.getOWLDataFactory();
+        om.getOntologyConfigurator().setSpecification(OntSpecification.OWL2_FULL_MEM_MINI_RULES_INF);
+
+        OntModel m1 = om.createGraphModel("http://a#A");
+        OntModel m2 = om.createGraphModel("http://b#B");
+        m1.addImport(m2);
+
+        m2.createOntClass("http://a#C1")
+                .addSuperClass(
+                        m2.createOntClass("http://b#C2")
+                ).addSuperClass(
+                        m2.createOntClass("http://b#C3")
+                                .addSuperClass(m2.createOntClass("http://b#C4"))
+                );
+        m1.createOntClass("http://a#C1");
+
+        Ontology o1 = Objects.requireNonNull(om.getOntology(IRI.create("http://a#A")));
+
+        // SubClassOf(<http://b#C2> <http://b#C2>)
+        // SubClassOf(<http://a#C1> <http://b#C2>)
+        Assertions.assertEquals(2,
+                o1.axioms(Filters.subClassWithSuper, df.getOWLClass(IRI.create("http://b#C2")), Imports.INCLUDED).count()
+        );
+
+        // SubClassOf(<http://a#C1> <http://a#C1>)
+        // SubClassOf(<http://a#C1> owl:Thing)
+        // SubClassOf(<http://a#C1> rdfs:Resource)
+        // SubClassOf(<http://a#C1> <http://b#C3>)
+        // SubClassOf(<http://a#C1> <http://b#C2>)
+        // SubClassOf(<http://a#C1> <http://b#C4>)
+        Assertions.assertEquals(6,
+                o1.axioms(Filters.subClassWithSub, df.getOWLClass(IRI.create("http://a#C1")), Imports.INCLUDED).count()
+        );
+    }
+
+    @Test
+    void testListAxiomsByObjectAndPosition() {
+        OntologyManager om = OntManagers.createDirectManager();
+        DataFactory df = om.getOWLDataFactory();
+        om.getOntologyConfigurator().setSpecification(OntSpecification.OWL2_FULL_MEM_MINI_RULES_INF);
+
+        OntModel m1 = om.createGraphModel("http://a#A");
+        OntModel m2 = om.createGraphModel("http://b#B");
+        m1.addImport(m2);
+
+        m2.createOntClass("http://a#C1")
+                .addSuperClass(
+                        m2.createOntClass("http://b#C2")
+                ).addSuperClass(
+                        m2.createOntClass("http://b#C3")
+                                .addSuperClass(m2.createOntClass("http://b#C4"))
+                );
+        m1.createOntClass("http://a#C1");
+
+        Ontology o1 = Objects.requireNonNull(om.getOntology(IRI.create("http://a#A")));
+
+        // SubClassOf(<http://b#C2> <http://b#C2>)
+        // SubClassOf(<http://a#C1> <http://b#C2>)
+        Assertions.assertEquals(2,
+                o1.axioms(
+                        OWLSubClassOfAxiom.class,
+                        OWLClass.class,
+                        df.getOWLClass(IRI.create("http://b#C2")),
+                        Imports.INCLUDED,
+                        Navigation.IN_SUPER_POSITION
+                ).count()
+        );
+
+        // SubClassOf(<http://a#C1> <http://a#C1>)
+        // SubClassOf(<http://a#C1> owl:Thing)
+        // SubClassOf(<http://a#C1> rdfs:Resource)
+        // SubClassOf(<http://a#C1> <http://b#C3>)
+        // SubClassOf(<http://a#C1> <http://b#C2>)
+        // SubClassOf(<http://a#C1> <http://b#C4>)
+        Assertions.assertEquals(6,
+                o1.axioms(
+                        OWLSubClassOfAxiom.class,
+                        OWLClass.class,
+                        df.getOWLClass(IRI.create("http://a#C1")),
+                        Imports.INCLUDED,
+                        Navigation.IN_SUB_POSITION
+                ).count()
+        );
     }
 
     @Test
