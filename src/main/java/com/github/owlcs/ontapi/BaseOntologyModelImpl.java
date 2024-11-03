@@ -1181,8 +1181,22 @@ public abstract class BaseOntologyModelImpl implements OWLOntology, BaseOntology
     }
 
     @Override
+    public Stream<OWLAxiom> axiomsIgnoreAnnotations(OWLAxiom axiom, Imports imports) {
+        return axioms(axiom.getAxiomType(), imports)
+                .map(OWLAxiom.class::cast).filter(ax -> ax.equalsIgnoreAnnotations(axiom));
+    }
+
+    @Override
     public Stream<OWLAxiom> referencingAxioms(OWLPrimitive primitive) {
         return base.listOWLAxioms(primitive);
+    }
+
+    @Override
+    public Stream<OWLAxiom> referencingAxioms(OWLPrimitive primitive, Imports imports) {
+        if (imports == Imports.INCLUDED && !config.useContentCache()) {
+            return getFullGraphModel().listOWLAxioms(primitive);
+        }
+        return imports.stream(this).flatMap(o -> o.referencingAxioms(primitive));
     }
 
     @Override
@@ -1268,20 +1282,6 @@ public abstract class BaseOntologyModelImpl implements OWLOntology, BaseOntology
     public boolean contains(OWLAxiomSearchFilter filter, Object key, Imports imports) {
         return imports.stream(this).anyMatch(o -> o.contains(filter, key));
     }
-
-    @Override
-    public Stream<OWLAxiom> axiomsIgnoreAnnotations(OWLAxiom axiom, Imports imports) {
-        if (Imports.EXCLUDED == imports) {
-            return axiomsIgnoreAnnotations(axiom);
-        }
-        return imports.stream(this).flatMap(o -> o.axiomsIgnoreAnnotations(axiom));
-    }
-
-    /*
-     * ===============================================================================
-     * The overridden default methods from org.semanticweb.owlapi.model.OWLAxiomIndex:
-     * ===============================================================================
-     */
 
     @Override
     public Stream<OWLDeclarationAxiom> declarationAxioms(OWLEntity subject) {
