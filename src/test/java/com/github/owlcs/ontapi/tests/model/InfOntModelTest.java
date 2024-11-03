@@ -31,6 +31,7 @@ import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
 import org.semanticweb.owlapi.model.OWLSubAnnotationPropertyOfAxiom;
 import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
+import org.semanticweb.owlapi.model.parameters.AxiomAnnotations;
 import org.semanticweb.owlapi.model.parameters.Imports;
 import org.semanticweb.owlapi.model.parameters.Navigation;
 import org.semanticweb.owlapi.search.Filters;
@@ -323,7 +324,7 @@ public class InfOntModelTest {
     }
 
     @Test
-    void listReferencingAxioms() {
+    void testListReferencingAxioms() {
         OntologyManager om = OntManagers.createDirectManager();
         DataFactory df = om.getOWLDataFactory();
         om.getOntologyConfigurator().setSpecification(OntSpecification.OWL2_FULL_MEM_RDFS_INF);
@@ -346,6 +347,86 @@ public class InfOntModelTest {
         // SubClassOf(<http://a#C1> <http://a#C1>)
         // SubClassOf(<http://a#C1> <http://a#C1>)
         Assertions.assertEquals(4, o1.referencingAxioms(df.getOWLClass("http://a#C1"), Imports.INCLUDED).count());
+    }
+
+    @Test
+    void testContainsAxiom() {
+        OntologyManager om = OntManagers.createDirectManager();
+        DataFactory df = om.getOWLDataFactory();
+        om.getOntologyConfigurator().setSpecification(OntSpecification.OWL2_FULL_MEM_MICRO_RULES_INF);
+
+        OntModel m1 = om.createGraphModel("http://a#A");
+        OntModel m2 = om.createGraphModel("http://b#B");
+        m1.addImport(m2);
+
+        m1.createOntClass("http://a#C1").addSuperClass(
+                m2.createOntClass("http://b#C1")
+                        .addEquivalentClass(
+                                m2.createOntClass("http://b#C2")
+                        )
+        );
+        m2.createIndividual("http://b#i1");
+        m1.createOntClass("http://a#C1");
+        m1.createObjectProperty("http://a#p2");
+        m1.createAnnotationProperty("http://a#p3").addSubProperty(
+                m1.createAnnotationProperty("http://a#p4")
+        );
+        m1.createDataProperty("http://a#p3").addSubProperty(
+                m2.createDataProperty("http://b#p1")
+        );
+
+        Ontology o1 = Objects.requireNonNull(om.getOntology(IRI.create("http://a#A")));
+
+        Assertions.assertTrue(
+                o1.containsAxiom(
+                        df.getOWLSubClassOfAxiom(df.getOWLClass("http://a#C1"), df.getOWLClass("http://b#C1")),
+                        Imports.INCLUDED,
+                        AxiomAnnotations.IGNORE_AXIOM_ANNOTATIONS
+                )
+        );
+        Assertions.assertFalse(
+                o1.containsAxiom(
+                        df.getOWLSubClassOfAxiom(df.getOWLClass("http://b#C1"), df.getOWLClass("http://a#C1")),
+                        Imports.INCLUDED,
+                        AxiomAnnotations.IGNORE_AXIOM_ANNOTATIONS
+                )
+        );
+    }
+
+    @Test
+    void testContainsObject() {
+        OntologyManager om = OntManagers.createDirectManager();
+        DataFactory df = om.getOWLDataFactory();
+        om.getOntologyConfigurator().setSpecification(OntSpecification.OWL2_FULL_MEM_RDFS_INF);
+
+        OntModel m1 = om.createGraphModel("http://a#A");
+        OntModel m2 = om.createGraphModel("http://b#B");
+        m1.addImport(m2);
+
+        m1.createOntClass("http://a#C1").addSuperClass(
+                m2.createOntClass("http://b#C1")
+                        .addEquivalentClass(
+                                m2.createOntClass("http://b#C2")
+                        )
+        );
+        m2.createIndividual("http://b#i1");
+        m1.createOntClass("http://a#C1");
+        m1.createObjectProperty("http://a#p2");
+        m1.createAnnotationProperty("http://a#p3").addSubProperty(
+                m1.createAnnotationProperty("http://a#p4")
+        );
+        m1.createDataProperty("http://a#p3").addSubProperty(
+                m2.createDataProperty("http://b#p1")
+        );
+
+        Ontology o1 = Objects.requireNonNull(om.getOntology(IRI.create("http://a#A")));
+
+        Assertions.assertTrue(
+                o1.contains(Filters.subClassWithSub, df.getOWLClass("http://a#C1"), Imports.INCLUDED)
+        );
+        Assertions.assertFalse(
+                o1.contains(Filters.subClassWithSuper, df.getOWLClass("http://b#C2"), Imports.INCLUDED)
+        );
     }
 
     @Test

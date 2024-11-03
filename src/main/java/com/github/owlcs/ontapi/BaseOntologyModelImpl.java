@@ -1177,7 +1177,8 @@ public abstract class BaseOntologyModelImpl implements OWLOntology, BaseOntology
 
     @Override
     public Stream<OWLAxiom> axiomsIgnoreAnnotations(OWLAxiom axiom) {
-        return axioms(axiom.getAxiomType()).map(OWLAxiom.class::cast).filter(ax -> ax.equalsIgnoreAnnotations(axiom));
+        return axioms(axiom.getAxiomType())
+                .map(OWLAxiom.class::cast).filter(ax -> ax.equalsIgnoreAnnotations(axiom));
     }
 
     @Override
@@ -1220,70 +1221,6 @@ public abstract class BaseOntologyModelImpl implements OWLOntology, BaseOntology
     }
 
     @Override
-    public int getAxiomCount() {
-        return (int) base.getOWLAxiomCount();
-    }
-
-    @Override
-    public int getAxiomCount(Imports imports) {
-        if (imports == Imports.INCLUDED && !config.useContentCache()) {
-            return (int) getFullGraphModel().getOWLAxiomCount();
-        }
-        return imports.stream(this).mapToInt(OWLAxiomCollection::getAxiomCount).sum();
-    }
-
-    @Override
-    public <T extends OWLAxiom> int getAxiomCount(AxiomType<T> axiomType) {
-        return (int) axioms(axiomType).count();
-    }
-
-    @Override
-    public <T extends OWLAxiom> int getAxiomCount(AxiomType<T> axiomType, Imports imports) {
-        if (imports == Imports.INCLUDED && !config.useContentCache()) {
-            return (int) getFullGraphModel().listOWLAxioms(axiomType).count();
-        }
-        return imports.stream(this).mapToInt(o -> o.getAxiomCount(axiomType)).sum();
-    }
-
-    @Override
-    public int getLogicalAxiomCount() {
-        return (int) logicalAxioms().count();
-    }
-
-    @Override
-    public int getLogicalAxiomCount(Imports imports) {
-        if (imports == Imports.INCLUDED && !config.useContentCache()) {
-            return (int) getFullGraphModel().listOWLLogicalAxioms().count();
-        }
-        return imports.stream(this).mapToInt(OWLAxiomCollection::getLogicalAxiomCount).sum();
-    }
-
-    @Override
-    public boolean containsAxiom(OWLAxiom axiom) {
-        return base.contains(axiom);
-    }
-
-    @Override
-    public boolean containsAxiomIgnoreAnnotations(OWLAxiom axiom) {
-        return base.containsIgnoreAnnotations(axiom);
-    }
-
-    @Override
-    public boolean contains(OWLAxiomSearchFilter filter, Object key) {
-        return base.listOWLAxioms(filter.getAxiomTypes()).anyMatch(a -> filter.pass(a, key));
-    }
-
-    @Override
-    public boolean containsAxiom(OWLAxiom axiom, Imports imports, AxiomAnnotations ignoreAnnotations) {
-        return imports.stream(this).anyMatch(o -> ignoreAnnotations.contains(o, axiom));
-    }
-
-    @Override
-    public boolean contains(OWLAxiomSearchFilter filter, Object key, Imports imports) {
-        return imports.stream(this).anyMatch(o -> o.contains(filter, key));
-    }
-
-    @Override
     public Stream<OWLDeclarationAxiom> declarationAxioms(OWLEntity subject) {
         return base.listOWLDeclarationAxioms(subject);
     }
@@ -1291,6 +1228,11 @@ public abstract class BaseOntologyModelImpl implements OWLOntology, BaseOntology
     @Override
     public Stream<OWLAnnotationAssertionAxiom> annotationAssertionAxioms(OWLAnnotationSubject entity) {
         return base.listOWLAnnotationAssertionAxioms(entity);
+    }
+
+    @Override
+    public Stream<OWLAnnotationAssertionAxiom> annotationAssertionAxioms(OWLAnnotationSubject entity, Imports imports) {
+        return axioms(OWLAnnotationAssertionAxiom.class, OWLAnnotationSubject.class, entity, imports, Navigation.IN_SUB_POSITION);
     }
 
     @Override
@@ -1466,6 +1408,80 @@ public abstract class BaseOntologyModelImpl implements OWLOntology, BaseOntology
     @Override
     public Stream<OWLDifferentIndividualsAxiom> differentIndividualAxioms(OWLIndividual individual) {
         return base.listOWLDifferentIndividualsAxioms(individual);
+    }
+
+    @Override
+    public int getAxiomCount() {
+        return (int) base.getOWLAxiomCount();
+    }
+
+    @Override
+    public int getAxiomCount(Imports imports) {
+        if (imports == Imports.INCLUDED && !config.useContentCache()) {
+            return (int) getFullGraphModel().getOWLAxiomCount();
+        }
+        return imports.stream(this).mapToInt(OWLAxiomCollection::getAxiomCount).sum();
+    }
+
+    @Override
+    public <T extends OWLAxiom> int getAxiomCount(AxiomType<T> axiomType) {
+        return (int) axioms(axiomType).count();
+    }
+
+    @Override
+    public <T extends OWLAxiom> int getAxiomCount(AxiomType<T> axiomType, Imports imports) {
+        if (imports == Imports.INCLUDED && !config.useContentCache()) {
+            return (int) getFullGraphModel().listOWLAxioms(axiomType).count();
+        }
+        return imports.stream(this).mapToInt(o -> o.getAxiomCount(axiomType)).sum();
+    }
+
+    @Override
+    public int getLogicalAxiomCount() {
+        return (int) logicalAxioms().count();
+    }
+
+    @Override
+    public int getLogicalAxiomCount(Imports imports) {
+        if (imports == Imports.INCLUDED && !config.useContentCache()) {
+            return (int) getFullGraphModel().listOWLLogicalAxioms().count();
+        }
+        return imports.stream(this).mapToInt(OWLAxiomCollection::getLogicalAxiomCount).sum();
+    }
+
+    @Override
+    public boolean containsAxiom(OWLAxiom axiom) {
+        return base.contains(axiom);
+    }
+
+    @Override
+    public boolean containsAxiomIgnoreAnnotations(OWLAxiom axiom) {
+        return base.containsIgnoreAnnotations(axiom);
+    }
+
+    @Override
+    public boolean containsAxiom(OWLAxiom axiom, Imports imports, AxiomAnnotations ignoreAnnotations) {
+        if (imports == Imports.INCLUDED && !config.useContentCache()) {
+            return ignoreAnnotations == AxiomAnnotations.IGNORE_AXIOM_ANNOTATIONS ?
+                    getFullGraphModel().containsIgnoreAnnotations(axiom) :
+                    getFullGraphModel().contains(axiom);
+        }
+        return imports.stream(this).anyMatch(o -> ignoreAnnotations == AxiomAnnotations.IGNORE_AXIOM_ANNOTATIONS ?
+                o.containsAxiomIgnoreAnnotations(axiom) :
+                o.containsAxiom(axiom));
+    }
+
+    @Override
+    public boolean contains(OWLAxiomSearchFilter filter, Object key) {
+        return base.listOWLAxioms(filter.getAxiomTypes()).anyMatch(a -> filter.pass(a, key));
+    }
+
+    @Override
+    public boolean contains(OWLAxiomSearchFilter filter, Object key, Imports imports) {
+        if (imports == Imports.INCLUDED && !config.useContentCache()) {
+            return getFullGraphModel().listOWLAxioms(filter.getAxiomTypes()).anyMatch(a -> filter.pass(a, key));
+        }
+        return imports.stream(this).anyMatch(o -> o.contains(filter, key));
     }
 
     /**
