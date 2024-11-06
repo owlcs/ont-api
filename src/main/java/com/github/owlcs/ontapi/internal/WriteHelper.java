@@ -19,7 +19,6 @@ import com.github.owlcs.ontapi.owlapi.objects.AnonymousIndividualImpl;
 import com.github.owlcs.ontapi.owlapi.objects.LiteralImpl;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
-import org.apache.jena.ontapi.OntModelControls;
 import org.apache.jena.ontapi.model.OntAnnotationProperty;
 import org.apache.jena.ontapi.model.OntClass;
 import org.apache.jena.ontapi.model.OntDataProperty;
@@ -404,7 +403,7 @@ public class WriteHelper {
     }
 
     public static OntIndividual.Anonymous getAnonymousIndividual(OntModel model, OWLAnonymousIndividual ai) {
-        if (!OntModelSupport.supports(model, OntModelControls.ALLOW_ANONYMOUS_INDIVIDUALS)) {
+        if (!OntModelSupport.supports(model, OntIndividual.Anonymous.class)) {
             throw new OntApiException.Unsupported(
                     "AnonymousIndividual cannot be added: prohibited by the profile " + OntModelSupport.profileName(model)
             );

@@ -70,7 +70,7 @@ public class InverseObjectPropertiesTranslator extends AbstractSimpleTranslator<
 
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     private boolean isAxiomSupported(OntModel m) {
-        return OntModelSupport.supports(m, OntModelControls.USE_OWL_PROPERTY_INVERSE_OF_FEATURE);
+        return OntModelSupport.supports(m, OntModelControls.USE_OWL_INVERSE_OBJECT_PROPERTIES_FEATURE);
     }
 
     @Override

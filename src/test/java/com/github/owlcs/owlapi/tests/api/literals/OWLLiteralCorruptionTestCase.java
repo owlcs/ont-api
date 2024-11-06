@@ -18,7 +18,6 @@ import com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory;
 import com.github.owlcs.owlapi.OWLManager;
 import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.semanticweb.owlapi.formats.FunctionalSyntaxDocumentFormat;
 import org.semanticweb.owlapi.formats.RDFXMLDocumentFormat;
@@ -99,7 +98,6 @@ public class OWLLiteralCorruptionTestCase extends TestBase {
         }
     }
 
-    @Disabled("should be fixed in Jena-5.2.0") // TODO: enable
     @Test
     public void testShouldFailOnMalformedXMLLiteral() throws Exception {
         String literal = "<ncicp:ComplexDefinition>" +
