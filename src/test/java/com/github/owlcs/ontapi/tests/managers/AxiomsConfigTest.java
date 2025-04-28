@@ -14,12 +14,14 @@
 
 package com.github.owlcs.ontapi.tests.managers;
 
+import com.github.owlcs.ontapi.OntApiException;
 import com.github.owlcs.ontapi.OntFormat;
 import com.github.owlcs.ontapi.OntManagers;
 import com.github.owlcs.ontapi.Ontology;
 import com.github.owlcs.ontapi.OntologyManager;
 import com.github.owlcs.ontapi.config.AxiomsSettings;
 import com.github.owlcs.ontapi.testutils.OWLIOUtils;
+import org.apache.jena.rdf.model.ModelFactory;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.semanticweb.owlapi.model.AxiomType;
@@ -34,6 +36,7 @@ import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.StringReader;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
@@ -66,7 +69,7 @@ public class AxiomsConfigTest {
         o1.add(df.getOWLAnnotationPropertyRangeAxiom(ap, IRI.create("range")));
         o1.add(df.getOWLAnnotationAssertionAxiom(cl.getIRI(), a1));
         o1.add(df.getOWLAnnotationAssertionAxiom(cl.getIRI(), a2));
-        List<OWLAxiom> axioms = o1.axioms().collect(Collectors.toList());
+        List<OWLAxiom> axioms = o1.axioms().toList();
         axioms.forEach(a -> LOGGER.debug("{}", a));
         OWLIOUtils.print(o1);
 
@@ -74,7 +77,7 @@ public class AxiomsConfigTest {
         m.setOntologyLoaderConfiguration(m.getOntologyLoaderConfiguration().setLoadAnnotationAxioms(false));
         Assertions.assertFalse(m.getOntologyLoaderConfiguration().isLoadAnnotationAxioms(), "Incorrect settings");
         // check the axioms changed.
-        List<OWLAxiom> axioms1 = o1.axioms().collect(Collectors.toList());
+        List<OWLAxiom> axioms1 = o1.axioms().toList();
         axioms1.forEach(a -> LOGGER.debug("{}", a));
         Assertions.assertEquals(2, axioms1.size());
         Assertions.assertTrue(axioms1.contains(df.getOWLDeclarationAxiom(ap)), "Can't find declaration for " + ap);
@@ -85,7 +88,7 @@ public class AxiomsConfigTest {
         Ontology o2 = m.createOntology();
         axioms.forEach(o2::add);
         OWLIOUtils.print(o2);
-        List<OWLAxiom> axioms2 = o2.axioms().collect(Collectors.toList());
+        List<OWLAxiom> axioms2 = o2.axioms().toList();
         axioms2.forEach(a -> LOGGER.debug("{}", a));
         Assertions.assertEquals(2, axioms2.size());
         Assertions.assertTrue(axioms2.contains(df.getOWLDeclarationAxiom(ap)), "Can't find declaration for " + ap);
@@ -116,7 +119,7 @@ public class AxiomsConfigTest {
 
         LOGGER.debug("Create second ontology with the same content.");
         String txt = OWLIOUtils.asString(o1, OntFormat.TURTLE);
-        LOGGER.debug("\n" + txt);
+        LOGGER.debug("\n{}", txt);
         OWLOntology o2 = m.loadOntologyFromOntologyDocument(OWLIOUtils.asInputStream(txt));
         Assertions.assertEquals(axioms1, o2.axioms().collect(Collectors.toSet()), "Incorrect axioms collection in the copied ontology");
 
@@ -157,7 +160,7 @@ public class AxiomsConfigTest {
     }
 
     @Test
-    public void testLoadWithIgnoreReadAxiomsErrors() throws OWLOntologyCreationException {
+    public void testLoadWithIgnoreReadAxiomsErrors1() throws OWLOntologyCreationException {
         IRI iri = IRI.create(OWLIOUtils.getResourceURI("/ontapi/recursive-graph.ttl"));
         LOGGER.debug("The file: {}", iri);
         OntologyManager m = OntManagers.createManager();
@@ -167,5 +170,104 @@ public class AxiomsConfigTest {
         o.axioms().forEach(a -> LOGGER.debug("{}", a));
         Assertions.assertEquals(5, o.getAxiomCount());
         Assertions.assertEquals(1, o.axioms(AxiomType.SUBCLASS_OF).count());
+    }
+
+    @Test
+    public void testLoadWithIgnoreReadAxiomsErrors2() {
+        String ttl =
+                """
+                        PREFIX owl:  <http://www.w3.org/2002/07/owl#>
+                        PREFIX rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+                        PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+                        PREFIX : <http://www.example.org#>
+                        
+                        
+                        :A      rdf:type         owl:Class;
+                                rdfs:subClassOf  [ rdf:type            owl:Restriction;
+                                                   owl:onProperty      :p;
+                                                   owl:someValuesFrom  [ rdf:type   owl:Class;
+                                                                         owl:oneOf  [ rdf:rest  rdf:nil
+                                                                                    ]
+                                                                       ]
+                                                 ] .
+                        
+                        :p      rdf:type            owl:ObjectProperty .
+                        """;
+
+        StringReader str = new StringReader(ttl);
+        var model = ModelFactory.createDefaultModel().read(str, null, "ttl");
+
+        var manager = OntManagers.createManager();
+        manager.getOntologyConfigurator().setIgnoreAxiomsReadErrors(true);
+        var ontology = manager.addOntology(model.getGraph());
+
+        var actualTypes = ontology.axioms().map(OWLAxiom::getAxiomType).toList();
+        Assertions.assertEquals(List.of(AxiomType.DECLARATION, AxiomType.DECLARATION), actualTypes);
+    }
+
+    @Test
+    public void testLoadWithIgnoreReadAxiomsErrors3() {
+        String ttl =
+                """
+                        PREFIX owl:  <http://www.w3.org/2002/07/owl#>
+                        PREFIX rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+                        PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+                        PREFIX : <http://www.example.org#>
+                        
+                        
+                        :A      rdf:type         owl:Class;
+                                rdfs:subClassOf  [ rdf:type            owl:Restriction;
+                                                   owl:onProperty      :p;
+                                                   owl:someValuesFrom  [ rdf:type   owl:Class;
+                                                                         owl:oneOf  [ rdf:rest  rdf:nil
+                                                                                    ]
+                                                                       ]
+                                                 ] .
+                        
+                        :p      rdf:type            owl:ObjectProperty .
+                        """;
+
+        StringReader str = new StringReader(ttl);
+        var model = ModelFactory.createDefaultModel().read(str, null, "ttl");
+
+        var manager = OntManagers.createManager();
+        var dataFactory = manager.getOWLDataFactory();
+        manager.getOntologyConfigurator().setIgnoreAxiomsReadErrors(true);
+        var ontology = manager.addOntology(model.getGraph());
+
+        var axioms = ontology.axioms(dataFactory.getOWLClass(IRI.create("http://www.example.org#A"))).toList();
+        Assertions.assertTrue(axioms.isEmpty());
+    }
+
+    @Test
+    public void testLoadWithoutIgnoreReadAxiomsErrors() {
+        String ttl =
+                """
+                        PREFIX owl:  <http://www.w3.org/2002/07/owl#>
+                        PREFIX rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+                        PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+                        PREFIX : <http://www.example.org#>
+                        
+                        
+                        :A      rdf:type         owl:Class;
+                                rdfs:subClassOf  [ rdf:type            owl:Restriction;
+                                                   owl:onProperty      :p;
+                                                   owl:someValuesFrom  [ rdf:type   owl:Class;
+                                                                         owl:oneOf  [ rdf:rest  rdf:nil
+                                                                                    ]
+                                                                       ]
+                                                 ] .
+                        
+                        :p      rdf:type            owl:ObjectProperty .
+                        """;
+
+        StringReader str = new StringReader(ttl);
+        var model = ModelFactory.createDefaultModel().read(str, null, "ttl");
+
+        var manager = OntManagers.createManager();
+        manager.getOntologyConfigurator().setIgnoreAxiomsReadErrors(false);
+        var ontology = manager.addOntology(model.getGraph());
+
+        Assertions.assertThrows(OntApiException.class, () -> ontology.axioms().toList());
     }
 }

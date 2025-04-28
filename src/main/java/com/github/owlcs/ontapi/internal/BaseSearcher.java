@@ -15,6 +15,7 @@
 package com.github.owlcs.ontapi.internal;
 
 import com.github.owlcs.ontapi.DataFactory;
+import com.github.owlcs.ontapi.OntApiException;
 import com.github.owlcs.ontapi.config.AxiomsSettings;
 import org.apache.jena.graph.Node;
 import org.apache.jena.ontapi.common.OntEnhGraph;
@@ -26,13 +27,15 @@ import org.apache.jena.ontapi.utils.OntModels;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.shared.JenaException;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -42,6 +45,8 @@ import java.util.stream.Stream;
  * Created by @ssz on 28.03.2020.
  */
 public abstract class BaseSearcher {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(BaseSearcher.class);
 
     /**
      * Maps each {@link OntStatement Ontology Statement} from the given iterator to the {@link A} instance
@@ -59,7 +64,6 @@ public abstract class BaseSearcher {
      * @param factory    a {@link ONTObjectFactory} to produce OWL-API Objects, not {@code null}
      * @param config     a {@link AxiomsSettings} to control the process, not {@code null}
      * @return {@link ExtendedIterator} of {@link ONTObject}s that wrap {@link A}s
-     * @throws JenaException unable to read axioms of this type
      */
     protected static <A extends OWLAxiom> ExtendedIterator<ONTObject<A>> translate(AxiomTranslator<A> translator,
                                                                                    ExtendedIterator<OntStatement> statements,
@@ -67,7 +71,7 @@ public abstract class BaseSearcher {
                                                                                    AxiomsSettings config) {
         return config.isSplitAxiomAnnotations() ?
                 Iterators.flatMap(statements, s -> split(translator, s, factory, config)) :
-                statements.mapWith(s -> toAxiom(translator, s, factory, config));
+                statements.mapWith(s -> toAxiom(translator, s, factory, config)).filterKeep(Objects::nonNull);
     }
 
     /**
@@ -78,15 +82,26 @@ public abstract class BaseSearcher {
      * @param statement  {@link OntStatement} to split, not {@code null}
      * @param factory    an {@link ONTObjectFactory}, not {@code null}
      * @param config     {@link AxiomsSettings}, not {@code null}
-     * @return an {@link ONTObject} with {@link A}
+     * @return an {@link ONTObject} with {@link A};
+     * can be {@code null} if exception occurred and {@link AxiomsSettings#isIgnoreAxiomsReadErrors()} is {@code true}
+     * @throws OntApiException unable to read axioms of this type
+     * and {@link AxiomsSettings#isIgnoreAxiomsReadErrors()} is {@code false}
      */
     protected static <A extends OWLAxiom> ONTObject<A> toAxiom(AxiomTranslator<A> translator,
                                                                OntStatement statement,
                                                                ONTObjectFactory factory,
                                                                AxiomsSettings config) {
-        return factory instanceof ModelObjectFactory ?
-                translator.toAxiomImpl(statement, (ModelObjectFactory) factory, config) :
-                translator.toAxiomWrap(statement, factory, config);
+        try {
+            return factory instanceof ModelObjectFactory ?
+                    translator.toAxiomImpl(statement, (ModelObjectFactory) factory, config) :
+                    translator.toAxiomWrap(statement, factory, config);
+        } catch (Exception ex) {
+            if (config.isIgnoreAxiomsReadErrors()) {
+                LOGGER.error("Failed to read axiom: {}. Reason: {}", statement, ex.getMessage());
+                return null;
+            }
+            throw new OntApiException(ex);
+        }
     }
 
     /**
@@ -94,15 +109,15 @@ public abstract class BaseSearcher {
      * Note:
      * When the spit-setting is true, we cannot always provide an ONTStatement based axiom,
      * because a mapping statement to axiom becomes ambiguous:
-     * the same triple may correspond different axiom-instances
-     * So, currently there is only one solution - need to use wrappers instead of model-impls
+     * the same triple may correspond to different axiom-instances
+     * So, currently there is only one solution - need to use wrappers instead of model-impls.
      *
      * @param <A>        a subtype of {@link OWLAxiom}
      * @param translator {@link AxiomTranslator} with generic type {@link A}, not {@code null}
      * @param statement  {@link OntStatement} to split, not {@code null}
      * @param factory    an {@link ONTObjectFactory}, not {@code null}
      * @param config     {@link AxiomsSettings}, not {@code null}
-     * @return a {@link ExtendedIterator} of {@link ONTObject}
+     * @return a {@link ExtendedIterator} of {@link ONTObject}s
      * @see AxiomsSettings#isSplitAxiomAnnotations()
      */
     protected static <A extends OWLAxiom> ExtendedIterator<ONTObject<A>> split(AxiomTranslator<A> translator,
@@ -110,13 +125,48 @@ public abstract class BaseSearcher {
                                                                                ONTObjectFactory factory,
                                                                                AxiomsSettings config) {
         if (!(factory instanceof ModelObjectFactory)) {
-            return OntModels.listSplitStatements(statement).mapWith(s -> translator.toAxiomWrap(s, factory, config));
+            return OntModels.listSplitStatements(statement)
+                    .mapWith(s -> {
+                        try {
+                            return translator.toAxiomWrap(s, factory, config);
+                        } catch (Exception ex) {
+                            if (config.isIgnoreAxiomsReadErrors()) {
+                                LOGGER.error("Failed to read axiom: {}. Reason: {}", s, ex.getMessage());
+                                return null;
+                            } else {
+                                throw new OntApiException(ex);
+                            }
+                        }
+                    })
+                    .filterKeep(Objects::nonNull);
         }
         List<OntStatement> statements = OntModels.listSplitStatements(statement).toList();
         if (statements.size() == 1) { // unambiguous mapping
-            return Iterators.of(translator.toAxiomImpl(statement, (ModelObjectFactory) factory, config));
+            try {
+                return Iterators.of(translator.toAxiomImpl(statement, (ModelObjectFactory) factory, config));
+            } catch (Exception ex) {
+                if (config.isIgnoreAxiomsReadErrors()) {
+                    LOGGER.error("Failed to read axiom: {}. Reason: {}", statement, ex.getMessage());
+                    return Iterators.of();
+                } else {
+                    throw new OntApiException(ex);
+                }
+            }
         }
-        return Iterators.create(statements).mapWith(s -> translator.toAxiomWrap(s, factory, config));
+        return Iterators.create(statements)
+                .mapWith(s -> {
+                    try {
+                        return translator.toAxiomWrap(s, factory, config);
+                    } catch (Exception ex) {
+                        if (config.isIgnoreAxiomsReadErrors()) {
+                            LOGGER.error("Failed to read axiom: {}. Reason: {}", s, ex.getMessage());
+                            return null;
+                        } else {
+                            throw new OntApiException(ex);
+                        }
+                    }
+                })
+                .filterKeep(Objects::nonNull);
     }
 
     @SuppressWarnings("unchecked")

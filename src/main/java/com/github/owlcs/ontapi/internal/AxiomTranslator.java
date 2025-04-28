@@ -15,6 +15,7 @@
 package com.github.owlcs.ontapi.internal;
 
 import com.github.owlcs.ontapi.DataFactory;
+import com.github.owlcs.ontapi.OntApiException;
 import com.github.owlcs.ontapi.config.AxiomsSettings;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Triple;
@@ -133,8 +134,10 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> extends BaseSearch
      * or extracted from the statement.
      *
      * @param statement {@link OntStatement}
-     * @return {@link ONTObject} around {@link OWLAxiom}
-     * @throws JenaException if no possible to translate statement to axiom
+     * @return {@link ONTObject} around {@link OWLAxiom}; can be {@code null}
+     * if exception occurred and {@link AxiomsSettings#isIgnoreAxiomsReadErrors()} is {@code true}
+     * @throws OntApiException unable to read axioms of this type
+     * and {@link AxiomsSettings#isIgnoreAxiomsReadErrors()} is {@code false}
      */
     public final ONTObject<Axiom> toAxiom(OntStatement statement) throws JenaException {
         OntModel m = statement.getModel();
@@ -147,9 +150,11 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> extends BaseSearch
      *
      * @param statement {@link OntStatement}
      * @param factory   {@link ONTObjectFactory} to produce OWL-API Objects, not {@code null}
-     * @param config    {@link AxiomsSettings} to control process, not {@code null}
-     * @return {@link ONTObject} around {@link OWLAxiom}
-     * @throws JenaException if no possible to translate statement to axiom
+     * @param config    {@link AxiomsSettings} to control the process, not {@code null}
+     * @return {@link ONTObject} around {@link OWLAxiom}; or {@code null} (if exception,
+     * but {@link AxiomsSettings#isIgnoreAxiomsReadErrors()} is {@code true})
+     * @throws OntApiException unable to read axioms of this type
+     * and {@link AxiomsSettings#isIgnoreAxiomsReadErrors()} is {@code false}
      */
     public final ONTObject<Axiom> toAxiom(OntStatement statement,
                                           ONTObjectFactory factory,
@@ -162,7 +167,7 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> extends BaseSearch
      *
      * @param model   a facility (as {@link Supplier}) to provide nonnull {@link OntModel}
      * @param factory {@link ONTObjectFactory} to produce OWL-API Objects, not {@code null}
-     * @param config  {@link AxiomsSettings} to control process, not {@code null}
+     * @param config  {@link AxiomsSettings} to control the process, not {@code null}
      * @return {@link ExtendedIterator} of {@link ONTObject}s that wrap {@link Axiom}s
      * @throws JenaException unable to read axioms of this type
      */
@@ -222,7 +227,7 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> extends BaseSearch
      * @param key     {@link Axiom}, to narrow the searching, not {@code null}
      * @param model   a facility (as {@link Supplier}) to provide nonnull {@link OntModel}
      * @param factory {@link ONTObjectFactory} to produce OWL-API Objects, not {@code null}
-     * @param config  {@link AxiomsSettings} to control process, not {@code null}
+     * @param config  {@link AxiomsSettings} to control the process, not {@code null}
      * @return {@link ExtendedIterator} of {@link ONTObject}s that wrap {@link Axiom}s
      * @throws JenaException unable to read axioms of this type
      */
@@ -235,8 +240,9 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> extends BaseSearch
 
     /**
      * Lists all statements-candidates
-     * to be used in the searching for the given axiom (which is passed as last argument to harrow the searching).
-     * This is a helper method to optimize searching on a direct model (i.e. when there is no internal cache).
+     * to be used in the searching for the given axiom
+     * (which is passed as the last argument to harrow the searching).
+     * This is a helper method to optimize searching on a direct model (i.e., when there is no internal cache).
      *
      * @param key    {@link Axiom}, to narrow the searching, not {@code null}
      * @param model  {@link OntModel Ontology Jena Model}, not {@code null}
@@ -265,7 +271,7 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> extends BaseSearch
     /**
      * Returns a collection of {@link Triple triple}s for search optimization.
      * Usually, each of the returned triples has a URI-subject and URI-object.
-     * This is a helper method to optimize searching on a direct model (i.e. when there is no internal cache).
+     * This is a helper method to optimize searching on a direct model (i.e., when there is no internal cache).
      *
      * @param axiom {@link Axiom} to extract triples, not {@code null}
      * @return a {@code Collection} of {@link Triple}s, can be empty
@@ -296,7 +302,7 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> extends BaseSearch
      *
      * @param statement {@link OntStatement} any statement, not necessarily local
      * @param config    {@link AxiomsSettings} control settings
-     * @return {@code true} if the statement corresponds axiom type
+     * @return {@code true} if the statement corresponds the axiom type
      */
     public abstract boolean testStatement(OntStatement statement, AxiomsSettings config);
 
@@ -308,7 +314,7 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> extends BaseSearch
      *
      * @param statement {@link OntStatement} the statement which determines the axiom
      * @param factory   {@link ONTObjectFactory} the data factory to create OWL-API objects
-     * @param config    {@link AxiomsSettings} to control process
+     * @param config    {@link AxiomsSettings} to control the process
      * @return {@link ONTObject} around {@link OWLAxiom}
      * @throws JenaException if no possible to get an axiom from the statement
      */
@@ -323,7 +329,7 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> extends BaseSearch
      *
      * @param statement {@link OntStatement} the statement which determines the axiom
      * @param factory   {@link ModelObjectFactory} the data factory to create OWL-API objects
-     * @param config    {@link AxiomsSettings} to control process
+     * @param config    {@link AxiomsSettings} to control the process
      * @return {@link ONTObject} around {@link OWLAxiom}
      * @throws JenaException if no possible to get axiom from the statement
      * @since 2.0.0

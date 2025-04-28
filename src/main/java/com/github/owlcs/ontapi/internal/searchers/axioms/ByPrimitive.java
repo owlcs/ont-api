@@ -34,6 +34,7 @@ import org.apache.jena.util.iterator.ExtendedIterator;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLPrimitive;
 
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -122,7 +123,9 @@ public abstract class ByPrimitive<P extends OWLPrimitive> extends BaseByObject<O
             return Iterators.flatMap(res,
                     s -> Iterators.flatMap(listTranslators(s, config), t -> split(t, s, factory, config)));
         }
-        return Iterators.flatMap(res, s -> listTranslators(s, config).mapWith(t -> toAxiom(t, s, factory, config)));
+        return Iterators.flatMap(res, s -> listTranslators(s, config)
+                        .mapWith(t -> toAxiom(t, s, factory, config)))
+                .filterKeep(Objects::nonNull);
     }
 
     /**

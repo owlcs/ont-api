@@ -30,6 +30,8 @@ import org.apache.jena.vocabulary.RDF;
 import org.semanticweb.owlapi.model.OWLDeclarationAxiom;
 import org.semanticweb.owlapi.model.OWLEntity;
 
+import java.util.Objects;
+
 /**
  * Created by @ssz on 18.04.2020.
  */
@@ -44,11 +46,18 @@ public class DeclarationByEntity extends BaseByObject<OWLDeclarationAxiom, OWLEn
         Resource subject = asResource(entity);
         if (!model.independent()) {
             return listStatements(model, subject, RDF.type, getRDFType(entity))
-                    .mapWith(x -> toAxiom(TRANSLATOR, x, factory, config));
+                    .mapWith(x -> toAxiom(TRANSLATOR, x, factory, config))
+                    .filterKeep(Objects::nonNull);
         }
+
         OntEntity res = OntEnhGraph.asPersonalityModel(model).findNodeAs(subject.asNode(), getClassType(entity));
-        if (res == null) return Iterators.of();
+        if (res == null) {
+            return Iterators.of();
+        }
         OntStatement statement = res.getMainStatement();
-        return statement == null ? Iterators.of() : Iterators.of(toAxiom(TRANSLATOR, statement, factory, config));
+        if (statement == null) {
+            return Iterators.of();
+        }
+        return Iterators.of(toAxiom(TRANSLATOR, statement, factory, config)).filterKeep(Objects::nonNull);
     }
 }

@@ -24,6 +24,8 @@ import org.apache.jena.util.iterator.ExtendedIterator;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLEntity;
 
+import java.util.Objects;
+
 /**
  * A base searcher for {@link OWLEntity}.
  * Created by @ssz on 29.03.2020.
@@ -42,7 +44,9 @@ public abstract class ByEntity<E extends OWLEntity> extends ByPrimitive<E> {
             return Iterators.flatMap(res, s -> Iterators.flatMap(listTranslators(s, config),
                     t -> split(t, s, factory, config)).filterKeep(x -> filter(x.getOWLObject(), entity)));
         }
-        return Iterators.flatMap(res, s -> listTranslators(s, config).mapWith(t -> toAxiom(t, s, factory, config))
+        return Iterators.flatMap(res, s -> listTranslators(s, config)
+                .mapWith(t -> toAxiom(t, s, factory, config))
+                .filterKeep(Objects::nonNull)
                 .filterKeep(x -> filter(x.getOWLObject(), entity)));
     }
 
@@ -53,7 +57,8 @@ public abstract class ByEntity<E extends OWLEntity> extends ByPrimitive<E> {
 
     /**
      * Answers {@code true} if the axiom contains the entity.
-     * It is for a case of punning. In normal circumstances no need to filter out.
+     * It is for a case of punning.
+     * In normal circumstances, no need to filter out.
      *
      * @param axiom  {@link A}, not {@code null}
      * @param entity {@link E}, not {@code null}
