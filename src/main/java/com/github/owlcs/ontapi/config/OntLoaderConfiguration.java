@@ -547,18 +547,27 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration imple
         return set(OntSettings.OWL_API_LOAD_CONF_LOAD_ANNOTATIONS, b);
     }
 
-    protected List<String> getIgnoredImports() {
-        return get(OntSettings.OWL_API_LOAD_CONF_IGNORED_IMPORTS);
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    protected List<IRI> getIgnoredImports() {
+        var list = (List) get(OntSettings.OWL_API_LOAD_CONF_IGNORED_IMPORTS);
+        return list.stream().map(o -> {
+            if (o instanceof String) {
+                return IRI.create((String) o);
+            } else if (o instanceof IRI) {
+                return o;
+            }
+            throw new IllegalStateException();
+        }).toList();
     }
 
     /**
-     * @return unmodifiable {@code List} of IRIs (Strings)
+     * @return unmodifiable {@code List} of IRIs
      */
-    protected List<String> getIgnoredImportsModifiableList() {
+    protected List<IRI> getIgnoredImportsModifiableList() {
         return new ArrayList<>(getIgnoredImports());
     }
 
-    protected OntLoaderConfiguration setIgnoredImports(List<String> imports) {
+    protected OntLoaderConfiguration setIgnoredImports(List<IRI> imports) {
         return set(OntSettings.OWL_API_LOAD_CONF_IGNORED_IMPORTS, Collections.unmodifiableList(imports));
     }
 
@@ -569,11 +578,11 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration imple
      */
     @Override
     public OntLoaderConfiguration addIgnoredImport(@Nonnull IRI iri) {
-        List<String> list = getIgnoredImportsModifiableList();
-        if (list.contains(iri.getIRIString())) {
+        List<IRI> list = getIgnoredImportsModifiableList();
+        if (list.contains(iri)) {
             return this;
         }
-        list.add(iri.getIRIString());
+        list.add(iri);
         return setIgnoredImports(list);
     }
 
@@ -584,11 +593,11 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration imple
      */
     @Override
     public OntLoaderConfiguration removeIgnoredImport(@Nonnull IRI iri) {
-        List<String> list = getIgnoredImportsModifiableList();
-        if (!list.contains(iri.getIRIString())) {
+        List<IRI> list = getIgnoredImportsModifiableList();
+        if (!list.contains(iri)) {
             return this;
         }
-        list.remove(iri.getIRIString());
+        list.remove(iri);
         return setIgnoredImports(list);
     }
 
@@ -599,7 +608,7 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration imple
      */
     @Override
     public OntLoaderConfiguration clearIgnoredImports() {
-        List<String> list = getIgnoredImportsModifiableList();
+        List<IRI> list = getIgnoredImportsModifiableList();
         if (list.isEmpty()) {
             return this;
         }
@@ -613,7 +622,7 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration imple
      */
     @Override
     public boolean isIgnoredImport(@Nonnull IRI iri) {
-        return getIgnoredImports().contains(iri.getIRIString());
+        return getIgnoredImports().contains(iri);
     }
 
     /**

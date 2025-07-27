@@ -866,11 +866,11 @@ public class OntConfig extends OntologyConfigurator
         return put(OntSettings.OWL_API_LOAD_CONF_PRIORITY_COLLECTION_SORTING, sorting);
     }
 
-    protected List<String> getIgnoredImports() {
+    protected List<IRI> getIgnoredImports() {
         return new ArrayList<>(get(OntSettings.OWL_API_LOAD_CONF_IGNORED_IMPORTS));
     }
 
-    protected OntConfig putIgnoredImports(List<String> imports) {
+    protected OntConfig putIgnoredImports(List<IRI> imports) {
         return put(OntSettings.OWL_API_LOAD_CONF_IGNORED_IMPORTS, Collections.unmodifiableList(imports));
     }
 
@@ -881,11 +881,11 @@ public class OntConfig extends OntologyConfigurator
      */
     @Override
     public OntConfig addIgnoredImport(@Nonnull IRI iri) {
-        List<String> list = getIgnoredImports();
-        if (list.contains(iri.getIRIString())) {
+        List<IRI> list = getIgnoredImports();
+        if (list.contains(iri)) {
             return this;
         }
-        list.add(iri.getIRIString());
+        list.add(iri);
         return putIgnoredImports(list);
     }
 
@@ -896,7 +896,7 @@ public class OntConfig extends OntologyConfigurator
      */
     @Override
     public OntConfig clearIgnoredImports() {
-        List<String> list = getIgnoredImports();
+        List<IRI> list = getIgnoredImports();
         if (list.isEmpty())
             return this;
         return putIgnoredImports(new ArrayList<>());
@@ -909,11 +909,11 @@ public class OntConfig extends OntologyConfigurator
      */
     @Override
     public OntConfig removeIgnoredImport(@Nonnull IRI iri) {
-        List<String> list = getIgnoredImports();
-        if (!list.contains(iri.getIRIString())) {
+        List<IRI> list = getIgnoredImports();
+        if (!list.contains(iri)) {
             return this;
         }
-        list.remove(iri.getIRIString());
+        list.remove(iri);
         return putIgnoredImports(list);
     }
 

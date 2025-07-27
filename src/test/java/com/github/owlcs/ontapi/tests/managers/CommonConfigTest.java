@@ -14,12 +14,14 @@
 
 package com.github.owlcs.ontapi.tests.managers;
 
+import com.github.owlcs.ontapi.OWLAdapter;
 import com.github.owlcs.ontapi.OntApiException;
 import com.github.owlcs.ontapi.OntManagers;
 import com.github.owlcs.ontapi.OntologyManager;
 import com.github.owlcs.ontapi.TestOntSpecifications;
 import com.github.owlcs.ontapi.config.OntConfig;
 import com.github.owlcs.ontapi.config.OntSettings;
+import org.apache.jena.sys.JenaSystem;
 import org.apache.jena.vocabulary.OWL;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -28,12 +30,18 @@ import org.semanticweb.owlapi.model.OWLOntologyLoaderConfiguration;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.model.OntologyConfigurator;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.List;
 
 /**
  * Created by @ssz on 21.03.2019.
  */
 public class CommonConfigTest {
+
+    static {
+        JenaSystem.init();
+    }
 
     @Test
     public void testShareConfigurator() {
@@ -78,15 +86,24 @@ public class CommonConfigTest {
 
     @Test
     public void testIgnoredImports() {
-        List<String> imports = new OntConfig() {
+        List<IRI> imports = new OntConfig() {
             @Override
-            protected List<String> getIgnoredImports() {
+            protected List<IRI> getIgnoredImports() {
                 return super.getIgnoredImports();
             }
         }.getIgnoredImports();
         Assertions.assertEquals(7, imports.size());
 
         Assertions.assertTrue(new OntConfig().buildLoaderConfiguration().isIgnoredImport(IRI.create(OWL.NS)));
+    }
+
+    @Test
+    public void testIssue58() throws URISyntaxException {
+        OWLOntologyLoaderConfiguration configOWLAPI = new OWLOntologyLoaderConfiguration();
+        configOWLAPI = configOWLAPI.addIgnoredImport(IRI.create(new URI("https://w3id.org/pep/")));
+        configOWLAPI = configOWLAPI.addIgnoredImport(IRI.create(new URI("https://w3id.org/seas/PeriodicSignalOntology")));
+        configOWLAPI = configOWLAPI.addIgnoredImport(IRI.create(new URI("https://w3id.org/seas/FeatureOfInterestOntology")));
+        Assertions.assertTrue(OWLAdapter.get().asONT(configOWLAPI).isIgnoredImport(IRI.create(new URI("https://w3id.org/pep/"))));
     }
 
     @Test

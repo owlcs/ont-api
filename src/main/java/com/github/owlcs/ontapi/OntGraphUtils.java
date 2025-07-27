@@ -375,7 +375,7 @@ public class OntGraphUtils {
                 // org.apache.jena.atlas.AtlasException ||
                 // org.apache.jena.atlas.json.JsonParseException || ...
                 if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug("<{}> failed: '{}'", lang, e.getMessage());
+                    LOGGER.debug("<{}> failed, document <{}>, error: '{}'", lang, iri, e.getMessage());
                 }
                 error.addSuppressed(new UnsupportedFormatException(e).putSource(iri).putFormat(format));
             }
@@ -383,10 +383,10 @@ public class OntGraphUtils {
         throw error;
     }
 
-    private static InputStream getInputStream(OntFormat format, Closeable stream) {
+    private static InputStream getInputStream(OntFormat format, Closeable stream) throws IOException {
         InputStream res;
         if (stream instanceof Reader) {
-            res = new ReaderInputStream((Reader) stream, StandardCharsets.UTF_8);
+            res = ReaderInputStream.builder().setReader((Reader) stream).setCharset(StandardCharsets.UTF_8).get();
         } else {
             res = (InputStream) stream;
         }
@@ -512,7 +512,13 @@ public class OntGraphUtils {
                 } else {
                     //Using Java Writers risks corruption because of mismatch of a character set.
                     // Only UTF-8 is safe.
-                    RDFDataMgr.write(new WriterOutputStream(writerFromTarget, StandardCharsets.UTF_8), graph, lang);
+                    RDFDataMgr.write(
+                            WriterOutputStream.builder()
+                                    .setWriter(writerFromTarget)
+                                    .setCharset(StandardCharsets.UTF_8)
+                                    .get(),
+                            graph, lang
+                    );
                 }
                 return;
             }
