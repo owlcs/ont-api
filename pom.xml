@@ -32,22 +32,22 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <!-- https://mvnrepository.com/artifact/org.apache.jena/jena-ontapi -->
-        <version.jena>5.4.0</version.jena>
+        <version.jena>5.5.0</version.jena>
         <!-- https://mvnrepository.com/artifact/net.sourceforge.owlapi/owlapi-api -->
         <version.owlapi>5.5.1</version.owlapi>
         <!-- https://mvnrepository.com/artifact/org.slf4j/slf4j-api -->
         <version.slf4j>2.0.17</version.slf4j>
         <!-- https://mvnrepository.com/artifact/com.github.ben-manes.caffeine/caffeine -->
-        <version.caffeine>3.2.0</version.caffeine>
+        <version.caffeine>3.2.2</version.caffeine>
         <!-- https://jitpack.io/#sszuev/concurrent-rdf-graph -->
         <version.concurrent-rdf-graph>1.1.0-java</version.concurrent-rdf-graph>
         <!-- https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter -->
-        <version.junit>5.12.2</version.junit>
+        <version.junit>5.13.4</version.junit>
         <!-- https://mvnrepository.com/artifact/org.mockito/mockito-core -->
-        <versio.mockito>5.17.0</versio.mockito>
+        <versio.mockito>5.18.0</versio.mockito>
 
         <!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-gpg-plugin -->
-        <version.maven-gpg-plugin>3.2.7</version.maven-gpg-plugin>
+        <version.maven-gpg-plugin>3.2.8</version.maven-gpg-plugin>
         <!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-source-plugin -->
         <version.maven-source-plugin>3.3.1</version.maven-source-plugin>
         <!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-javadoc-plugin -->
