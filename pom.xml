@@ -20,7 +20,7 @@
 
     <groupId>com.github.owlcs</groupId>
     <artifactId>ontapi</artifactId>
-    <version>4.1.2-SNAPSHOT</version>
+    <version>4.2.0</version>
 
     <name>${project.groupId}:${project.artifactId}</name>
     <description>ONT-API is an RDF-centric library to work with OWL</description>
@@ -58,6 +58,8 @@
         <version.maven-compiler-plugin>3.15.0</version.maven-compiler-plugin>
         <!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-surefire-plugin -->
         <version.maven-surefire-plugin>3.5.5</version.maven-surefire-plugin>
+        <!-- https://mvnrepository.com/artifact/org.sonatype.central/central-publishing-maven-plugin -->
+        <version.central-publishing-maven-plugin>0.10.0</version.central-publishing-maven-plugin>
     </properties>
 
     <licenses>
@@ -116,17 +118,6 @@
         </repository>
     </repositories>
 
-    <distributionManagement>
-        <snapshotRepository>
-            <id>ossrh</id>
-            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
-        </snapshotRepository>
-        <repository>
-            <id>ossrh</id>
-            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
-        </repository>
-    </distributionManagement>
-
     <profiles>
         <profile>
             <id>release</id>
@@ -148,6 +139,17 @@
                                 </goals>
                             </execution>
                         </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.sonatype.central</groupId>
+                        <artifactId>central-publishing-maven-plugin</artifactId>
+                        <version>${version.central-publishing-maven-plugin}</version>
+                        <extensions>true</extensions>
+                        <configuration>
+                            <publishingServerId>central</publishingServerId>
+                            <autoPublish>true</autoPublish>
+                            <waitUntil>published</waitUntil>
+                        </configuration>
                     </plugin>
                 </plugins>
             </build>
