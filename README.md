@@ -1,7 +1,11 @@
 # ONT-API (ver. 4.x.x)
 
-<a href="https://maven-badges.herokuapp.com/maven-central/com.github.owlcs/ontapi"><img src="https://maven-badges.herokuapp.com/maven-central/com.github.owlcs/ontapi/badge.svg" height="25" alt="Maven Central"></a>
-<a href="https://javadoc.io/doc/com.github.owlcs/ontapi/latest/index.html"><img src="https://javadoc.io/badge2/com.github.owlcs/ontapi/javadoc.svg" height="25" alt="Javadoc"></a>
+<a href="https://maven-badges.sml.io/sonatype-central/com.github.owlcs/ontapi/">
+  <img src="https://maven-badges.sml.io/sonatype-central/com.github.owlcs/ontapi/badge.svg" height="25" alt="Sonatype Central">
+</a>
+<a href="https://javadoc.io/doc/com.github.owlcs/ontapi/latest/index.html">
+  <img src="https://javadoc.io/badge2/com.github.owlcs/ontapi/javadoc.svg" height="25" alt="Javadoc">
+</a>
 
 ## Summary
 
@@ -11,7 +15,7 @@ For more info about the library see the project [wiki](https://github.com/owlcs/
 
 ## Dependencies
 
-- **[Apache Jena](https://github.com/apache/jena)** (**5.x.x**)
+- **[Apache Jena](https://github.com/apache/jena)** (**6.x.x**)
 - **[OWL-API](https://github.com/owlcs/owlapi)** (**5.x.x**)
 - **[concurrent-rdf-graph](https://github.com/sszuev/concurrent-rdf-graph)** (jitpack)
 
