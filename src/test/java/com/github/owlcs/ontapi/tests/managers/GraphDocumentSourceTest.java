@@ -14,7 +14,14 @@
 
 package com.github.owlcs.ontapi.tests.managers;
 
-import com.github.owlcs.ontapi.*;
+import com.github.owlcs.ontapi.ID;
+import com.github.owlcs.ontapi.OntApiException;
+import com.github.owlcs.ontapi.OntFormat;
+import com.github.owlcs.ontapi.OntGraphDocumentSource;
+import com.github.owlcs.ontapi.OntGraphDocumentSourceImpl;
+import com.github.owlcs.ontapi.OntManagers;
+import com.github.owlcs.ontapi.Ontology;
+import com.github.owlcs.ontapi.OntologyManager;
 import com.github.owlcs.ontapi.testutils.OWLIOUtils;
 import com.github.owlcs.ontapi.transforms.GraphTransformers;
 import org.apache.jena.graph.Graph;
