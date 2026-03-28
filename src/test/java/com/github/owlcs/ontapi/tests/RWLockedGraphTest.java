@@ -19,12 +19,12 @@ import com.github.owlcs.ontapi.internal.ONTObject;
 import com.github.owlcs.ontapi.testutils.OWLIOUtils;
 import com.github.sszuev.graphs.ReadWriteLockingGraph;
 import org.apache.jena.graph.Graph;
-import org.apache.jena.graph.GraphMemFactory;
 import org.apache.jena.ontapi.OntModelFactory;
 import org.apache.jena.ontapi.model.OntClass;
 import org.apache.jena.ontapi.model.OntModel;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.shared.PrefixMapping;
+import org.apache.jena.sparql.graph.GraphFactory;
 import org.apache.jena.vocabulary.OWL;
 import org.apache.jena.vocabulary.RDF;
 import org.junit.jupiter.api.Assertions;
@@ -37,17 +37,8 @@ import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.*;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -159,7 +150,7 @@ public class RWLockedGraphTest {
     @Timeout(60 * 1000L)
     @Test
     public void testConcurrentPrefixes() throws ExecutionException, InterruptedException {
-        PrefixMapping pm = new ReadWriteLockingGraph(GraphMemFactory.createGraphMem(), new ReentrantReadWriteLock()).getPrefixMapping();
+        PrefixMapping pm = new ReadWriteLockingGraph(GraphFactory.createGraphMem(), new ReentrantReadWriteLock()).getPrefixMapping();
         ExecutorService service = Executors.newScheduledThreadPool(3);
         List<Future<?>> res = new ArrayList<>();
         for (int i = 0; i < THREADS_NUM_1; i++) {

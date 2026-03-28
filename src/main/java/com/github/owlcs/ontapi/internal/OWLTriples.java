@@ -16,8 +16,9 @@ package com.github.owlcs.ontapi.internal;
 
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Triple;
-import org.apache.jena.graph.impl.CollectionGraph;
+import org.apache.jena.graph.impl.GraphWithPerform;
 import org.apache.jena.ontapi.impl.GraphListenerBase;
+import org.apache.jena.sparql.graph.GraphFactory;
 import org.semanticweb.owlapi.model.OWLObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,7 +51,9 @@ public class OWLTriples<V extends OWLObject> extends ONTWrapperImpl<V> {
 
     @Override
     public Graph toGraph() {
-        return new CollectionGraph(triples);
+        GraphWithPerform res = (GraphWithPerform) GraphFactory.createGraphMem();
+        triples.forEach(res::performAdd);
+        return res;
     }
 
     @Override
