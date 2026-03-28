@@ -18,7 +18,6 @@ import com.github.owlcs.ontapi.DataFactory;
 import com.github.owlcs.ontapi.ID;
 import com.github.owlcs.ontapi.OntApiException;
 import com.github.owlcs.ontapi.Ontology;
-import javax.annotation.Nonnull;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.GraphEventManager;
 import org.apache.jena.graph.Node;
@@ -34,16 +33,10 @@ import org.apache.jena.ontapi.model.OntObject;
 import org.apache.jena.ontapi.utils.Graphs;
 import org.apache.jena.ontapi.utils.Iterators;
 import org.apache.jena.rdf.model.Model;
-import org.semanticweb.owlapi.model.AxiomType;
-import org.semanticweb.owlapi.model.IRI;
-import org.semanticweb.owlapi.model.OWLAnnotation;
-import org.semanticweb.owlapi.model.OWLAxiom;
-import org.semanticweb.owlapi.model.OWLDeclarationAxiom;
+import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.model.OWLEntity;
-import org.semanticweb.owlapi.model.OWLObject;
-import org.semanticweb.owlapi.model.OWLOntologyID;
-import org.semanticweb.owlapi.model.OWLPrimitive;
 
+import javax.annotation.Nonnull;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
@@ -424,7 +417,8 @@ public class InternalGraphModelImpl extends InternalReadGraphModel implements In
     }
 
     /**
-     * Invalidates {@link #components}, {@link #objectFactory} and {@link #searchModel} caches.
+     * Invalidates {@link InternalReadGraphModel#components},
+     * {@link InternalReadGraphModel#objectFactory} and {@link InternalReadGraphModel#searchModel} caches.
      * Auxiliary method.
      */
     protected void clearComponentsCaches() {
@@ -442,7 +436,7 @@ public class InternalGraphModelImpl extends InternalReadGraphModel implements In
     }
 
     /**
-     * Invalidates the {@link #components cache} for all components parsed from the given {@code container}.
+     * Invalidates the {@link InternalReadGraphModel#components cache} for all components parsed from the given {@code container}.
      * todo: is a smarter mechanism to invalidate the related components possible here?
      *
      * @param container {@link OWLObject}, not {@code null}
@@ -463,7 +457,7 @@ public class InternalGraphModelImpl extends InternalReadGraphModel implements In
     }
 
     /**
-     * Extracts all components from the given {@code container} and puts them into the {@link #components} cache.
+     * Extracts all components from the given {@code container} and puts them into the {@link InternalReadGraphModel#components} cache.
      *
      * @param container {@link OWLObject}, not {@code null}
      * @see #clearComponentsCaches()

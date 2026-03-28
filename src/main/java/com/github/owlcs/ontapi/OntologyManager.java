@@ -17,41 +17,16 @@ package com.github.owlcs.ontapi;
 import com.github.owlcs.ontapi.config.OntConfig;
 import com.github.owlcs.ontapi.config.OntLoaderConfiguration;
 import com.github.owlcs.ontapi.config.OntWriterConfiguration;
-import javax.annotation.Nullable;
-import javax.annotation.ParametersAreNonnullByDefault;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.ontapi.UnionGraph;
 import org.apache.jena.ontapi.model.OntModel;
-import org.semanticweb.owlapi.io.FileDocumentSource;
-import org.semanticweb.owlapi.io.IRIDocumentSource;
-import org.semanticweb.owlapi.io.OWLOntologyDocumentSource;
-import org.semanticweb.owlapi.io.OWLOntologyDocumentTarget;
-import org.semanticweb.owlapi.io.OWLParserFactory;
-import org.semanticweb.owlapi.io.StreamDocumentSource;
-import org.semanticweb.owlapi.model.IRI;
-import org.semanticweb.owlapi.model.OWLDocumentFormat;
-import org.semanticweb.owlapi.model.OWLImportsDeclaration;
-import org.semanticweb.owlapi.model.OWLOntology;
-import org.semanticweb.owlapi.model.OWLOntologyAlreadyExistsException;
-import org.semanticweb.owlapi.model.OWLOntologyCreationException;
-import org.semanticweb.owlapi.model.OWLOntologyDocumentAlreadyExistsException;
-import org.semanticweb.owlapi.model.OWLOntologyFactory;
-import org.semanticweb.owlapi.model.OWLOntologyID;
-import org.semanticweb.owlapi.model.OWLOntologyIRIMapper;
-import org.semanticweb.owlapi.model.OWLOntologyLoaderConfiguration;
-import org.semanticweb.owlapi.model.OWLOntologyManager;
-import org.semanticweb.owlapi.model.OWLOntologyStorageException;
-import org.semanticweb.owlapi.model.OWLOntologyWriterConfiguration;
-import org.semanticweb.owlapi.model.OWLStorerFactory;
-import org.semanticweb.owlapi.model.OntologyConfigurator;
-import org.semanticweb.owlapi.model.UnknownOWLOntologyException;
+import org.semanticweb.owlapi.io.*;
+import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.model.parameters.OntologyCopy;
 
-import java.io.File;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.Serializable;
-import java.io.Writer;
+import javax.annotation.Nullable;
+import javax.annotation.ParametersAreNonnullByDefault;
+import java.io.*;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -431,8 +406,8 @@ public interface OntologyManager extends OWLOntologyManager {
      * the method {@link #addOntology(Graph, OntLoaderConfiguration)}
      * with the parameter-configuration where transformations and import processing are disabled
      * (for more info about these parameters see
-     * {@link com.github.owlcs.ontapi.config.LoadSettings#isPerformTransformation()
-     * and {@link com.github.owlcs.ontapi.config.LoadSettings#isProcessImports()}}).
+     * {@link com.github.owlcs.ontapi.config.LoadSettings#isPerformTransformation()}
+     * and {@link com.github.owlcs.ontapi.config.LoadSettings#isProcessImports()}).
      * In this case, only the base graph reference is copied; all actual data remains untouched.
      * It results in a possibility to share ontology data between different managers.
      * <p>

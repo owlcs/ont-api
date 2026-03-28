@@ -18,29 +18,18 @@ import com.github.owlcs.ontapi.OntApiException;
 import com.github.owlcs.ontapi.ReflectionUtils;
 import com.github.owlcs.ontapi.transforms.GraphTransformers;
 import com.github.owlcs.ontapi.transforms.TransformationModel;
-import javax.annotation.Nonnull;
 import org.apache.jena.ontapi.OntSpecification;
-import org.semanticweb.owlapi.model.IRI;
-import org.semanticweb.owlapi.model.MissingImportHandlingStrategy;
-import org.semanticweb.owlapi.model.MissingOntologyHeaderStrategy;
-import org.semanticweb.owlapi.model.OWLOntologyLoaderConfiguration;
-import org.semanticweb.owlapi.model.PriorityCollectionSorting;
+import org.semanticweb.owlapi.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serial;
 import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.EnumMap;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -152,7 +141,7 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration imple
 
     /**
      * An ONT-API config setter.
-     * {@inheritDoc}
+     * Disables or enables the Graph Transformation mechanism depending on the given flag.
      *
      * @param b if {@code false} all graph transformations will be disabled
      * @return {@link OntLoaderConfiguration}, a copied (new) or this instance in case no changes are made
@@ -180,7 +169,7 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration imple
 
     /**
      * An ONT-API config setter.
-     * {@inheritDoc}
+     * Sets {@code GraphTransformers.Store} collection.
      *
      * @param transformers {@link GraphTransformers} new graph transformers store
      * @return {@link OntLoaderConfiguration}, a copied (new) or this instance in case no changes are made
@@ -217,7 +206,7 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration imple
 
     /**
      * An ONT-API config setter.
-     * {@inheritDoc}
+     * Sets {@code OntSpecification} model configuration object.
      *
      * @param specification     {@link OntSpecification}, not {@code null}
      * @param constantFieldPath {@link String} a path to constant for serialization,
@@ -245,7 +234,7 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration imple
 
     /**
      * An ONT-API config setter.
-     * {@inheritDoc}
+     * Disables or enables the processing imports depending on the given flag.
      */
     @Override
     public OntLoaderConfiguration setProcessImports(boolean b) {
@@ -254,7 +243,8 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration imple
 
     /**
      * An ONT-API config setter.
-     * {@inheritDoc}
+     * Sets a new maximum nodes cache size to the specified positive number
+     * or disables nodes caching at all in case of non-positive number.
      *
      * @param size int, non-negative integer
      * @return {@link OntLoaderConfiguration}, a copied (new) or this instance in case no changes are made
@@ -275,7 +265,8 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration imple
 
     /**
      * An ONT-API config setter.
-     * {@inheritDoc}
+     * Sets a new maximum objects cache size to the specified positive number
+     * or disables objects caching at all in case of non-positive number.
      *
      * @param size int, non-negative integer
      * @return {@link OntLoaderConfiguration}, a copied (new) or this instance in case no changes are made
@@ -296,7 +287,16 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration imple
 
     /**
      * An ONT-API config setter.
-     * {@inheritDoc}
+     * Sets the model content cache level to the specified integer value.
+     * The number {@code 0} means disabling all model's caches.
+     * <p>
+     * The content cache consists of several levels:
+     * <ul>
+     *     <li>{@link CacheSettings#CACHE_ITERATOR}</li>
+     *     <li>{@link CacheSettings#CACHE_COMPONENT}</li>
+     *     <li>{@link CacheSettings#CACHE_CONTENT}</li>
+     *     <li>{@link CacheSettings#CACHE_ALL}</li>
+     * </ul>
      *
      * @param level, int, non-negative integer
      * @return {@link OntLoaderConfiguration}, a copied (new) or this instance in case no changes are made
@@ -326,7 +326,7 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration imple
 
     /**
      * An ONT-API config setter.
-     * {@inheritDoc}
+     * Sets a new collection of {@link Scheme}-controllers.
      *
      * @param schemes the collection of {@link Scheme}s
      * @return {@link OntLoaderConfiguration}, a copied (new) or this instance in case no changes are made
@@ -339,7 +339,8 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration imple
 
     /**
      * An ONT-API config setter.
-     * {@inheritDoc}
+     * Disables all schemes with except of {@code file} to prevent internet diving.
+     * While loading only IRIs starting with {@code file} will be processed.
      *
      * @return {@link OntLoaderConfiguration}, a copied (new) or this instance in case no changes are made
      * @see OntConfig#disableWebAccess()
@@ -361,7 +362,7 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration imple
 
     /**
      * An ONT-API config setter.
-     * {@inheritDoc}
+     * Sets bulk annotation assertions option to the specified state.
      *
      * @param b if {@code false} only plain annotation assertions axioms expected
      * @return {@link OntLoaderConfiguration}, a copied (new) or this instance in case no changes are made
@@ -382,7 +383,7 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration imple
 
     /**
      * An ONT-API config setter.
-     * {@inheritDoc}
+     * Sets the read declarations option to the desired state.
      *
      * @param b {@code true} to skip declarations while reading graph
      * @return {@link OntLoaderConfiguration}, a copied (new) or this instance in case no changes are made
@@ -403,7 +404,7 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration imple
 
     /**
      * An ONT-API config setter.
-     * {@inheritDoc}
+     * Sets ignore annotation axioms overlaps option to the specified state.
      *
      * @param b if {@code false} all overlapping annotation axioms
      *          will be skipped in favour of data or/and object property axioms
@@ -425,7 +426,10 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration imple
 
     /**
      * An ONT-API config setter.
-     * {@inheritDoc}
+     * Changes the preferable way to load a {@code Graph}.
+     * If {@code true} specified, the OWL-API native parsers will be used.
+     * Though, it is not recommended,
+     * for more details see the {@link LoadSettings#isUseOWLParsersToLoad() getter} description.
      *
      * @param b {@code true} to use pure OWL-API parsers to load
      * @return {@link OntLoaderConfiguration}, a copied (new) or this instance in case no changes are made
@@ -448,7 +452,9 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration imple
 
     /**
      * An ONT-API config setter.
-     * {@inheritDoc}
+     * Disables or enables the behavior of {@link org.apache.jena.ontapi.UnionGraph}:
+     * if the parameter is {@code true}, the graph is distinct,
+     * meaning there will be no duplicates in the query data.
      *
      * @param b {@code true} to use distinct underlying graph.
      * @return {@link OntLoaderConfiguration}, a copied (new) or this instance in case no changes are made
@@ -478,7 +484,7 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration imple
 
     /**
      * An ONT-API config setter.
-     * {@inheritDoc}
+     * Sets the ignore read errors option to the desired state.
      *
      * @param b {@code true} to ignore errors while reading axioms of some type from a graph,
      *          {@code false} to trow exception
@@ -491,7 +497,7 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration imple
 
     /**
      * An ONT-API config setter.
-     * {@inheritDoc}
+     * Sets the read-ont-objects flag to the desired state.
      *
      * @param b {@code true} to use {@code ONTObject}s as output
      * @return {@link OntLoaderConfiguration}, a copied (new) or this instance in case no changes are made
@@ -516,7 +522,7 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration imple
 
     /**
      * An ONT-API config setter.
-     * {@inheritDoc}
+     * Sets the axiom-annotations-split option setting to the desired state.
      *
      * @param b boolean {@code true} to enable 'ont.api.load.conf.split.axiom.annotations' setting
      * @return {@link OntLoaderConfiguration}, a copied (new) or this instance in case no changes are made

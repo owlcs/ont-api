@@ -20,34 +20,16 @@ import com.github.owlcs.ontapi.ReflectionUtils;
 import com.github.owlcs.ontapi.transforms.GraphTransformers;
 import com.github.owlcs.ontapi.transforms.Transform;
 import com.github.owlcs.ontapi.transforms.TransformationModel;
-import javax.annotation.Nonnull;
 import org.apache.jena.ontapi.OntSpecification;
 import org.apache.jena.ontapi.common.OntPersonality;
-import org.semanticweb.owlapi.model.IRI;
-import org.semanticweb.owlapi.model.MissingImportHandlingStrategy;
-import org.semanticweb.owlapi.model.MissingOntologyHeaderStrategy;
-import org.semanticweb.owlapi.model.OWLOntologyLoaderConfiguration;
-import org.semanticweb.owlapi.model.OntologyConfigurator;
-import org.semanticweb.owlapi.model.PriorityCollectionSorting;
+import org.semanticweb.owlapi.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.Serial;
-import java.io.Serializable;
+import javax.annotation.Nonnull;
+import java.io.*;
 import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.EnumMap;
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -324,7 +306,7 @@ public class OntConfig extends OntologyConfigurator
 
     /**
      * An ONT-API manager's load config setter.
-     * {@inheritDoc}
+     * Sets {@code OntSpecification} model configuration object.
      *
      * @param specification     {@link OntPersonality} the personality
      * @param constantFieldPath {@link String} a path to constant for serialization,
@@ -357,7 +339,7 @@ public class OntConfig extends OntologyConfigurator
 
     /**
      * An ONT-API manager's load config setter.
-     * {@inheritDoc}
+     * Sets {@code GraphTransformers.Store} collection.
      *
      * @param transformers {@link GraphTransformers}
      * @return this instance
@@ -411,7 +393,8 @@ public class OntConfig extends OntologyConfigurator
 
     /**
      * An ONT-API manager's load config setter.
-     * {@inheritDoc}
+     * Sets a new maximum nodes cache size to the specified positive number
+     * or disables nodes caching at all in case of non-positive number.
      *
      * @param size int
      * @return this instance
@@ -434,7 +417,8 @@ public class OntConfig extends OntologyConfigurator
 
     /**
      * An ONT-API manager's load config setter.
-     * {@inheritDoc}
+     * Sets a new maximum objects cache size to the specified positive number
+     * or disables objects caching at all in case of non-positive number.
      *
      * @param size int
      * @return this instance
@@ -457,7 +441,16 @@ public class OntConfig extends OntologyConfigurator
 
     /**
      * An ONT-API manager's load config setter.
-     * {@inheritDoc}
+     * Sets the model content cache level to the specified integer value.
+     * The number {@code 0} means disabling all model's caches.
+     * <p>
+     * The content cache consists of several levels:
+     * <ul>
+     *     <li>{@link CacheSettings#CACHE_ITERATOR}</li>
+     *     <li>{@link CacheSettings#CACHE_COMPONENT}</li>
+     *     <li>{@link CacheSettings#CACHE_CONTENT}</li>
+     *     <li>{@link CacheSettings#CACHE_ALL}</li>
+     * </ul>
      *
      * @param level int
      * @return this instance
@@ -482,7 +475,7 @@ public class OntConfig extends OntologyConfigurator
 
     /**
      * An ONT-API manager's load config setter.
-     * {@inheritDoc}
+     * Sets a new collection of {@link Scheme}-controllers.
      *
      * @param schemes List of {@link Scheme}
      * @return {@link OntConfig} this instance
@@ -495,7 +488,8 @@ public class OntConfig extends OntologyConfigurator
 
     /**
      * An ONT-API manager's load config setter.
-     * {@inheritDoc}
+     * Disables all schemes with except of {@code file} to prevent internet diving.
+     * While loading only IRIs starting with {@code file} will be processed.
      *
      * @return this manager
      * @see OntConfig#setSupportedSchemes(List)
@@ -517,7 +511,7 @@ public class OntConfig extends OntologyConfigurator
 
     /**
      * An ONT-API manager's load config setter.
-     * {@inheritDoc}
+     * Disables or enables the Graph Transformation mechanism depending on the given flag.
      *
      * @param b {@code true} to enable transformation (by default it is enabled)
      * @return {@link OntConfig} this instance
@@ -539,7 +533,7 @@ public class OntConfig extends OntologyConfigurator
 
     /**
      * An ONT-API manager's load config setter.
-     * {@inheritDoc}
+     * Disables or enables the processing imports depending on the given flag.
      */
     @Override
     public OntConfig setProcessImports(boolean b) {
@@ -560,7 +554,7 @@ public class OntConfig extends OntologyConfigurator
 
     /**
      * An ONT-API manager's load config setter.
-     * {@inheritDoc}
+     * Sets bulk annotation assertions option to the specified state.
      *
      * @param b {@code true} to enable bulk annotations
      * @return this instance
@@ -585,7 +579,7 @@ public class OntConfig extends OntologyConfigurator
 
     /**
      * An ONT-API manager's load config setter.
-     * {@inheritDoc}
+     * Sets the read declarations option to the desired state.
      *
      * @param b boolean enable/disable declarations
      * @return this instance
@@ -610,7 +604,7 @@ public class OntConfig extends OntologyConfigurator
 
     /**
      * An ONT-API manager's load config setter.
-     * {@inheritDoc}
+     * Sets ignore annotation axioms overlaps option to the specified state.
      *
      * @param b boolean to enable/disable this config parameter
      * @return this instance
@@ -633,7 +627,10 @@ public class OntConfig extends OntologyConfigurator
 
     /**
      * An ONT-API manager's load config setter.
-     * {@inheritDoc}
+     * Changes the preferable way to load a {@code Graph}.
+     * If {@code true} specified, the OWL-API native parsers will be used.
+     * Though, it is not recommended,
+     * for more details see the {@link LoadSettings#isUseOWLParsersToLoad() getter} description.
      *
      * @param b boolean to enable/disable this config parameter
      * @return this instance
@@ -656,7 +653,9 @@ public class OntConfig extends OntologyConfigurator
 
     /**
      * An ONT-API manager's load config setter.
-     * {@inheritDoc}
+     * Disables or enables the behavior of {@link org.apache.jena.ontapi.UnionGraph}:
+     * if the parameter is {@code true}, the graph is distinct,
+     * meaning there will be no duplicates in the query data.
      *
      * @param b boolean to enable/ disable this config parameter
      * @return this instance
@@ -694,7 +693,7 @@ public class OntConfig extends OntologyConfigurator
 
     /**
      * An ONT-API manager's load config setter.
-     * {@inheritDoc}
+     * Sets the ignore read errors option to the desired state.
      *
      * @param b boolean to enable/disable ignoring axioms reading errors
      * @return this instance
@@ -708,7 +707,7 @@ public class OntConfig extends OntologyConfigurator
 
     /**
      * An ONT-API manager's load config setter.
-     * {@inheritDoc}
+     * Sets the read-ont-objects flag to the desired state.
      *
      * @param b boolean to enable/disable {@code ONTObject} reading
      * @return this instance
@@ -731,7 +730,7 @@ public class OntConfig extends OntologyConfigurator
 
     /**
      * An ONT-API manager's load config setter.
-     * {@inheritDoc}
+     * Sets the axiom-annotations-split option setting to the desired state.
      *
      * @param b boolean
      * @return this instance

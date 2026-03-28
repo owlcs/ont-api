@@ -17,14 +17,7 @@ package com.github.owlcs.ontapi;
 import com.github.owlcs.ontapi.config.OntLoaderConfiguration;
 import org.apache.jena.graph.Graph;
 import org.semanticweb.owlapi.io.OWLOntologyDocumentSource;
-import org.semanticweb.owlapi.model.IRI;
-import org.semanticweb.owlapi.model.OWLOntology;
-import org.semanticweb.owlapi.model.OWLOntologyBuilder;
-import org.semanticweb.owlapi.model.OWLOntologyCreationException;
-import org.semanticweb.owlapi.model.OWLOntologyFactory;
-import org.semanticweb.owlapi.model.OWLOntologyID;
-import org.semanticweb.owlapi.model.OWLOntologyLoaderConfiguration;
-import org.semanticweb.owlapi.model.OWLOntologyManager;
+import org.semanticweb.owlapi.model.*;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.io.Serializable;
@@ -85,7 +78,6 @@ public interface OntologyFactory extends OWLOntologyFactory, HasAdapter {
     /**
      * Reads a graph from the given document source and stores
      * it as a ready to use {@link Ontology Ontology Model} in the specified manager.
-     * {@inheritDoc}
      *
      * @param manager {@link OntologyManager} manager the ontology manager to set, not {@code null}
      * @param source  {@link OWLOntologyDocumentSource} the document source that provides the means
