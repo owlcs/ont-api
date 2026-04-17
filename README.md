@@ -21,7 +21,7 @@ For more info about the library see the project [wiki](https://github.com/owlcs/
 
 ## Requirements
 
-- Java **17+**
+- Java **21+**
 
 ## License
 
