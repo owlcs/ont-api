@@ -37,7 +37,6 @@ import com.github.owlcs.ontapi.testutils.StringInputStreamDocumentSource;
 import com.github.owlcs.ontapi.transforms.GraphTransformers;
 import com.github.owlcs.ontapi.transforms.OWLRecursiveTransform;
 import com.github.owlcs.ontapi.transforms.Transform;
-import javax.annotation.ParametersAreNonnullByDefault;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.ontapi.OntModelFactory;
@@ -79,10 +78,12 @@ import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.model.OWLRuntimeException;
 import org.semanticweb.owlapi.model.UnloadableImportException;
 import org.semanticweb.owlapi.model.parameters.Imports;
+import org.semanticweb.owlapi.util.AutoIRIMapper;
 import org.semanticweb.owlapi.util.SimpleIRIMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.ParametersAreNonnullByDefault;
 import java.io.InputStream;
 import java.net.URI;
 import java.nio.file.Path;
@@ -488,6 +489,28 @@ public class LoadFactoryManagerTest {
         loadLoopedOntologyFamily(m6);
         Assertions.assertEquals(4, m6.ontologies().count());
         // todo: it would be nice to validate the result ontologies
+    }
+
+    @Test
+    public void testLoadSharedImportsHierarchy() throws OWLOntologyCreationException {
+        OntologyManager manager = OntManagers.createManager();
+        Path importsDir = OWLIOUtils.getResourcePath("/owlapi/imports");
+        manager.getIRIMappers().add(new AutoIRIMapper(importsDir.toFile(), true));
+
+        Ontology root = manager.loadOntologyFromOntologyDocument(importsDir.resolve("D.owl").toFile());
+
+        Assertions.assertEquals(4, manager.ontologies().count(), "Expected all ontologies in the imports diamond");
+        Assertions.assertEquals(3, root.imports().count(), "Expected transitive imports closure without duplication");
+        Assertions.assertEquals(2, root.directImports().count(), "Expected direct imports declared by the root ontology");
+    }
+
+    @Test
+    public void testLoadLoopedImportsWithTransformations() {
+        OntologyManager manager = OntManagers.createManager();
+
+        Assertions.assertDoesNotThrow(() -> loadLoopedOntologyFamily(manager));
+        Assertions.assertEquals(3, manager.ontologies().count(),
+                "Expected looped ontology family to load with the default transform pipeline");
     }
 
     @Test

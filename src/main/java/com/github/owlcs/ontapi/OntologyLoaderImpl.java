@@ -18,7 +18,6 @@ import com.github.owlcs.ontapi.config.OntConfig;
 import com.github.owlcs.ontapi.config.OntLoaderConfiguration;
 import com.github.owlcs.ontapi.transforms.GraphStats;
 import com.github.owlcs.ontapi.transforms.TransformException;
-import javax.annotation.Nonnull;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.GraphUtil;
 import org.apache.jena.graph.Node;
@@ -45,11 +44,14 @@ import org.semanticweb.owlapi.model.UnloadableImportException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nonnull;
 import java.io.File;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -238,7 +240,7 @@ public class OntologyLoaderImpl implements OntologyFactory.Loader {
                                         OntLoaderConfiguration config) throws OntologyFactoryImpl.OWLTransformException {
         boolean isPrimary = graphs.size() == 1;
         // #makeUnionGraph will change #graphs collection:
-        UnionGraph graph = makeUnionGraph(info, new HashSet<>(), builder, manager, config);
+        UnionGraph graph = makeUnionGraph(info, builder, manager, config, new HashMap<>());
 
         if (!isPrimary || info.noTransforms() || !config.isPerformTransformation()) {
             // no transformations needed
@@ -281,8 +283,6 @@ public class OntologyLoaderImpl implements OntologyFactory.Loader {
      * Note: this collection can be modified by this method.
      *
      * @param node    {@link GraphInfo} the root graph
-     * @param seen    a {@code Collection} of URIs to avoid recursion infinite loops in imports
-     *                (ontology A imports ontology B, which in turn imports A)
      * @param builder {@link OntologyCreator} to construct a fresh {@link UnionGraph} instance
      * @param manager {@link OntologyManager} the manager
      * @param config  {@link OntLoaderConfiguration} the config
@@ -291,25 +291,61 @@ public class OntologyLoaderImpl implements OntologyFactory.Loader {
      * @see OntGraphUtils#toGraphMap(Graph)
      */
     protected UnionGraph makeUnionGraph(GraphInfo node,
-                                        Collection<String> seen,
                                         OntologyCreator builder,
                                         OntologyManager manager,
-                                        OntLoaderConfiguration config) {
+                                        OntLoaderConfiguration config,
+                                        Map<String, UnionGraph> cache) {
+        UnionGraph root = cache.computeIfAbsent(node.getURI(), key -> createUnionGraph(node, builder, config));
+        Set<String> path = new HashSet<>();
+        Set<String> expanded = new HashSet<>();
+        ArrayDeque<UnionGraphFrame> stack = new ArrayDeque<>();
+        path.add(node.getURI());
+        stack.push(new UnionGraphFrame(node, root));
+        while (!stack.isEmpty()) {
+            UnionGraphFrame frame = stack.peek();
+            if (!frame.childrenLoaded) {
+                Collection<GraphInfo> children = config.isProcessImports()
+                        ? processImports(frame.info, path, builder, manager, config)
+                        : List.of();
+                frame.children = children.iterator();
+                frame.childrenLoaded = true;
+            }
+            if (!frame.children.hasNext()) {
+                expanded.add(frame.info.getURI());
+                path.remove(frame.info.getURI());
+                stack.pop();
+                continue;
+            }
+            GraphInfo child = frame.children.next();
+            UnionGraph childGraph;
+            if (path.contains(child.getURI())) {
+                childGraph = createUnionGraph(child, builder, config);
+                frame.graph.addSubGraph(childGraph);
+                continue;
+            }
+            childGraph = cache.computeIfAbsent(child.getURI(), key -> createUnionGraph(child, builder, config));
+            frame.graph.addSubGraph(childGraph);
+            if (expanded.contains(child.getURI())) {
+                continue;
+            }
+            path.add(child.getURI());
+            stack.push(new UnionGraphFrame(child, childGraph));
+        }
+        return root;
+    }
+
+    protected UnionGraph createUnionGraph(GraphInfo node, OntologyCreator builder, OntLoaderConfiguration config) {
         Graph graph = node.getGraph();
         if (graph instanceof UnionGraph u) {
             // this situation may occur only in a single case
             // when the graph is passed into OntologyManager#addOntology, see OntGraphUtils#toGraphMap(Graph)
-            if (u.subGraphs().findFirst().isPresent())
+            if (u.subGraphs().findFirst().isPresent()) {
                 throw new OntApiException.IllegalState("A given graph has a hierarchy structure: " + graph);
+            }
             // always need to create a _new_ UnionGraph: the old may have listeners or caches attached
             graph = u.getBaseGraph();
         }
-        UnionGraph res = builder.createUnionGraph(graph, config);
-        if (config.isProcessImports()) {
-            processImports(node, seen, builder, manager, config)
-                    .forEach(ch -> res.addSubGraph(makeUnionGraph(ch, new HashSet<>(seen), builder, manager, config)));
-        }
-        return res;
+        return builder.createUnionGraph(graph, config);
     }
 
     /**
@@ -332,7 +368,6 @@ public class OntologyLoaderImpl implements OntologyFactory.Loader {
                                                    OntLoaderConfiguration config) {
         Graph base = node.getGraph();
         String name = node.name();
-        seen.add(node.getURI());
         // it is important to have the same order on each call
         Set<GraphInfo> res = new LinkedHashSet<>();
         List<String> imports = node.getImports().stream().sorted().collect(Collectors.toCollection(ArrayList::new));
@@ -695,6 +730,18 @@ public class OntologyLoaderImpl implements OntologyFactory.Loader {
                 return "CopyOf-" + delegate;
             }
         };
+    }
+
+    protected static class UnionGraphFrame {
+        final GraphInfo info;
+        final UnionGraph graph;
+        Iterator<GraphInfo> children;
+        boolean childrenLoaded;
+
+        UnionGraphFrame(GraphInfo info, UnionGraph graph) {
+            this.info = info;
+            this.graph = graph;
+        }
     }
 
     /**

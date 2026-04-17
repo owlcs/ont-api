@@ -318,49 +318,57 @@ public class GraphTransformers implements Serializable {
      * @throws TransformException if something is wrong
      */
     public GraphStats transform(Graph graph, Set<Graph> skip) throws TransformException {
+        return transform(graph, skip, new HashSet<>());
+    }
+
+    protected GraphStats transform(Graph graph, Set<Graph> skip, Set<Graph> visiting) throws TransformException {
         UnionGraph u = Graphs.makeOntUnionFrom(graph, OntModelFactory::createUnionGraph);
-        List<Graph> children = u.subGraphs().toList();
         Graph base = u.getBaseGraph();
         GraphStats res = new GraphStats(base);
-        for (Graph g : children) {
-            try {
-                res.putStats(transform(g, skip));
-            } catch (StoreException t) {
-                throw t.putParent(graph);
-            }
-        }
-        if (skip.contains(base)) {
+        if (skip.contains(base) || !visiting.add(base)) {
             return res;
         }
-        if (!getFilter().test(graph)) {
+        try {
+            List<Graph> children = u.subGraphs().toList();
+            for (Graph g : children) {
+                try {
+                    res.putStats(transform(g, skip, visiting));
+                } catch (StoreException t) {
+                    throw t.putParent(graph);
+                }
+            }
+            if (!getFilter().test(graph)) {
+                skip.add(base);
+                return res;
+            }
+            transforms()
+                    .filter(x -> x.test(graph))
+                    .forEach(x -> {
+                        if (LOGGER.isDebugEnabled()) {
+                            LOGGER.debug("Process <{}> on <{}>", x.id(), OntGraphUtils.getOntologyGraphPrintName(base));
+                        }
+                        GraphEventManager events = base.getEventManager();
+                        TransformListener listener = createTrackListener();
+                        Set<Triple> uncertainTriples;
+                        try {
+                            events.register(listener);
+                            uncertainTriples = x.apply(graph).collect(Collectors.toSet());
+                        } catch (JenaException e) {
+                            throw new StoreException(x, e);
+                        } finally {
+                            events.unregister(listener);
+                        }
+                        res.putTriples(x,
+                                listener.getAdded(),
+                                listener.getDeleted(),
+                                uncertainTriples);
+
+                    });
             skip.add(base);
             return res;
+        } finally {
+            visiting.remove(base);
         }
-        transforms()
-                .filter(x -> x.test(graph))
-                .forEach(x -> {
-                    if (LOGGER.isDebugEnabled()) {
-                        LOGGER.debug(String.format("Process <%s> on <%s>", x.id(), OntGraphUtils.getOntologyGraphPrintName(base)));
-                    }
-                    GraphEventManager events = base.getEventManager();
-                    TransformListener listener = createTrackListener();
-                    Set<Triple> uncertainTriples;
-                    try {
-                        events.register(listener);
-                        uncertainTriples = x.apply(graph).collect(Collectors.toSet());
-                    } catch (JenaException e) {
-                        throw new StoreException(x, e);
-                    } finally {
-                        events.unregister(listener);
-                    }
-                    res.putTriples(x,
-                            listener.getAdded(),
-                            listener.getDeleted(),
-                            uncertainTriples);
-
-                });
-        skip.add(base);
-        return res;
     }
 
     protected TransformListener createTrackListener() {

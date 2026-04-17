@@ -30,6 +30,7 @@ import com.github.owlcs.ontapi.transforms.Transform;
 import com.github.owlcs.ontapi.transforms.TransformException;
 import com.github.owlcs.ontapi.transforms.TransformationModel;
 import org.apache.jena.graph.Graph;
+import org.apache.jena.graph.GraphMemFactory;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.ontapi.OntModelFactory;
 import org.apache.jena.ontapi.UnionGraph;
@@ -43,6 +44,7 @@ import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.riot.Lang;
+import org.apache.jena.sys.JenaSystem;
 import org.apache.jena.util.FileManager;
 import org.apache.jena.vocabulary.OWL;
 import org.apache.jena.vocabulary.RDF;
@@ -66,7 +68,9 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -79,6 +83,10 @@ import java.util.stream.Stream;
  */
 public class GraphTransformersTest {
     private static final Logger LOGGER = LoggerFactory.getLogger(GraphTransformersTest.class);
+
+    static {
+        JenaSystem.init();
+    }
 
     private static final Set<IRI> ADDITIONAL_BUILT_IN_ENTITIES = Stream.of(
             RDF.List, RDFS.Resource, RDF.Property, RDFS.Class, OWL.Ontology)
@@ -131,6 +139,58 @@ public class GraphTransformersTest {
         assertGraphSize(m, SpinModels.SPIN, 375);
         assertGraphSize(m, SpinModels.SPIF, 959);
         assertGraphSize(m, SpinModels.SPINMAP, 802);
+    }
+
+    @Test
+    public void testTransformCycleProcessesEachBaseGraphOnce() throws TransformException {
+        Graph aBase = GraphMemFactory.createDefaultGraph();
+        Graph bBase = GraphMemFactory.createDefaultGraph();
+        UnionGraph a = new UnionGraphImpl(aBase, false);
+        UnionGraph b = new UnionGraphImpl(bBase, false);
+        a.addSubGraph(b);
+        b.addSubGraph(a);
+
+        Map<Graph, Integer> processed = new IdentityHashMap<>();
+        GraphTransformers transformers = new GraphTransformers().addLast(g -> {
+            Graph base = g instanceof UnionGraph u ? u.getBaseGraph() : g;
+            processed.merge(base, 1, Integer::sum);
+            return Stream.empty();
+        });
+
+        Assertions.assertDoesNotThrow(() -> transformers.transform(a));
+        Assertions.assertEquals(2, processed.size());
+        Assertions.assertEquals(1, processed.get(aBase));
+        Assertions.assertEquals(1, processed.get(bBase));
+    }
+
+    @Test
+    public void testTransformSharedChildProcessesItOnce() throws TransformException {
+        Graph aBase = GraphMemFactory.createDefaultGraph();
+        Graph bBase = GraphMemFactory.createDefaultGraph();
+        Graph cBase = GraphMemFactory.createDefaultGraph();
+        Graph dBase = GraphMemFactory.createDefaultGraph();
+        UnionGraph a = new UnionGraphImpl(aBase, false);
+        UnionGraph b = new UnionGraphImpl(bBase, false);
+        UnionGraph c = new UnionGraphImpl(cBase, false);
+        UnionGraph d = new UnionGraphImpl(dBase, false);
+        a.addSubGraph(b);
+        a.addSubGraph(c);
+        b.addSubGraph(d);
+        c.addSubGraph(d);
+
+        Map<Graph, Integer> processed = new IdentityHashMap<>();
+        GraphTransformers transformers = new GraphTransformers().addLast(g -> {
+            Graph base = g instanceof UnionGraph u ? u.getBaseGraph() : g;
+            processed.merge(base, 1, Integer::sum);
+            return Stream.empty();
+        });
+
+        Assertions.assertDoesNotThrow(() -> transformers.transform(a));
+        Assertions.assertEquals(4, processed.size());
+        Assertions.assertEquals(1, processed.get(aBase));
+        Assertions.assertEquals(1, processed.get(bBase));
+        Assertions.assertEquals(1, processed.get(cBase));
+        Assertions.assertEquals(1, processed.get(dBase));
     }
 
     private static void assertGraphSize(OntologyManager m, SpinModels ont, long count) {
@@ -220,8 +280,8 @@ public class GraphTransformersTest {
         Assertions.assertEquals(num, store.transforms().count());
         Assertions.assertTrue(store.get(first.id()).isPresent());
         List<String> ids = store.transforms().map(Transform::id).toList();
-        Assertions.assertEquals(first.id(), ids.get(0));
-        Assertions.assertEquals(last.id(), ids.get(ids.size() - 1));
+        Assertions.assertEquals(first.id(), ids.getFirst());
+        Assertions.assertEquals(last.id(), ids.getLast());
         Transform maker = Transform.Factory.create("a", g -> new TransformationModel(g) {
             @Override
             public void perform() throws TransformException {
