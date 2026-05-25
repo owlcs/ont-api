@@ -48,13 +48,16 @@ public class TestPlainLiteralTestCase extends TestBase {
 
     @Test
     public void shouldParsePlainLiteral() throws OWLOntologyCreationException {
-        String input = "<?xml version=\"1.0\"?>\n"
-                + "    <rdf:RDF xmlns=\"http://www.w3.org/2002/07/owl#\" xml:base=\"http://www.w3.org/2002/07/owl\"\n"
-                + "         xmlns:rdfs=\"http://www.w3.org/2000/01/rdf-schema#\" xmlns:owl=\"http://www.w3.org/2002/07/owl#\"\n"
-                + "         xmlns:xsd=\"http://www.w3.org/2001/XMLSchema#\" xmlns:rdf=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#\">\n\n"
-                + "        <rdf:Description rdf:about=\"urn:test#ind\">\n"
-                + "            <rdfs:comment rdf:datatype=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral\">test</rdfs:comment>\n"
-                + "        </rdf:Description>\n" + "    </rdf:RDF>";
+        String input = """
+                <?xml version="1.0"?>
+                    <rdf:RDF xmlns="http://www.w3.org/2002/07/owl#" xml:base="http://www.w3.org/2002/07/owl"
+                         xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#" xmlns:owl="http://www.w3.org/2002/07/owl#"
+                         xmlns:xsd="http://www.w3.org/2001/XMLSchema#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+                
+                        <rdf:Description rdf:about="urn:test#ind">
+                            <rdfs:comment rdf:datatype="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral">test</rdfs:comment>
+                        </rdf:Description>
+                    </rdf:RDF>""";
         OWLOntology o = loadOntologyFromString(input);
         IRI i = IRI("urn:test#", "ind");
         Assertions.assertEquals(AnnotationAssertion(RDFSComment(), i, Literal("test", OWL2Datatype.RDF_PLAIN_LITERAL)),
@@ -72,11 +75,11 @@ public class TestPlainLiteralTestCase extends TestBase {
     public void testPlainLiteralSerialization() throws Exception {
         OWLOntology o = getOWLOntology();
         OWLDocumentFormat format = OntFormat.RDF_XML.createOwlFormat();
-        format.asPrefixOWLDocumentFormat().setPrefix("test", "urn:test#");
+        format.asPrefixOWLDocumentFormat().setPrefix("test", "urn:test:ontology#");
         o.getOWLOntologyManager().setOntologyFormat(o, format);
 
-        OWLDataProperty p = df.getOWLDataProperty("urn:test#", "p");
-        OWLIndividual i = df.getOWLNamedIndividual("urn:test#", "ind");
+        OWLDataProperty p = df.getOWLDataProperty("urn:test:ontology#", "p");
+        OWLIndividual i = df.getOWLNamedIndividual("urn:test:ontology#", "ind");
         OWLLiteral l = df.getOWLLiteral("test", OWL2Datatype.RDF_PLAIN_LITERAL);
         o.add(df.getOWLDataPropertyAssertionAxiom(p, i, l));
 
@@ -93,7 +96,7 @@ public class TestPlainLiteralTestCase extends TestBase {
     public void testPlainLiteralSerializationComments() throws Exception {
         OWLOntology o = getOWLOntology();
         o.getOWLOntologyManager().setOntologyFormat(o, OntFormat.RDF_XML.createOwlFormat());
-        OWLIndividual i = df.getOWLNamedIndividual("urn:test#", "ind");
+        OWLIndividual i = df.getOWLNamedIndividual("urn:test:ontology#", "ind");
         OWLLiteral l = df.getOWLLiteral("test", OWL2Datatype.RDF_PLAIN_LITERAL);
         o.add(df.getOWLAnnotationAssertionAxiom(i.asOWLNamedIndividual().getIRI(), df.getRDFSComment(l)));
         ByteArrayOutputStream out = new ByteArrayOutputStream();

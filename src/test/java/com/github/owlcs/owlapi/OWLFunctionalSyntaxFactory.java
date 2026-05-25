@@ -129,7 +129,7 @@ import static org.semanticweb.owlapi.model.IRI.getNextDocumentIRI;
  */
 public final class OWLFunctionalSyntaxFactory {
 
-    private static final String URNTESTS_URI = "urn:tests#uri";
+    private static final String URNTESTS_URI = "urn:tests:ontology#uri";
     public static final OWLDataFactory DF = OWLManager.getOWLDataFactory();
 
     public static OWLImportsDeclaration ImportsDeclaration(IRI i) {

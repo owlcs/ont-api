@@ -80,9 +80,9 @@ public class OWLLiteralCorruptionTestCase extends TestBase {
     public void testShouldRoundTripXMLLiteral() throws Exception {
         String literal = "<div xmlns=\"http://www.w3.org/1999/xhtml\"><h3>[unknown]</h3><p>(describe NameGroup \"[unknown]\")</p></div>";
         OWLOntology o = getOWLOntology();
-        OWLDataProperty p = df.getOWLDataProperty(IRI.create("urn:test#", "p"));
+        OWLDataProperty p = df.getOWLDataProperty(IRI.create("urn:test:ontology#", "p"));
         OWLLiteral l = df.getOWLLiteral(literal, OWL2Datatype.RDF_XML_LITERAL);
-        OWLNamedIndividual i = df.getOWLNamedIndividual(IRI.create("urn:test#", "i"));
+        OWLNamedIndividual i = df.getOWLNamedIndividual(IRI.create("urn:test:ontology#", "i"));
         o.add(df.getOWLDataPropertyAssertionAxiom(p, i, l));
         String txt = saveOntology(o, OntFormat.RDF_XML.createOwlFormat()).toString();
         LOGGER.debug(txt);
@@ -120,9 +120,9 @@ public class OWLLiteralCorruptionTestCase extends TestBase {
 
     private void shouldFailOnMalformedXMLLiteral(String literal) throws Exception {
         OWLOntology o = m.createOntology();
-        OWLDataProperty p = df.getOWLDataProperty(IRI.create("urn:test#", "p"));
+        OWLDataProperty p = df.getOWLDataProperty(IRI.create("urn:test:ontology#", "p"));
         OWLLiteral l = df.getOWLLiteral(literal, OWL2Datatype.RDF_XML_LITERAL);
-        OWLNamedIndividual i = df.getOWLNamedIndividual(IRI.create("urn:test#", "i"));
+        OWLNamedIndividual i = df.getOWLNamedIndividual(IRI.create("urn:test:ontology#", "i"));
         o.add(df.getOWLDataPropertyAssertionAxiom(p, i, l));
         // OWL-API stops working on the next line:
         String txt = saveOntology(o, OntFormat.RDF_XML.createOwlFormat()).toString();

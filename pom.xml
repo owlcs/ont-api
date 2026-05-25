@@ -32,17 +32,17 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <!-- https://mvnrepository.com/artifact/org.apache.jena/jena-ontapi -->
-        <version.jena>6.0.0</version.jena>
+        <version.jena>6.1.0</version.jena>
         <!-- https://mvnrepository.com/artifact/net.sourceforge.owlapi/owlapi-api -->
         <version.owlapi>5.5.1</version.owlapi>
         <!-- https://mvnrepository.com/artifact/org.slf4j/slf4j-api -->
-        <version.slf4j>2.0.17</version.slf4j>
+        <version.slf4j>2.0.18</version.slf4j>
         <!-- https://mvnrepository.com/artifact/com.github.ben-manes.caffeine/caffeine -->
-        <version.caffeine>3.2.3</version.caffeine>
+        <version.caffeine>3.2.4</version.caffeine>
         <!-- https://jitpack.io/#sszuev/concurrent-rdf-graph -->
         <version.concurrent-rdf-graph>1.1.0-java</version.concurrent-rdf-graph>
         <!-- https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter -->
-        <version.junit>6.0.3</version.junit>
+        <version.junit>6.1.0</version.junit>
         <!-- https://mvnrepository.com/artifact/org.mockito/mockito-core -->
         <versio.mockito>5.23.0</versio.mockito>
 
