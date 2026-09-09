@@ -344,8 +344,8 @@ public class ReasonerDeclarator extends BaseDeclarator {
                 return Res.TRUE;
             }
             if (isClass(subject)) {
-                // empirically workaround for NCBITAXON (issue #67)
-                declareIndividual(subject).declareAnnotationProperty(property);
+                // An annotation on a class IRI does not imply an individual declaration.
+                declareAnnotationProperty(property);
                 return Res.TRUE;
             }
         } else {

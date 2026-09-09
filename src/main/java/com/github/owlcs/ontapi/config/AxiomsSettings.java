@@ -14,8 +14,6 @@
 
 package com.github.owlcs.ontapi.config;
 
-import org.apache.jena.ontapi.common.OntPersonality;
-
 /**
  * A common interface to access axioms settings.
  * <p>
@@ -111,7 +109,7 @@ public interface AxiomsSettings {
      * Otherwise, (if the option is turned off), the annotation axioms of above type
      * are ignored in favour of object or data property axioms.
      * <p>
-     * Please note: {@link OntPersonality.Punnings OntPersonality.Punnings}
+     * Please note: {@link org.apache.jena.ontapi.common.OntPersonality.Punnings OntPersonality.Punnings}
      * is the general mechanism to control punnings.
      * It is accessible through the config methods
      * {@link OntConfig#getSpecification()} and {@link OntLoaderConfiguration#getSpecification()}.

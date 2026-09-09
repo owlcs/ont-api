@@ -101,8 +101,13 @@ public class OWLTransformTest {
 
         MiscTestUtils.assertAxiom(o, AxiomType.SUBCLASS_OF, 3);
         MiscTestUtils.assertAxiom(o, AxiomType.DISJOINT_CLASSES, 3);
-        // 1011 without named individuals:
+        // OWLAPI has 1011 declarations; ONT-API additionally declares 971 individuals and 2 annotation properties.
         MiscTestUtils.assertAxiom(o, AxiomType.DECLARATION, 1984);
+
+        OWLOntology reference = OntManagers.createOWLAPIImplManager().loadOntologyFromOntologyDocument(
+                OWLIOUtils.getFileDocumentSource("/ontapi/NCBITAXON-CUT.ttl", OntFormat.TURTLE));
+        Assertions.assertEquals(reference.getIndividualsInSignature(), o.getIndividualsInSignature());
+        Assertions.assertEquals(reference.getLogicalAxioms(), o.getLogicalAxioms());
     }
 
     @Test

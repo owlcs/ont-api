@@ -21,7 +21,6 @@ import com.github.owlcs.ontapi.transforms.GraphTransformers;
 import com.github.owlcs.ontapi.transforms.Transform;
 import com.github.owlcs.ontapi.transforms.TransformationModel;
 import org.apache.jena.ontapi.OntSpecification;
-import org.apache.jena.ontapi.common.OntPersonality;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.MissingImportHandlingStrategy;
 import org.semanticweb.owlapi.model.MissingOntologyHeaderStrategy;
@@ -326,8 +325,8 @@ public class OntConfig extends OntologyConfigurator
      * An ONT-API manager's load config setter.
      * Sets {@code OntSpecification} model configuration object.
      *
-     * @param specification     {@link OntPersonality} the personality
-     * @param constantFieldPath {@link String} a path to constant for serialization,
+     * @param specification     {@link OntSpecification}
+     * @param constantFieldPath {@code String} a path to constant for serialization,
      *                          e.g. {@code "org.apache.jena.ontapi.OntSpecification#OWL2_DL_MEM"};
      *                          if {@code null} no attempt to serialize this field
      * @return this instance
